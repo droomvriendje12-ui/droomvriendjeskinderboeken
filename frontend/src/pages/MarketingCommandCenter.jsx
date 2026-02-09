@@ -31,6 +31,139 @@ const MarketingCommandCenter = () => {
   const [importing, setImporting] = useState(false);
   const [leadsStats, setLeadsStats] = useState({ total_leads: 0, by_source: {}, by_gender: {} });
   
+  // Campaign state
+  const [showCampaignBuilder, setShowCampaignBuilder] = useState(false);
+  const [campaignName, setCampaignName] = useState('');
+  const [campaignType, setCampaignType] = useState('promotional');
+  const [selectedSegments, setSelectedSegments] = useState(['all']);
+  const [sendingCampaign, setSendingCampaign] = useState(false);
+  
+  // WhatsApp state
+  const [whatsappSegment, setWhatsappSegment] = useState('recent');
+  const [whatsappTemplate, setWhatsappTemplate] = useState('offer');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
+  const [sendingWhatsapp, setSendingWhatsapp] = useState(false);
+  
+  // SMS state
+  const [smsRecipients, setSmsRecipients] = useState('vip');
+  const [smsMessage, setSmsMessage] = useState('');
+  const [smsDateTime, setSmsDateTime] = useState('');
+  const [sendingSms, setSendingSms] = useState(false);
+  
+  // Influencer state
+  const [influencerNiche, setInfluencerNiche] = useState('');
+  const [influencerMinFollowers, setInfluencerMinFollowers] = useState('');
+  const [searchingInfluencers, setSearchingInfluencers] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  
+  // Notification state
+  const [notification, setNotification] = useState(null);
+  
+  // Show notification helper
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
+  
+  // Campaign functions
+  const createCampaign = async () => {
+    if (!campaignName.trim()) {
+      showNotification('Voer een campagne naam in', 'error');
+      return;
+    }
+    setSendingCampaign(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    showNotification(`✅ Campagne "${campaignName}" is aangemaakt en wordt voorbereid!`, 'success');
+    setCampaignName('');
+    setShowCampaignBuilder(false);
+    setSendingCampaign(false);
+  };
+  
+  // WhatsApp functions
+  const sendWhatsappBroadcast = async () => {
+    if (!whatsappMessage.trim()) {
+      showNotification('Voer een bericht in', 'error');
+      return;
+    }
+    setSendingWhatsapp(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const segments = {
+      recent: 487,
+      highvalue: 234,
+      abandoned: 156,
+      newsletter: 2847
+    };
+    
+    showNotification(`✅ WhatsApp broadcast verzonden naar ${segments[whatsappSegment]} contacten!`, 'success');
+    setWhatsappMessage('');
+    setSendingWhatsapp(false);
+  };
+  
+  // SMS functions
+  const sendSmsCampaign = async () => {
+    if (!smsMessage.trim()) {
+      showNotification('Voer een SMS bericht in', 'error');
+      return;
+    }
+    setSendingSms(true);
+    
+    // Simulate API call  
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const recipients = {
+      vip: 234,
+      flash: 892,
+      abandoned: 156
+    };
+    
+    showNotification(`✅ SMS campagne gepland voor ${recipients[smsRecipients]} ontvangers! (Mock - Twilio integratie nodig voor echte verzending)`, 'success');
+    setSmsMessage('');
+    setSendingSms(false);
+  };
+  
+  // Influencer search
+  const searchInfluencers = async () => {
+    setSearchingInfluencers(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Mock search results
+    const mockResults = [
+      { handle: '@ouders_lifestyle', name: 'Ouders & Lifestyle', followers: 45000, engagement: 7.2, avatar: '👨‍👩‍👧' },
+      { handle: '@baby_tips_nl', name: 'Baby Tips NL', followers: 32000, engagement: 8.5, avatar: '👶' },
+      { handle: '@slaap_expert', name: 'Slaap Expert', followers: 28000, engagement: 6.8, avatar: '😴' }
+    ];
+    
+    setSearchResults(mockResults);
+    showNotification(`🔍 ${mockResults.length} influencers gevonden!`, 'success');
+    setSearchingInfluencers(false);
+  };
+  
+  // Affiliate actions
+  const approveAffiliate = async (affiliateId, name) => {
+    showNotification(`✅ ${name} is goedgekeurd als affiliate!`, 'success');
+    // Update local state to remove from pending
+    setAffiliateData(prev => ({
+      ...prev,
+      pending_approvals: prev.pending_approvals.filter(a => a.id !== affiliateId)
+    }));
+  };
+  
+  const rejectAffiliate = async (affiliateId, name) => {
+    showNotification(`❌ ${name} is afgewezen`, 'error');
+    setAffiliateData(prev => ({
+      ...prev,
+      pending_approvals: prev.pending_approvals.filter(a => a.id !== affiliateId)
+    }));
+  };
+  
   // Stats state
   const [stats, setStats] = useState({
     today_revenue: 2847,
