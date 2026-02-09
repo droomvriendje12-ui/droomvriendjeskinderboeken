@@ -1508,7 +1508,10 @@ const MarketingCommandCenter = () => {
                   <input type="number" defaultValue={50} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white" />
                 </div>
               </div>
-              <button className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold">
+              <button 
+                onClick={() => showNotification('✅ Affiliate instellingen opgeslagen!')}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all"
+              >
                 Instellingen Opslaan
               </button>
             </div>
@@ -1516,15 +1519,37 @@ const MarketingCommandCenter = () => {
             <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-white mb-4">Recente Aanmeldingen</h3>
               <div className="space-y-3">
-                {affiliateData.pending_approvals.map((affiliate, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${affiliate.color} rounded-full flex items-center justify-center font-bold text-white`}>
-                        {affiliate.initials}
+                {affiliateData.pending_approvals.length > 0 ? (
+                  affiliateData.pending_approvals.map((affiliate, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 bg-gradient-to-br ${affiliate.color} rounded-full flex items-center justify-center font-bold text-white`}>
+                          {affiliate.initials}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white">{affiliate.name}</p>
+                          <p className="text-sm text-white/60">{affiliate.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-white">{affiliate.name}</p>
-                        <p className="text-sm text-white/60">{affiliate.email}</p>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => approveAffiliate(affiliate.id, affiliate.name)}
+                          className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold text-sm hover:shadow-lg transition-all"
+                        >
+                          ✓ Approve
+                        </button>
+                        <button 
+                          onClick={() => rejectAffiliate(affiliate.id, affiliate.name)}
+                          className="px-4 py-2 bg-white/5 border border-white/20 rounded-xl text-white font-semibold text-sm hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                        >
+                          ✗ Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-white/40 text-center py-8">Geen aanmeldingen in behandeling</p>
+                )}
                       </div>
                     </div>
                     <div className="flex gap-3">
