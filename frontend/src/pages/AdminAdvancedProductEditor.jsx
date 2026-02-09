@@ -649,120 +649,194 @@ const AdminAdvancedProductEditor = () => {
             {activeTab === 'media' && (
               <div className="space-y-6">
                 {/* Info Banner */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <h3 className="font-semibold text-blue-800 flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-5 h-5" />
-                    Hoe werkt Image Override?
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <h3 className="font-semibold text-amber-800 flex items-center gap-2 mb-2">
+                    <Camera className="w-5 h-5" />
+                    Productpagina Afbeeldingen Beheren
                   </h3>
-                  <p className="text-blue-700 text-sm">
-                    De <strong>standaard afbeeldingen</strong> blijven altijd behouden als fallback. 
-                    Upload een nieuwe foto om de standaard te <strong>overschrijven</strong>. 
-                    Je kunt de override altijd verwijderen om terug te gaan naar de standaard.
+                  <p className="text-amber-700 text-sm">
+                    Hier kun je de <strong>drie belangrijkste afbeeldingen</strong> van de productpagina beheren. 
+                    Upload of wijzig afbeeldingen die direct op de website worden getoond.
                   </p>
                 </div>
 
-                {/* Main Product Image */}
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Camera className="w-5 h-5 text-[#8B7355]" />
-                      Hoofdafbeelding
-                    </h2>
-                    {mainImageOverride && (
-                      <Button 
-                        onClick={clearMainOverride} 
-                        variant="outline" 
-                        size="sm"
-                        className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                      >
-                        <RotateCcw className="w-4 h-4 mr-1" />
-                        Terug naar Standaard
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Default Image */}
-                    <div className={`border-2 rounded-xl p-4 ${!mainImageOverride ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-700">Standaard</span>
-                        {!mainImageOverride && (
-                          <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">ACTIEF</span>
-                        )}
+                {/* THREE MAIN IMAGE FIELDS */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* 1. HOOFDAFBEELDING */}
+                  <div className="bg-white rounded-xl shadow-sm border p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-[#8B7355] rounded-lg flex items-center justify-center text-white font-bold text-sm">1</div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Hoofdafbeelding</h3>
+                        <p className="text-xs text-gray-500">Primaire productfoto</p>
                       </div>
-                      <div className="aspect-square bg-[#fdf8f3] rounded-lg overflow-hidden mb-3">
+                    </div>
+                    
+                    <div className="aspect-square bg-[#fdf8f3] rounded-xl overflow-hidden mb-4 border-2 border-dashed border-gray-200">
+                      {(mainImageOverride || product.image) ? (
                         <img 
-                          src={imageInfo?.default?.image || product.image}
-                          alt="Standaard afbeelding"
+                          src={mainImageOverride || product.image}
+                          alt="Hoofdafbeelding"
                           className="w-full h-full object-contain"
                         />
-                      </div>
-                      <p className="text-xs text-gray-500 truncate">
-                        {imageInfo?.default?.image || product.image}
-                      </p>
-                    </div>
-
-                    {/* Override Image */}
-                    <div className={`border-2 rounded-xl p-4 ${mainImageOverride ? 'border-green-400 bg-green-50' : 'border-dashed border-gray-300'}`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-700">Override</span>
-                        {mainImageOverride && (
-                          <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">ACTIEF</span>
-                        )}
-                      </div>
-                      
-                      {mainImageOverride ? (
-                        <>
-                          <div className="aspect-square bg-[#fdf8f3] rounded-lg overflow-hidden mb-3">
-                            <img 
-                              src={mainImageOverride}
-                              alt="Override afbeelding"
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <p className="text-xs text-gray-500 truncate mb-3">
-                            {mainImageOverride}
-                          </p>
-                          <Button 
-                            onClick={() => mainImageInputRef.current?.click()}
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                          >
-                            <Upload className="w-4 h-4 mr-1" />
-                            Vervangen
-                          </Button>
-                        </>
                       ) : (
-                        <div 
-                          onClick={() => mainImageInputRef.current?.click()}
-                          className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
-                        >
-                          <Upload className="w-12 h-12 text-gray-300 mb-3" />
-                          <p className="text-sm text-gray-500">Klik om te uploaden</p>
-                          <p className="text-xs text-gray-400 mt-1">of sleep een bestand</p>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                          <Camera className="w-12 h-12 mb-2" />
+                          <span className="text-sm">Geen afbeelding</span>
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* URL Input Option */}
-                  <div className="mt-4 pt-4 border-t">
-                    <label className="text-sm text-gray-600 mb-2 block">Of plak een URL:</label>
-                    <div className="flex gap-2">
+                    
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => mainImageInputRef.current?.click()}
+                        className="w-full bg-[#8B7355] hover:bg-[#6d5a45]"
+                        size="sm"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {mainImageOverride ? 'Vervangen' : 'Uploaden'}
+                      </Button>
+                      {mainImageOverride && (
+                        <Button 
+                          onClick={clearMainOverride}
+                          variant="outline"
+                          className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
+                          size="sm"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Standaard herstellen
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t">
+                      <label className="text-xs text-gray-500 mb-1 block">Of URL invoeren:</label>
                       <Input
                         value={mainImageOverride}
                         onChange={(e) => setMainImageOverride(e.target.value)}
-                        placeholder="https://... of /uploads/..."
-                        className="flex-1"
+                        onBlur={() => mainImageOverride && saveImageOverride(mainImageOverride, null)}
+                        placeholder="/products/..."
+                        className="text-xs"
                       />
+                    </div>
+                  </div>
+
+                  {/* 2. SFEER/MACRO AFBEELDING */}
+                  <div className="bg-white rounded-xl shadow-sm border p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">2</div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Sfeer/Detail</h3>
+                        <p className="text-xs text-gray-500">Macro/close-up foto</p>
+                      </div>
+                    </div>
+                    
+                    <div className="aspect-square bg-[#fdf8f3] rounded-xl overflow-hidden mb-4 border-2 border-dashed border-gray-200">
+                      {macroImage ? (
+                        <img 
+                          src={macroImage}
+                          alt="Sfeer afbeelding"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                          <Sparkles className="w-12 h-12 mb-2" />
+                          <span className="text-sm">Geen afbeelding</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
                       <Button 
-                        onClick={() => saveImageOverride(mainImageOverride, null)}
-                        disabled={!mainImageOverride}
-                        className="bg-[#8B7355] hover:bg-[#6d5a45]"
+                        onClick={() => macroImageInputRef.current?.click()}
+                        className="w-full bg-blue-500 hover:bg-blue-600"
+                        size="sm"
                       >
-                        Opslaan
+                        <Upload className="w-4 h-4 mr-2" />
+                        {macroImage ? 'Vervangen' : 'Uploaden'}
                       </Button>
+                      {macroImage && (
+                        <Button 
+                          onClick={() => { setMacroImage(''); saveSpecificImage('macroImage', ''); }}
+                          variant="outline"
+                          className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
+                          size="sm"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Verwijderen
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t">
+                      <label className="text-xs text-gray-500 mb-1 block">Of URL invoeren:</label>
+                      <Input
+                        value={macroImage}
+                        onChange={(e) => setMacroImage(e.target.value)}
+                        onBlur={() => macroImage && saveSpecificImage('macroImage', macroImage)}
+                        placeholder="/products/.../Macro..."
+                        className="text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3. SPECIFICATIES/AFMETINGEN AFBEELDING */}
+                  <div className="bg-white rounded-xl shadow-sm border p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">3</div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Specificaties</h3>
+                        <p className="text-xs text-gray-500">Afmetingen/info foto</p>
+                      </div>
+                    </div>
+                    
+                    <div className="aspect-square bg-[#fdf8f3] rounded-xl overflow-hidden mb-4 border-2 border-dashed border-gray-200">
+                      {dimensionsImage ? (
+                        <img 
+                          src={dimensionsImage}
+                          alt="Specificaties afbeelding"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                          <Settings className="w-12 h-12 mb-2" />
+                          <span className="text-sm">Geen afbeelding</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => dimensionsImageInputRef.current?.click()}
+                        className="w-full bg-green-500 hover:bg-green-600"
+                        size="sm"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {dimensionsImage ? 'Vervangen' : 'Uploaden'}
+                      </Button>
+                      {dimensionsImage && (
+                        <Button 
+                          onClick={() => { setDimensionsImage(''); saveSpecificImage('dimensionsImage', ''); }}
+                          variant="outline"
+                          className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
+                          size="sm"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Verwijderen
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t">
+                      <label className="text-xs text-gray-500 mb-1 block">Of URL invoeren:</label>
+                      <Input
+                        value={dimensionsImage}
+                        onChange={(e) => setDimensionsImage(e.target.value)}
+                        onBlur={() => dimensionsImage && saveSpecificImage('dimensionsImage', dimensionsImage)}
+                        placeholder="/products/.../dimensions..."
+                        className="text-xs"
+                      />
                     </div>
                   </div>
                 </div>
@@ -772,7 +846,7 @@ const AdminAdvancedProductEditor = () => {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#8B7355]" />
-                      Galerij Afbeeldingen
+                      Galerij Afbeeldingen (Overige)
                     </h2>
                     {galleryOverrides.some(o => o) && (
                       <Button 
