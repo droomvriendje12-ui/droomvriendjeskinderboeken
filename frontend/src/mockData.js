@@ -1,9 +1,9 @@
 // Mock data voor Droomvriendjes website
 
 export const products = [
-  // DE SLIMME AI-SERIE - Leeuw (FM666-61)
+  // DE SLIMME AI-SERIE - Leeuw (FM666-61) - DATABASE ID: 14
   {
-    id: 1,
+    id: 14,
     name: "Slimme Leeuw – Nachtlampje met AI Huilsensor & Projector – USB-C Oplaadbaar",
     shortName: "Slimme Leeuw",
     price: 49.95,
