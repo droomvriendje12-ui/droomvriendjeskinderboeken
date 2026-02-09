@@ -150,7 +150,34 @@ backend:
         agent: "testing"
         comment: "✅ ORDERS API WORKING: POST /orders endpoint correctly handles both automatic discount (2nd item 50%) and manual coupon (WELKOM10). Verified calculation: total_amount = subtotal - discount - coupon_discount. Tested edge cases: auto-only, coupon-only, combined discounts. All order fields (subtotal, discount, coupon_code, coupon_discount, total_amount) persist correctly in database."
 
+  - task: "Marketing Command Center Backend API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/marketing.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created 10 new API endpoints for Marketing Command Center: /api/marketing/stats, /api/marketing/channel-performance, /api/marketing/top-products, /api/marketing/hourly-revenue, /api/marketing/whatsapp/stats, /api/marketing/sms/stats, /api/marketing/influencers, /api/marketing/affiliates, /api/marketing/chat (AI), /api/marketing/ai-insights. All endpoints integrate with MongoDB and return real data with graceful fallbacks."
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL 10 MARKETING ENDPOINTS WORKING: stats, channel-performance, top-products, hourly-revenue, whatsapp/stats, sms/stats, influencers, affiliates, chat (AI), ai-insights. AI chat working with Dutch responses. Success rate: 10/10 passed."
+
 frontend:
+  - task: "Marketing Command Center Frontend Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MarketingCommandCenter.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created comprehensive Marketing Command Center with: Live Dashboard (real-time metrics, charts, activities), Email Campaigns tab, WhatsApp Marketing tab, SMS Campaigns tab, Influencer Marketing tab, Affiliate Program tab, AI Chatbot with real OpenAI integration. Route updated at /admin/email-marketing."
+
   - task: "Reviews Tool Advanced Page"
     implemented: true
     working: "NA"
