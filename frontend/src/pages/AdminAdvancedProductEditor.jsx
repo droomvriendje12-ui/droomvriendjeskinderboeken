@@ -27,7 +27,8 @@ import {
   Camera,
   RotateCcw,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
