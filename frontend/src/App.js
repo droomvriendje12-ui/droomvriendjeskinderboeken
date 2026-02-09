@@ -46,7 +46,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminDiscountCodesPage from "./pages/AdminDiscountCodesPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
 import AdminAdvancedProductEditor from "./pages/AdminAdvancedProductEditor";
-import EmailMarketingPage from "./pages/EmailMarketingPage";
+import MarketingDashboardPage from "./pages/MarketingDashboardPage";
 import TipsBedtijdPage from "./pages/TipsBedtijdPage";
 import OudersSlaaptipsPage from "./pages/OudersSlaaptipsPage";
 import RustmomentOudersPage from "./pages/RustmomentOudersPage";
