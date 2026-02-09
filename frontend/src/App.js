@@ -108,7 +108,8 @@ function App() {
               <Route path="/qr/:channel" element={<OfflineLandingPage />} />
               {/* Marketing Presentatie */}
               <Route path="/presentatie" element={<PresentationPage />} />
-              {/* SEO Landing Pages */}
+              {/* SEO Landing Pages - AI Optimized */}
+              <Route path="/baby-slaapt-niet" element={<BabySlaaptNietPage />} />
               <Route path="/slaapknuffel" element={<SeoLandingPage />} />
               <Route path="/knuffel-nachtlampje" element={<SeoLandingPage />} />
               <Route path="/baby-nachtlamp" element={<SeoLandingPage />} />
