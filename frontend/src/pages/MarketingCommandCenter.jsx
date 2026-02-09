@@ -1398,21 +1398,68 @@ const MarketingCommandCenter = () => {
             
             <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-white mb-4">🔍 Find New Influencers</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 <input 
                   type="text" 
+                  value={influencerNiche}
+                  onChange={(e) => setInfluencerNiche(e.target.value)}
                   placeholder="Niche (e.g. parenting)" 
-                  className="bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  className="bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40"
                 />
                 <input 
                   type="number" 
+                  value={influencerMinFollowers}
+                  onChange={(e) => setInfluencerMinFollowers(e.target.value)}
                   placeholder="Min followers" 
-                  className="bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  className="bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40"
                 />
-                <button className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold">
-                  Search Influencers
+                <button 
+                  onClick={searchInfluencers}
+                  disabled={searchingInfluencers}
+                  className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {searchingInfluencers ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Zoeken...
+                    </>
+                  ) : (
+                    'Search Influencers'
+                  )}
                 </button>
               </div>
+              
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="border-t border-white/10 pt-6">
+                  <h4 className="font-bold text-white mb-4">Zoekresultaten</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {searchResults.map((result, i) => (
+                      <div key={i} className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-all">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-lg">
+                            {result.avatar}
+                          </div>
+                          <div>
+                            <p className="font-bold text-white text-sm">{result.handle}</p>
+                            <p className="text-xs text-white/60">{result.name}</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-sm mb-3">
+                          <span className="text-white/60">{(result.followers / 1000).toFixed(0)}K followers</span>
+                          <span className="text-emerald-400">{result.engagement}% eng.</span>
+                        </div>
+                        <button 
+                          onClick={() => showNotification(`✅ Uitnodiging verzonden naar ${result.handle}!`)}
+                          className="w-full py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm font-bold hover:bg-emerald-500/30 transition-all"
+                        >
+                          Uitnodigen
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
