@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, Home, Star, Users, Target, ShoppingBag, TrendingUp, MessageSquare, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Home, Star, Users, Target, ShoppingBag, TrendingUp, MessageSquare, CheckCircle, Globe, Smartphone, MapPin, BarChart3, Zap } from 'lucide-react';
 
 const PresentationPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
