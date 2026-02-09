@@ -6,7 +6,8 @@ import {
   TrendingUp, Euro, ShoppingCart, Eye, Clock,
   Send, ChevronRight, X, BarChart3, ArrowUpRight,
   RefreshCw, Download, Plus, Settings, LogOut,
-  Check, AlertTriangle, Target, Sparkles
+  Check, AlertTriangle, Target, Sparkles, Upload,
+  FileText, UserPlus, Calendar
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -22,6 +23,13 @@ const MarketingCommandCenter = () => {
   const [chatLoading, setChatLoading] = useState(false);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const chatMessagesRef = useRef(null);
+  const fileInputRef = useRef(null);
+  
+  // CSV Import state
+  const [isDragging, setIsDragging] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [leadsStats, setLeadsStats] = useState({ total_leads: 0, by_source: {}, by_gender: {} });
   
   // Stats state
   const [stats, setStats] = useState({
