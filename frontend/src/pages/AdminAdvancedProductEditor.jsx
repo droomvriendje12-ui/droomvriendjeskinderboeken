@@ -505,6 +505,20 @@ const AdminAdvancedProductEditor = () => {
       />
       <input 
         type="file" 
+        ref={macroImageInputRef}
+        onChange={handleMacroImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
+      <input 
+        type="file" 
+        ref={dimensionsImageInputRef}
+        onChange={handleDimensionsImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
+      <input 
+        type="file" 
         ref={galleryImageInputRef}
         onChange={handleGalleryImageUpload}
         accept="image/*"
