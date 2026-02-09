@@ -442,7 +442,7 @@ def apply_image_overrides(product: dict) -> dict:
     """
     Apply image overrides to a product.
     If image_override exists and is not empty, use it instead of the default image.
-    Same for gallery_overrides.
+    Same for gallery_overrides, macroImage, and dimensionsImage.
     """
     # Apply main image override
     if product.get("image_override"):
@@ -466,6 +466,9 @@ def apply_image_overrides(product: dict) -> dict:
                 new_gallery.append(default_gallery[i])
         
         product["gallery"] = new_gallery
+    
+    # macroImage and dimensionsImage are stored directly - no override logic needed
+    # They are explicit fields that admin can set directly
     
     return product
 
