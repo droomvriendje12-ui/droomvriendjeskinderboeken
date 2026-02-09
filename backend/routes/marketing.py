@@ -826,7 +826,8 @@ async def get_leads(
         if gender:
             query["gender"] = gender
         
-        leads = await db.marketing_leads.find(query).skip(skip).limit(limit).to_list(length=limit)
+        # Exclude MongoDB _id field to avoid serialization issues
+        leads = await db.marketing_leads.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
         total = await db.marketing_leads.count_documents(query)
         
         return {
