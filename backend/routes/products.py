@@ -496,6 +496,8 @@ async def get_product(product_id: int):
         product = await db.products.find_one({"id": product_id}, {"_id": 0})
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
+        # Apply image overrides
+        product = apply_image_overrides(product)
         return product
     except HTTPException:
         raise
