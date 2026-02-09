@@ -10,7 +10,6 @@ from datetime import datetime, timezone, timedelta
 import os
 import uuid
 import logging
-from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -20,8 +19,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/marketing", tags=["marketing"])
 
-# Get database connection from main server
-from server import db
+# Database will be set by the main server
+db = None
+
+def set_database(database):
+    global db
+    db = database
 
 # Pydantic models
 class MarketingStats(BaseModel):
