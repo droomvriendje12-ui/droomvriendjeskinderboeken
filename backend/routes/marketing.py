@@ -659,3 +659,209 @@ async def get_ai_insights():
     except Exception as e:
         logger.error(f"Error getting AI insights: {e}")
         return []
+
+
+# CSV Import Models
+class CSVImportResult(BaseModel):
+    total_leads: int
+    valid_leads: int
+    duplicates: int
+    male_count: int
+    female_count: int
+    age_35_50: int
+    age_51_65: int
+    age_65_plus: int
+    source: str
+
+class LeadData(BaseModel):
+    gender: str
+    firstname: str
+    lastname: str
+    date_of_birth: str
+    email: str
+    source: str = "eGENTIC"
+
+@router.post("/leads/import-csv")
+async def import_csv_leads(file: bytes = None, csv_content: str = None):
+    """Import leads from CSV file (eGENTIC/Datafanatics format)"""
+    from fastapi import File, UploadFile, Form
+    
+    # This will be handled by the form endpoint below
+    pass
+
+from fastapi import File, UploadFile
+
+@router.post("/leads/upload-csv")
+async def upload_csv_leads(file: UploadFile = File(...)):
+    """Upload and process CSV file with leads"""
+    try:
+        # Read file content
+        content = await file.read()
+        csv_text = content.decode('utf-8')
+        
+        # Parse CSV
+        lines = csv_text.strip().split('\n')
+        if len(lines) < 2:
+            raise HTTPException(status_code=400, detail="CSV bestand is leeg of heeft geen data")
+        
+        # Get headers
+        headers = lines[0].strip().split(';')
+        
+        # Parse leads
+        leads = []
+        email_set = set()
+        duplicates = 0
+        male_count = 0
+        female_count = 0
+        age_35_50 = 0
+        age_51_65 = 0
+        age_65_plus = 0
+        
+        now = datetime.now()
+        
+        for i, line in enumerate(lines[1:], start=2):
+            if not line.strip():
+                continue
+            
+            values = line.strip().split(';')
+            if len(values) < 5:
+                continue
+            
+            gender = values[0].strip().lower()
+            firstname = values[1].strip()
+            lastname = values[2].strip()
+            date_of_birth = values[3].strip()
+            email = values[4].strip().lower()
+            source = values[5].strip() if len(values) > 5 else "eGENTIC"
+            
+            # Skip duplicates
+            if email in email_set:
+                duplicates += 1
+                continue
+            
+            email_set.add(email)
+            
+            # Count gender
+            if gender == 'male':
+                male_count += 1
+            elif gender == 'female':
+                female_count += 1
+            
+            # Calculate age
+            try:
+                birth_date = datetime.strptime(date_of_birth, '%Y-%m-%d')
+                age = now.year - birth_date.year
+                
+                if 35 <= age <= 50:
+                    age_35_50 += 1
+                elif 51 <= age <= 65:
+                    age_51_65 += 1
+                elif age > 65:
+                    age_65_plus += 1
+            except:
+                pass
+            
+            lead = {
+                "id": str(uuid.uuid4()),
+                "gender": gender,
+                "firstname": firstname,
+                "lastname": lastname,
+                "date_of_birth": date_of_birth,
+                "email": email,
+                "source": source,
+                "imported_at": datetime.now(timezone.utc).isoformat(),
+                "status": "active"
+            }
+            leads.append(lead)
+        
+        # Check for existing emails in database
+        existing_emails = set()
+        if leads:
+            existing = await db.marketing_leads.find(
+                {"email": {"$in": [l["email"] for l in leads]}}
+            ).to_list(length=10000)
+            existing_emails = {e["email"] for e in existing}
+        
+        # Filter out already existing leads
+        new_leads = [l for l in leads if l["email"] not in existing_emails]
+        duplicates += len(leads) - len(new_leads)
+        
+        # Insert new leads
+        if new_leads:
+            await db.marketing_leads.insert_many(new_leads)
+        
+        return {
+            "success": True,
+            "total_leads": len(lines) - 1,
+            "valid_leads": len(new_leads),
+            "duplicates": duplicates,
+            "male_count": male_count,
+            "female_count": female_count,
+            "male_percentage": round(male_count / max(len(new_leads), 1) * 100, 1),
+            "female_percentage": round(female_count / max(len(new_leads), 1) * 100, 1),
+            "age_35_50": age_35_50,
+            "age_51_65": age_51_65,
+            "age_65_plus": age_65_plus,
+            "source": new_leads[0]["source"] if new_leads else "eGENTIC"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error importing CSV: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij importeren: {str(e)}")
+
+@router.get("/leads")
+async def get_leads(
+    skip: int = 0,
+    limit: int = 100,
+    source: Optional[str] = None,
+    gender: Optional[str] = None
+):
+    """Get imported leads with optional filters"""
+    try:
+        query = {}
+        if source:
+            query["source"] = source
+        if gender:
+            query["gender"] = gender
+        
+        leads = await db.marketing_leads.find(query).skip(skip).limit(limit).to_list(length=limit)
+        total = await db.marketing_leads.count_documents(query)
+        
+        return {
+            "leads": leads,
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        }
+    except Exception as e:
+        logger.error(f"Error getting leads: {e}")
+        return {"leads": [], "total": 0, "skip": skip, "limit": limit}
+
+@router.get("/leads/stats")
+async def get_leads_stats():
+    """Get statistics about imported leads"""
+    try:
+        total = await db.marketing_leads.count_documents({})
+        
+        # Get counts by source
+        pipeline = [
+            {"$group": {"_id": "$source", "count": {"$sum": 1}}}
+        ]
+        sources = await db.marketing_leads.aggregate(pipeline).to_list(length=100)
+        
+        # Get gender distribution
+        pipeline_gender = [
+            {"$group": {"_id": "$gender", "count": {"$sum": 1}}}
+        ]
+        genders = await db.marketing_leads.aggregate(pipeline_gender).to_list(length=10)
+        
+        return {
+            "total_leads": total,
+            "by_source": {s["_id"]: s["count"] for s in sources if s["_id"]},
+            "by_gender": {g["_id"]: g["count"] for g in genders if g["_id"]}
+        }
+    except Exception as e:
+        logger.error(f"Error getting leads stats: {e}")
+        return {"total_leads": 0, "by_source": {}, "by_gender": {}}
