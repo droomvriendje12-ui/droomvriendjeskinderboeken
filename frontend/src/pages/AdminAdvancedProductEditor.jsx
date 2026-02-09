@@ -207,6 +207,50 @@ const AdminAdvancedProductEditor = () => {
     }
   };
 
+  // Handle macro image upload
+  const handleMacroImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const url = await uploadImage(file, 'macro');
+    if (url) {
+      setMacroImage(url);
+      // Auto-save to product
+      await saveSpecificImage('macroImage', url);
+    }
+  };
+
+  // Handle dimensions image upload
+  const handleDimensionsImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const url = await uploadImage(file, 'dimensions');
+    if (url) {
+      setDimensionsImage(url);
+      // Auto-save to product
+      await saveSpecificImage('dimensionsImage', url);
+    }
+  };
+
+  // Save specific image field to product
+  const saveSpecificImage = async (field, url) => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${productId}/advanced`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: url })
+      });
+      
+      if (response.ok) {
+        setUploadProgress('Afbeelding opgeslagen!');
+        setTimeout(() => setUploadProgress(null), 2000);
+      }
+    } catch (error) {
+      console.error('Error saving specific image:', error);
+    }
+  };
+
   // Handle gallery image upload
   const handleGalleryImageUpload = async (e) => {
     const file = e.target.files?.[0];
