@@ -635,3 +635,181 @@ async def get_product_advanced(product_id: int):
         logger.error(f"Error fetching product advanced {product_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+@router.put("/{product_id}/image-override")
+async def update_product_image_override(product_id: int, updates: dict):
+    """
+    Update product image overrides.
+    Supports:
+    - image_override: string URL to override main product image
+    - gallery_overrides: array of URLs to override gallery images (use null/empty to keep default)
+    
+    Set to null or empty string to clear override and use default image.
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check product exists
+        product = await db.products.find_one({"id": product_id})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Prepare update
+        update_fields = {"updated_at": datetime.now(timezone.utc)}
+        
+        # Handle main image override
+        if "image_override" in updates:
+            override = updates["image_override"]
+            if override and override.strip():
+                update_fields["image_override"] = override.strip()
+            else:
+                # Clear override - unset the field
+                await db.products.update_one(
+                    {"id": product_id},
+                    {"$unset": {"image_override": ""}}
+                )
+        
+        # Handle gallery overrides
+        if "gallery_overrides" in updates:
+            overrides = updates["gallery_overrides"]
+            if overrides and any(o for o in overrides if o):
+                # Clean the array - keep structure but allow nulls
+                update_fields["gallery_overrides"] = [
+                    o.strip() if o and isinstance(o, str) else None 
+                    for o in overrides
+                ]
+            else:
+                # Clear all gallery overrides
+                await db.products.update_one(
+                    {"id": product_id},
+                    {"$unset": {"gallery_overrides": ""}}
+                )
+        
+        # Apply updates
+        if len(update_fields) > 1:  # More than just updated_at
+            await db.products.update_one(
+                {"id": product_id},
+                {"$set": update_fields}
+            )
+        
+        # Return updated product with raw data (no overrides applied - for admin)
+        product = await db.products.find_one({"id": product_id}, {"_id": 0})
+        logger.info(f"Product {product_id} image overrides updated")
+        
+        return {
+            "success": True,
+            "product": product,
+            "message": "Image overrides updated"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating image overrides for product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{product_id}/image-override")
+async def clear_product_image_overrides(product_id: int):
+    """Clear all image overrides for a product, reverting to default images"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check product exists
+        product = await db.products.find_one({"id": product_id})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Clear all overrides
+        await db.products.update_one(
+            {"id": product_id},
+            {
+                "$unset": {
+                    "image_override": "",
+                    "gallery_overrides": ""
+                },
+                "$set": {
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Return updated product
+        product = await db.products.find_one({"id": product_id}, {"_id": 0})
+        logger.info(f"Product {product_id} image overrides cleared")
+        
+        return {
+            "success": True,
+            "product": product,
+            "message": "All image overrides cleared - using default images"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error clearing image overrides for product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{product_id}/image-info")
+async def get_product_image_info(product_id: int):
+    """
+    Get detailed image information for a product including:
+    - Default images (original)
+    - Override images (if set)
+    - Active images (what's currently shown on frontend)
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Get raw product data without applying overrides
+        product = await db.products.find_one({"id": product_id}, {"_id": 0})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Build response with clear separation
+        default_image = product.get("image", "")
+        default_gallery = product.get("gallery", [])
+        
+        image_override = product.get("image_override")
+        gallery_overrides = product.get("gallery_overrides", [])
+        
+        # Calculate active images
+        active_image = image_override if image_override else default_image
+        
+        active_gallery = []
+        max_len = max(len(gallery_overrides) if gallery_overrides else 0, len(default_gallery))
+        for i in range(max_len):
+            if gallery_overrides and i < len(gallery_overrides) and gallery_overrides[i]:
+                active_gallery.append(gallery_overrides[i])
+            elif i < len(default_gallery):
+                active_gallery.append(default_gallery[i])
+        
+        return {
+            "product_id": product_id,
+            "product_name": product.get("shortName", product.get("name", "")),
+            "default": {
+                "image": default_image,
+                "gallery": default_gallery
+            },
+            "overrides": {
+                "image": image_override,
+                "gallery": gallery_overrides if gallery_overrides else []
+            },
+            "active": {
+                "image": active_image,
+                "gallery": active_gallery
+            },
+            "has_overrides": bool(image_override or (gallery_overrides and any(gallery_overrides)))
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting image info for product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
