@@ -1270,26 +1270,40 @@ const MarketingCommandCenter = () => {
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
                 <p className="text-sm text-white"><strong>💡 Tip:</strong> SMS heeft 98% open rate binnen 3 minuten. Perfect voor urgente aanbiedingen!</p>
               </div>
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
+                <p className="text-sm text-orange-300"><strong>⚠️ Let op:</strong> SMS verzending is momenteel in mock-modus. Voor echte SMS heb je Twilio credentials nodig.</p>
+              </div>
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-bold text-white mb-2">Ontvangers</label>
-                  <select className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white">
-                    <option>VIP Klanten (234)</option>
-                    <option>Flash Sale Segment (892)</option>
-                    <option>Verlaten Winkelwagen (156)</option>
+                  <select 
+                    value={smsRecipients}
+                    onChange={(e) => setSmsRecipients(e.target.value)}
+                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  >
+                    <option value="vip">VIP Klanten (234)</option>
+                    <option value="flash">Flash Sale Segment (892)</option>
+                    <option value="abandoned">Verlaten Winkelwagen (156)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-white mb-2">Tijdstip</label>
-                  <input type="datetime-local" className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white" />
+                  <input 
+                    type="datetime-local" 
+                    value={smsDateTime}
+                    onChange={(e) => setSmsDateTime(e.target.value)}
+                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white" 
+                  />
                 </div>
               </div>
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-bold text-white">Bericht</label>
-                  <span className="text-sm text-white/60">0/160 karakters</span>
+                  <span className="text-sm text-white/60">{smsMessage.length}/160 karakters</span>
                 </div>
                 <textarea 
+                  value={smsMessage}
+                  onChange={(e) => setSmsMessage(e.target.value)}
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white resize-none" 
                   rows={3}
                   maxLength={160}
@@ -1299,19 +1313,33 @@ const MarketingCommandCenter = () => {
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-4 bg-white/5 rounded-xl">
                   <p className="text-xs text-white/60 mb-1">Geschat Bereik</p>
-                  <p className="text-2xl font-black text-white">234</p>
+                  <p className="text-2xl font-black text-white">{smsRecipients === 'vip' ? 234 : smsRecipients === 'flash' ? 892 : 156}</p>
                 </div>
                 <div className="text-center p-4 bg-white/5 rounded-xl">
                   <p className="text-xs text-white/60 mb-1">Kosten</p>
-                  <p className="text-2xl font-black text-white">€23.40</p>
+                  <p className="text-2xl font-black text-white">€{((smsRecipients === 'vip' ? 234 : smsRecipients === 'flash' ? 892 : 156) * 0.10).toFixed(2)}</p>
                 </div>
                 <div className="text-center p-4 bg-emerald-500/20 rounded-xl border border-emerald-500/50">
                   <p className="text-xs text-white/60 mb-1">Voorspelde ROI</p>
                   <p className="text-2xl font-black text-emerald-400">12.4x</p>
                 </div>
               </div>
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white font-bold shadow-lg">
-                Verzend SMS Campagne
+              <button 
+                onClick={sendSmsCampaign}
+                disabled={sendingSms}
+                className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white font-bold shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {sendingSms ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Verzenden...
+                  </>
+                ) : (
+                  <>
+                    <Phone className="w-5 h-5" />
+                    Verzend SMS Campagne
+                  </>
+                )}
               </button>
             </div>
           </div>
