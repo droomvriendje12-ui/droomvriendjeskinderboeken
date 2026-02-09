@@ -150,6 +150,21 @@ backend:
         agent: "testing"
         comment: "✅ ORDERS API WORKING: POST /orders endpoint correctly handles both automatic discount (2nd item 50%) and manual coupon (WELKOM10). Verified calculation: total_amount = subtotal - discount - coupon_discount. Tested edge cases: auto-only, coupon-only, combined discounts. All order fields (subtotal, discount, coupon_code, coupon_discount, total_amount) persist correctly in database."
 
+  - task: "CSV Import for Marketing Leads"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/marketing.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added CSV import functionality for eGENTIC/Datafanatics leads. Endpoints: POST /api/marketing/leads/upload-csv, GET /api/marketing/leads, GET /api/marketing/leads/stats. Supports drag & drop upload with gender/age segmentation analysis."
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL 3 CSV IMPORT ENDPOINTS WORKING: upload-csv, leads, leads/stats. 15,008 leads imported with proper categorization. Filtering and pagination working correctly."
+
   - task: "Marketing Command Center Backend API"
     implemented: true
     working: true
