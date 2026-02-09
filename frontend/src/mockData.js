@@ -41,7 +41,7 @@ export const products = [
     ageRange: "Vanaf 0 maanden",
     warranty: "30 dagen slaapgarantie",
     sku: "FM666-61",
-    item_id: "KNUF_001",
+    item_id: "KNUF_014",
     item_category: "Knuffels",
     item_category2: "AI Slaapknuffels",
     item_category3: "Slimme Serie",
