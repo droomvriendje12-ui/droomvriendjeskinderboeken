@@ -683,7 +683,7 @@ class LeadData(BaseModel):
 
 @router.post("/leads/import-csv")
 async def import_csv_leads(file: bytes = None, csv_content: str = None):
-    """Import leads from CSV file (eGENTIC/Datafanatics format)"""
+    """Import leads from CSV file"""
     from fastapi import File, UploadFile, Form
     
     # This will be handled by the form endpoint below
