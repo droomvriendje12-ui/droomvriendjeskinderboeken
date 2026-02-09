@@ -508,7 +508,7 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
     const schemas = [organizationSchema, websiteSchema];
     
     if (pageType === 'home') {
-      schemas.push(localBusinessSchema, faqSchema, itemListSchema);
+      schemas.push(localBusinessSchema, faqSchema, itemListSchema, howToSchema, videoSchema, reviewSchema);
     }
     
     if (breadcrumbSchema) {
