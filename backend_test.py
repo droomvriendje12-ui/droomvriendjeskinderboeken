@@ -451,6 +451,205 @@ class DroomvriendjesAPITester:
             error = response.text if response else "Request failed"
             self.log_result("Create Order with Discounts", False, "Failed to create order", error)
     
+    def test_marketing_apis(self):
+        """Test Marketing Command Center APIs"""
+        print("\n=== TESTING MARKETING COMMAND CENTER APIs ===")
+        
+        # 1. Test GET /api/marketing/stats
+        response = self.make_request("GET", "/marketing/stats")
+        if response and response.status_code == 200:
+            stats = response.json()
+            required_fields = ["today_revenue", "live_conversions", "active_visitors", 
+                             "email_open_rate", "yesterday_revenue", "revenue_change"]
+            has_all_fields = all(field in stats for field in required_fields)
+            
+            if has_all_fields:
+                self.log_result("Marketing Stats", True, 
+                               f"Revenue: €{stats['today_revenue']}, Conversions: {stats['live_conversions']}")
+            else:
+                missing = [f for f in required_fields if f not in stats]
+                self.log_result("Marketing Stats", False, f"Missing fields: {missing}", stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Marketing Stats", False, "Failed to get marketing stats", error)
+        
+        # 2. Test GET /api/marketing/channel-performance
+        response = self.make_request("GET", "/marketing/channel-performance")
+        if response and response.status_code == 200:
+            channels = response.json()
+            if isinstance(channels, list) and len(channels) > 0:
+                required_fields = ["channel", "revenue", "percentage", "color"]
+                first_channel = channels[0]
+                has_all_fields = all(field in first_channel for field in required_fields)
+                
+                if has_all_fields:
+                    channel_names = [ch["channel"] for ch in channels]
+                    self.log_result("Channel Performance", True, 
+                                   f"Found {len(channels)} channels: {', '.join(channel_names)}")
+                else:
+                    missing = [f for f in required_fields if f not in first_channel]
+                    self.log_result("Channel Performance", False, f"Missing fields: {missing}", first_channel)
+            else:
+                self.log_result("Channel Performance", False, "Invalid response format", channels)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Channel Performance", False, "Failed to get channel performance", error)
+        
+        # 3. Test GET /api/marketing/top-products
+        response = self.make_request("GET", "/marketing/top-products")
+        if response and response.status_code == 200:
+            products = response.json()
+            if isinstance(products, list) and len(products) <= 3:
+                required_fields = ["name", "sold", "revenue", "color"]
+                if products and all(field in products[0] for field in required_fields):
+                    product_names = [p["name"] for p in products]
+                    self.log_result("Top Products", True, 
+                                   f"Found {len(products)} top products: {', '.join(product_names)}")
+                else:
+                    self.log_result("Top Products", False, "Invalid product format", products)
+            else:
+                self.log_result("Top Products", False, "Should return max 3 products", products)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Top Products", False, "Failed to get top products", error)
+        
+        # 4. Test GET /api/marketing/hourly-revenue
+        response = self.make_request("GET", "/marketing/hourly-revenue")
+        if response and response.status_code == 200:
+            revenue_data = response.json()
+            required_fields = ["labels", "data"]
+            has_all_fields = all(field in revenue_data for field in required_fields)
+            
+            if has_all_fields:
+                labels = revenue_data["labels"]
+                data = revenue_data["data"]
+                if isinstance(labels, list) and isinstance(data, list) and len(labels) == len(data):
+                    self.log_result("Hourly Revenue", True, 
+                                   f"Chart data: {len(labels)} time points, max revenue: €{max(data)}")
+                else:
+                    self.log_result("Hourly Revenue", False, "Labels and data length mismatch", revenue_data)
+            else:
+                missing = [f for f in required_fields if f not in revenue_data]
+                self.log_result("Hourly Revenue", False, f"Missing fields: {missing}", revenue_data)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Hourly Revenue", False, "Failed to get hourly revenue", error)
+        
+        # 5. Test GET /api/marketing/whatsapp/stats
+        response = self.make_request("GET", "/marketing/whatsapp/stats")
+        if response and response.status_code == 200:
+            whatsapp_stats = response.json()
+            required_fields = ["active_contacts", "open_rate", "today_revenue"]
+            has_all_fields = all(field in whatsapp_stats for field in required_fields)
+            
+            if has_all_fields:
+                self.log_result("WhatsApp Stats", True, 
+                               f"Contacts: {whatsapp_stats['active_contacts']}, Open rate: {whatsapp_stats['open_rate']}%")
+            else:
+                missing = [f for f in required_fields if f not in whatsapp_stats]
+                self.log_result("WhatsApp Stats", False, f"Missing fields: {missing}", whatsapp_stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("WhatsApp Stats", False, "Failed to get WhatsApp stats", error)
+        
+        # 6. Test GET /api/marketing/sms/stats
+        response = self.make_request("GET", "/marketing/sms/stats")
+        if response and response.status_code == 200:
+            sms_stats = response.json()
+            required_fields = ["delivery_rate", "open_rate_3min", "monthly_roi"]
+            has_all_fields = all(field in sms_stats for field in required_fields)
+            
+            if has_all_fields:
+                self.log_result("SMS Stats", True, 
+                               f"Delivery: {sms_stats['delivery_rate']}%, ROI: €{sms_stats['monthly_roi']}")
+            else:
+                missing = [f for f in required_fields if f not in sms_stats]
+                self.log_result("SMS Stats", False, f"Missing fields: {missing}", sms_stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("SMS Stats", False, "Failed to get SMS stats", error)
+        
+        # 7. Test GET /api/marketing/influencers
+        response = self.make_request("GET", "/marketing/influencers")
+        if response and response.status_code == 200:
+            influencer_data = response.json()
+            required_fields = ["total", "total_reach", "avg_engagement", "generated_revenue", "top_influencers"]
+            has_all_fields = all(field in influencer_data for field in required_fields)
+            
+            if has_all_fields:
+                top_influencers = influencer_data["top_influencers"]
+                self.log_result("Influencers", True, 
+                               f"Total: {influencer_data['total']}, Reach: {influencer_data['total_reach']:,}, Top: {len(top_influencers)}")
+            else:
+                missing = [f for f in required_fields if f not in influencer_data]
+                self.log_result("Influencers", False, f"Missing fields: {missing}", influencer_data)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Influencers", False, "Failed to get influencers", error)
+        
+        # 8. Test GET /api/marketing/affiliates
+        response = self.make_request("GET", "/marketing/affiliates")
+        if response and response.status_code == 200:
+            affiliate_data = response.json()
+            required_fields = ["total", "total_clicks", "conversion_rate", "total_paid", "pending_approvals"]
+            has_all_fields = all(field in affiliate_data for field in required_fields)
+            
+            if has_all_fields:
+                pending = affiliate_data["pending_approvals"]
+                self.log_result("Affiliates", True, 
+                               f"Total: {affiliate_data['total']}, Conversion: {affiliate_data['conversion_rate']}%, Pending: {len(pending)}")
+            else:
+                missing = [f for f in required_fields if f not in affiliate_data]
+                self.log_result("Affiliates", False, f"Missing fields: {missing}", affiliate_data)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Affiliates", False, "Failed to get affiliates", error)
+        
+        # 9. Test POST /api/marketing/chat
+        chat_data = {
+            "message": "Hoe verbeter ik mijn email marketing?",
+            "session_id": "test123"
+        }
+        response = self.make_request("POST", "/marketing/chat", chat_data)
+        if response and response.status_code == 200:
+            chat_response = response.json()
+            required_fields = ["response", "session_id"]
+            has_all_fields = all(field in chat_response for field in required_fields)
+            
+            if has_all_fields and chat_response["session_id"] == "test123":
+                response_text = chat_response["response"][:50] + "..." if len(chat_response["response"]) > 50 else chat_response["response"]
+                self.log_result("AI Chat", True, f"Response: {response_text}")
+            else:
+                self.log_result("AI Chat", False, "Invalid chat response format", chat_response)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("AI Chat", False, "Failed to get AI chat response", error)
+        
+        # 10. Test GET /api/marketing/ai-insights
+        response = self.make_request("GET", "/marketing/ai-insights")
+        if response and response.status_code == 200:
+            insights = response.json()
+            if isinstance(insights, list):
+                if insights:
+                    required_fields = ["type", "icon", "title", "message", "color"]
+                    first_insight = insights[0]
+                    has_all_fields = all(field in first_insight for field in required_fields)
+                    
+                    if has_all_fields:
+                        insight_types = [insight["type"] for insight in insights]
+                        self.log_result("AI Insights", True, 
+                                       f"Found {len(insights)} insights: {', '.join(insight_types)}")
+                    else:
+                        missing = [f for f in required_fields if f not in first_insight]
+                        self.log_result("AI Insights", False, f"Missing fields: {missing}", first_insight)
+                else:
+                    self.log_result("AI Insights", True, "No insights available (empty array)")
+            else:
+                self.log_result("AI Insights", False, "Should return array", insights)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("AI Insights", False, "Failed to get AI insights", error)
+    
     def test_edge_cases(self):
         """Test edge cases and error handling"""
         print("\n=== TESTING EDGE CASES ===")
