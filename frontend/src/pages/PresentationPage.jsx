@@ -535,7 +535,7 @@ const PresentationPage = () => {
             </div>
             
             <div className="bg-gradient-to-br from-[#8B7355] to-[#6d5a45] rounded-2xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-6">Vragen voor Emergent.sg</h3>
+              <h3 className="text-2xl font-bold mb-6">Vragen voor Marketing Bureau</h3>
               
               <ul className="space-y-4 text-lg">
                 <li className="flex items-start gap-3">
