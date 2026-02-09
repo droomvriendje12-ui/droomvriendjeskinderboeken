@@ -1550,26 +1550,20 @@ const MarketingCommandCenter = () => {
                 ) : (
                   <p className="text-white/40 text-center py-8">Geen aanmeldingen in behandeling</p>
                 )}
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold text-sm">
-                        ✓ Approve
-                      </button>
-                      <button className="px-4 py-2 bg-white/5 border border-white/20 rounded-xl text-white font-semibold text-sm">
-                        ✗ Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {affiliateData.pending_approvals.length === 0 && (
-                  <p className="text-white/40 text-center py-4">Geen aanmeldingen in behandeling</p>
-                )}
               </div>
             </div>
           </div>
         )}
       </main>
+      
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-6 right-6 px-6 py-4 rounded-xl shadow-lg z-50 animate-slideIn ${
+          notification.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
+        } text-white font-semibold`}>
+          {notification.message}
+        </div>
+      )}
       
       {/* AI Chatbot Toggle */}
       <button
