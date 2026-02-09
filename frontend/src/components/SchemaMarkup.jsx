@@ -1,11 +1,16 @@
 import React from 'react';
+import { getAllFAQs } from '../data/megaFAQs';
 
 /**
  * Schema Markup Component for AI-optimized SEO (2026)
  * Includes: Organization, LocalBusiness, WebSite, and BreadcrumbList schemas
  * Optimized for Gemini, Copilot, and other AI Answer Engines
+ * Now with 100+ FAQs for maximum AI visibility!
  */
 const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) => {
+  
+  // Get all FAQs from mega database
+  const allFAQsForSchema = getAllFAQs();
   
   // Organization Schema - Main business info
   const organizationSchema = {
