@@ -148,6 +148,7 @@ products_route.set_database(db)
 discount_codes_route.set_database(db)
 reviews_route.set_database(db)
 uploads_route.set_database(db)
+marketing_route.set_database(db)
 
 # Include modular routers
 api_router.include_router(products_route.router)
