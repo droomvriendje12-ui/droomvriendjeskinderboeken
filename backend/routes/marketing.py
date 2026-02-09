@@ -679,7 +679,7 @@ class LeadData(BaseModel):
     lastname: str
     date_of_birth: str
     email: str
-    source: str = "eGENTIC"
+    source: str = "CSV Import"
 
 @router.post("/leads/import-csv")
 async def import_csv_leads(file: bytes = None, csv_content: str = None):
