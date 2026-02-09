@@ -293,7 +293,94 @@ const PresentationPage = () => {
         </div>
       )
     },
-    // SLIDE 6: Performance Max Strategie
+    // SLIDE 6: See, Think, Do, Care Framework
+    {
+      id: 'stdc',
+      content: (
+        <div className="h-full px-12 py-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Target className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-4xl font-bold text-[#5a4a3a]">See, Think, Do, Care</h2>
+          </div>
+          <p className="text-xl text-[#8B7355] mb-6">Budget verdelen op basis van de klantreis</p>
+          
+          <div className="grid grid-cols-2 gap-4 h-[calc(100%-140px)]">
+            {/* SEE */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 border-2 border-purple-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">👁️</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-purple-700">SEE</h3>
+                  <span className="text-sm text-purple-600">Awareness fase</span>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-3">Mensen weten nog niet dat ze het nodig hebben, tot ze het zien.</p>
+              <div className="bg-white/70 rounded-lg p-3">
+                <p className="font-semibold text-purple-800">📺 Demand Gen Campagnes</p>
+                <p className="text-sm text-gray-600">YouTube & Gmail - Focus op de magie van de knuffels</p>
+              </div>
+            </div>
+            
+            {/* THINK */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border-2 border-blue-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🤔</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-blue-700">THINK</h3>
+                  <span className="text-sm text-blue-600">Consideration fase</span>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-3">Mensen zoeken actief naar oplossingen voor hun probleem.</p>
+              <div className="bg-white/70 rounded-lg p-3">
+                <p className="font-semibold text-blue-800">🔍 Search Ads</p>
+                <p className="text-sm text-gray-600">"hulp bij slapen baby" / "nachtlampje kind" - Pijn + Oplossing</p>
+              </div>
+            </div>
+            
+            {/* DO */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 border-2 border-green-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🛒</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-green-700">DO</h3>
+                  <span className="text-sm text-green-600">Conversion fase</span>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-3">Klaar om te kopen - prijs en titel moeten perfect zijn.</p>
+              <div className="bg-white/70 rounded-lg p-3">
+                <p className="font-semibold text-green-800">🛍️ Google Shopping</p>
+                <p className="text-sm text-gray-600">"Droomvriendjes® Slaaphulp - Rustgevende Knuffel met Sterrenhemel"</p>
+              </div>
+            </div>
+            
+            {/* CARE */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-5 border-2 border-orange-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">❤️</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-orange-700">CARE</h3>
+                  <span className="text-sm text-orange-600">Loyalty fase</span>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-3">Mandje verlaters & bestaande klanten terugwinnen.</p>
+              <div className="bg-white/70 rounded-lg p-3">
+                <p className="font-semibold text-orange-800">🔄 Remarketing</p>
+                <p className="text-sm text-gray-600">"Beste aankoop van het jaar!" - Reviews van andere ouders</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 7: Performance Max Strategie
     {
       id: 'strategy',
       content: (
