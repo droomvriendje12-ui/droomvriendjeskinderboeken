@@ -767,6 +767,7 @@ class DroomvriendjesAPITester:
         print("  ✓ Review Management (Edit, Bulk Delete, Filtering)")
         print("  ✓ Product Advanced Editor (Images with Alt-text)")
         print("  ✓ Orders API (Discount Calculations)")
+        print("  ✓ Marketing Command Center (Stats, Channels, AI Chat)")
         print("  ✓ Edge Cases & Error Handling")
         print("  ✓ Backward Compatibility")
 
