@@ -120,6 +120,10 @@ const AdminAdvancedProductEditor = () => {
             description: data.description || '',
             shortDescription: data.shortDescription || ''
           });
+          
+          // Load specific image fields
+          setMacroImage(data.macroImage || '');
+          setDimensionsImage(data.dimensionsImage || '');
         }
         
         // Fetch image override info
