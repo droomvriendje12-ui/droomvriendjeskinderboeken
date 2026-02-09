@@ -146,7 +146,7 @@ function App() {
               <Route path="/admin/shopping-campaigns" element={<ProtectedAdminRoute><ShoppingCampaignsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/shopping-campaigns/data" element={<ProtectedAdminRoute><ShoppingCampaignsDataPage /></ProtectedAdminRoute>} />
               <Route path="/admin/keywords" element={<ProtectedAdminRoute><KeywordsPage /></ProtectedAdminRoute>} />
-              <Route path="/admin/email-marketing" element={<ProtectedAdminRoute><EmailMarketingPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/email-marketing" element={<ProtectedAdminRoute><MarketingDashboardPage /></ProtectedAdminRoute>} />
               <Route path="/admin/campaigns" element={<ProtectedAdminRoute><CampaignManagementPage /></ProtectedAdminRoute>} />
               <Route path="/admin/product-reviews-importer" element={<ProtectedAdminRoute><AdminReviewsImporterPage /></ProtectedAdminRoute>} />
               <Route path="/admin/reviews-tool" element={<ProtectedAdminRoute><AdminReviewsToolAdvanced /></ProtectedAdminRoute>} />
