@@ -452,7 +452,119 @@ const PresentationPage = () => {
         </div>
       )
     },
-    // SLIDE 7: Koppen & Copy
+    // SLIDE 8: Google Shopping Titels
+    {
+      id: 'shopping-titles',
+      content: (
+        <div className="h-full px-12 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <ShoppingBag className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-3xl font-bold text-[#5a4a3a]">Google Shopping - Geoptimaliseerde Titels</h2>
+          </div>
+          <p className="text-lg text-[#8B7355] mb-4">De goedkoopste manier om advertenties beter te laten presteren</p>
+          
+          <div className="grid grid-cols-1 gap-3 mb-4">
+            {[
+              { product: 'Panda', old: 'Slaperige Panda', new: 'Droomvriendjes® Slaapknuffel Panda - White Noise & Sterrenprojector' },
+              { product: 'Eenhoorn', old: 'Magische Eenhoorn', new: 'Droomvriendjes® Eenhoorn Knuffel - Sterrenhemel Projector & Slaapliedjes' },
+              { product: 'Dino', old: 'Stoere Dino', new: 'Droomvriendjes® Dino Slaaptrainer - Nachtlampje met Projectie' },
+              { product: 'Beer', old: 'Zachte Beer', new: 'Droomvriendjes® Slaapbeer - Knuffel met Hartslag & White Noise' },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl p-3 shadow flex items-center gap-4">
+                <span className="text-2xl w-8">{['🐼', '🦄', '🦖', '🧸'][i]}</span>
+                <div className="flex-1">
+                  <span className="text-red-400 line-through text-sm">{item.old}</span>
+                  <p className="font-medium text-green-700 text-sm">{item.new}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-4 gap-3">
+            <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-200">
+              <p className="text-3xl mb-1">®</p>
+              <p className="font-bold text-blue-700 text-sm">Merknaam</p>
+              <p className="text-xs text-gray-600">Branding vooraan</p>
+            </div>
+            <div className="bg-green-50 rounded-xl p-3 text-center border border-green-200">
+              <p className="text-3xl mb-1">🔍</p>
+              <p className="font-bold text-green-700 text-sm">Zoekwoord</p>
+              <p className="text-xs text-gray-600">"Slaapknuffel"</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-3 text-center border border-purple-200">
+              <p className="text-3xl mb-1">⭐</p>
+              <p className="font-bold text-purple-700 text-sm">Features</p>
+              <p className="text-xs text-gray-600">White Noise, Projector</p>
+            </div>
+            <div className="bg-orange-50 rounded-xl p-3 text-center border border-orange-200">
+              <p className="text-3xl mb-1">👶</p>
+              <p className="font-bold text-orange-700 text-sm">Doelgroep</p>
+              <p className="text-xs text-gray-600">Baby & Peuter</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 9: Negative Keywords
+    {
+      id: 'negative-keywords',
+      content: (
+        <div className="h-full px-12 py-8">
+          <div className="flex items-center gap-3 mb-6">
+            <X className="w-10 h-10 text-red-500" />
+            <h2 className="text-4xl font-bold text-[#5a4a3a]">Negative Keywords - Budget Bescherming</h2>
+          </div>
+          <p className="text-xl text-[#8B7355] mb-6">Geen budget verspillen aan verkeerde zoekopdrachten</p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100%-140px)]">
+            <div>
+              <h3 className="text-2xl font-bold text-red-600 mb-4">🚫 Uit te sluiten</h3>
+              <div className="space-y-2">
+                {[
+                  { word: 'gratis', reason: 'Niet-kopers' },
+                  { word: 'tweedehands', reason: 'Geen nieuwe klanten' },
+                  { word: 'goedkoop', reason: 'Lage marges' },
+                  { word: 'DIY', reason: 'Maken zelf' },
+                  { word: 'patroon', reason: 'Willen breien/haken' },
+                  { word: 'review', reason: 'Alleen onderzoek' },
+                  { word: 'vergelijken', reason: 'Nog niet klaar' },
+                  { word: 'marktplaats', reason: 'Tweedehands zoeker' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-red-50 rounded-lg p-3 flex items-center justify-between border border-red-200">
+                    <span className="font-mono text-red-700">"{item.word}"</span>
+                    <span className="text-sm text-gray-600">{item.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-2xl font-bold text-green-600 mb-4">✅ Custom Labels</h3>
+              <div className="space-y-4">
+                <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                  <h4 className="font-bold text-green-700 mb-2">⭐ Label: "Bestseller"</h4>
+                  <p className="text-gray-600 mb-2">Panda & Eenhoorn als toppers markeren</p>
+                  <p className="text-sm text-green-600">→ Aparte campagne met hoger budget</p>
+                </div>
+                
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <h4 className="font-bold text-blue-700 mb-2">🎁 Label: "Cadeau"</h4>
+                  <p className="text-gray-600 mb-2">DUO Set & Premium Teddy</p>
+                  <p className="text-sm text-blue-600">→ Push tijdens feestdagen</p>
+                </div>
+                
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <h4 className="font-bold text-purple-700 mb-2">💰 Label: "Margin"</h4>
+                  <p className="text-gray-600 mb-2">High/Medium/Low margin producten</p>
+                  <p className="text-sm text-purple-600">→ ROAS targets per groep</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 10: Koppen & Copy
     {
       id: 'copy',
       content: (
