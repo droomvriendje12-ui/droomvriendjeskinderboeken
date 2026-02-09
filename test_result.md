@@ -259,6 +259,18 @@ frontend:
         agent: "main"
         comment: "Fixed product cards: 1:1 aspect ratio with contain, flex column with h-full, line-clamp-3 for descriptions, min-height for text consistency, buttons aligned to bottom with mt-auto."
 
+  - task: "Marketing Command Center API Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/marketing.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL MARKETING APIs WORKING: GET /marketing/stats (revenue, conversions, visitors), GET /marketing/channel-performance (Email, WhatsApp, Social, SMS), GET /marketing/top-products (top 3 products), GET /marketing/hourly-revenue (chart data), GET /marketing/whatsapp/stats (contacts, open rate), GET /marketing/sms/stats (delivery, ROI), GET /marketing/influencers (total reach, engagement), GET /marketing/affiliates (clicks, conversions), POST /marketing/chat (AI assistant), GET /marketing/ai-insights (opportunity, trending, action). All endpoints return correct data structure with required fields. AI chat working with fallback to mock responses. Success rate: 10/10 marketing endpoints passed."
+
   - task: "Checkout Discount Logic & Coupon Persistence"
     implemented: true
     working: false
