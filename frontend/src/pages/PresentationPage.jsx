@@ -564,7 +564,291 @@ const PresentationPage = () => {
         </div>
       )
     },
-    // SLIDE 10: Koppen & Copy
+    // SLIDE 10: Online-to-Offline (O2O) Strategie
+    {
+      id: 'o2o-strategy',
+      content: (
+        <div className="h-full px-12 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Globe className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-3xl font-bold text-[#5a4a3a]">Online-to-Offline (O2O) Strategie 2026</h2>
+          </div>
+          <p className="text-lg text-[#8B7355] mb-4">80% consumenten bezoekt geen winkel zonder online voorraadinfo</p>
+          
+          <div className="grid grid-cols-2 gap-4 h-[calc(100%-100px)]">
+            {/* Google Ecosysteem */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-4 border-2 border-red-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow">
+                  <span className="text-2xl">🔴</span>
+                </div>
+                <h3 className="text-xl font-bold text-red-700">Google Ecosysteem</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">90% marktaandeel • Volume & Visueel</p>
+              
+              <div className="space-y-2">
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-red-800 text-sm">🏪 Local Inventory Ads (LIA)</p>
+                  <p className="text-xs text-gray-600">+21% winkelbezoek • Real-time voorraad</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-red-800 text-sm">🚀 Performance Max</p>
+                  <p className="text-xs text-gray-600">AI-optimalisatie voor Store Visits</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-red-800 text-sm">📍 Google Maps Ads</p>
+                  <p className="text-xs text-gray-600">Promoted Pins • AR Live View</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Microsoft Ecosysteem */}
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border-2 border-blue-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow">
+                  <span className="text-2xl">🔵</span>
+                </div>
+                <h3 className="text-xl font-bold text-blue-700">Microsoft Ecosysteem</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">Zakelijk publiek • 30-60% lagere CPC</p>
+              
+              <div className="space-y-2">
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-blue-800 text-sm">💼 LinkedIn Targeting</p>
+                  <p className="text-xs text-gray-600">B2B leads • Besluitvormers bereiken</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-blue-800 text-sm">💰 Kostenefficiënt</p>
+                  <p className="text-xs text-gray-600">36% lagere CPC • Hogere conversie</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-2">
+                  <p className="font-semibold text-blue-800 text-sm">🗺️ Azure Maps (2026)</p>
+                  <p className="text-xs text-gray-600">Geavanceerde POI & navigatie</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Budget Verdeling */}
+            <div className="col-span-2 bg-gradient-to-r from-[#8B7355] to-[#6d5a45] rounded-xl p-4 text-white">
+              <h4 className="font-bold text-lg mb-2">💡 Aanbevolen Budget Verdeling</h4>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 bg-white/20 rounded-lg p-3 text-center">
+                  <p className="text-3xl font-bold">70%</p>
+                  <p className="text-sm">Google Ads</p>
+                  <p className="text-xs opacity-80">Volume & Bereik</p>
+                </div>
+                <div className="text-3xl">+</div>
+                <div className="flex-1 bg-white/20 rounded-lg p-3 text-center">
+                  <p className="text-3xl font-bold">30%</p>
+                  <p className="text-sm">Microsoft Ads</p>
+                  <p className="text-xs opacity-80">Efficiëntie & B2B</p>
+                </div>
+                <div className="text-3xl">=</div>
+                <div className="flex-1 bg-white/30 rounded-lg p-3 text-center">
+                  <p className="text-3xl font-bold">🎯</p>
+                  <p className="text-sm">Maximale ROI</p>
+                  <p className="text-xs opacity-80">Beste van beide</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 11: Offline Conversion Tracking
+    {
+      id: 'offline-tracking',
+      content: (
+        <div className="h-full px-12 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <BarChart3 className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-3xl font-bold text-[#5a4a3a]">Offline Conversion Tracking</h2>
+          </div>
+          <p className="text-lg text-[#8B7355] mb-4">De brug tussen online klik en fysieke verkoop</p>
+          
+          <div className="grid grid-cols-5 gap-3 mb-4">
+            {[
+              { step: '1', title: 'Klik', desc: 'GCLID/MSCLKID wordt gegenereerd', icon: '🖱️', color: 'blue' },
+              { step: '2', title: 'Lead', desc: 'Formulier ingevuld, ID opgeslagen', icon: '📝', color: 'purple' },
+              { step: '3', title: 'CRM', desc: 'Lead in HubSpot/Salesforce', icon: '💾', color: 'green' },
+              { step: '4', title: 'Verkoop', desc: 'Fysieke transactie voltooid', icon: '🏪', color: 'orange' },
+              { step: '5', title: 'Upload', desc: 'Data terug naar Google/MS', icon: '📤', color: 'red' },
+            ].map((item, i) => (
+              <div key={i} className={`bg-${item.color}-50 rounded-xl p-3 text-center border border-${item.color}-200`}>
+                <div className="text-3xl mb-1">{item.icon}</div>
+                <div className={`w-6 h-6 bg-${item.color}-500 text-white rounded-full mx-auto mb-1 flex items-center justify-center text-sm font-bold`}>{item.step}</div>
+                <p className="font-bold text-sm">{item.title}</p>
+                <p className="text-xs text-gray-600">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl p-4 shadow border">
+              <h4 className="font-bold text-lg text-[#8B7355] mb-3">🔑 Click ID's</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-red-50 rounded-lg p-2">
+                  <span className="font-mono text-sm">GCLID</span>
+                  <span className="text-xs text-gray-600">Google Click ID • 90 dagen</span>
+                </div>
+                <div className="flex justify-between items-center bg-blue-50 rounded-lg p-2">
+                  <span className="font-mono text-sm">MSCLKID</span>
+                  <span className="text-xs text-gray-600">Microsoft Click ID • 180 dagen</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-4 shadow border">
+              <h4 className="font-bold text-lg text-[#8B7355] mb-3">🔒 Enhanced Conversions</h4>
+              <p className="text-sm text-gray-600 mb-2">Privacyvriendelijk met gehashte data:</p>
+              <div className="flex gap-2">
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Email (SHA256)</span>
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Telefoon</span>
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Cross-device</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 12: Local SEO & AI 2026
+    {
+      id: 'local-seo-ai',
+      content: (
+        <div className="h-full px-12 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Zap className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-3xl font-bold text-[#5a4a3a]">Local SEO & AI in 2026</h2>
+          </div>
+          <p className="text-lg text-[#8B7355] mb-4">Van zoekresultaten naar AI-aanbevelingen</p>
+          
+          <div className="grid grid-cols-2 gap-6 h-[calc(100%-100px)]">
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4 border border-purple-200">
+                <h4 className="font-bold text-purple-800 flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🤖</span> AI Answer Engines
+                </h4>
+                <p className="text-sm text-gray-700 mb-2">Gemini & Copilot geven directe aanbevelingen</p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• "Beste slaapknuffel in Rotterdam" → Direct antwoord</li>
+                  <li>• Voorraad check vóór winkelbezoek</li>
+                  <li>• Virtuele store tours via AR</li>
+                </ul>
+              </div>
+              
+              <div className="bg-white rounded-xl p-4 shadow border">
+                <h4 className="font-bold text-[#8B7355] mb-2">📋 Schema Markup Vereist</h4>
+                <div className="bg-gray-50 rounded-lg p-2 font-mono text-xs">
+                  <p className="text-purple-600">@type: "LocalBusiness"</p>
+                  <p className="text-blue-600">openingHours: "Ma-Za 09:00-18:00"</p>
+                  <p className="text-green-600">priceRange: "€€"</p>
+                  <p className="text-orange-600">hasOfferCatalog: true</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 border border-green-200">
+                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2">
+                  <span className="text-2xl">📊</span> Gedragssignalen 2026
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Dwell time op GBP</span>
+                    <span className="font-bold text-green-600">↑ Hoog</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Routebeschrijving clicks</span>
+                    <span className="font-bold text-green-600">↑ Hoog</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Review sentiment</span>
+                    <span className="font-bold text-green-600">↑ Hoog</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Foto interacties</span>
+                    <span className="font-bold text-green-600">↑ Hoog</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                <h4 className="font-bold text-amber-800 mb-2">⭐ Review Strategie</h4>
+                <p className="text-sm text-gray-600 mb-2">AI analyseert tekst, niet alleen sterren:</p>
+                <div className="bg-white rounded-lg p-2 text-xs italic text-gray-700">
+                  "De <span className="bg-yellow-200 px-1">vriendelijke service</span> en <span className="bg-yellow-200 px-1">snelle levering</span> waren top!"
+                </div>
+                <p className="text-xs text-amber-700 mt-2">→ Specifieke keywords = betere ranking</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 13: Benchmarks Nederland
+    {
+      id: 'benchmarks',
+      content: (
+        <div className="h-full px-12 py-6">
+          <div className="flex items-center gap-3 mb-4">
+            <BarChart3 className="w-10 h-10 text-[#8B7355]" />
+            <h2 className="text-3xl font-bold text-[#5a4a3a]">Google Ads Benchmarks 2026</h2>
+          </div>
+          <p className="text-lg text-[#8B7355] mb-4">Kosten per industrie - Nederlandse markt</p>
+          
+          <div className="grid grid-cols-1 gap-2 mb-4">
+            {[
+              { industry: 'Advocatuur & Juridisch', cpc: '€6.75', ctr: '4.8%', cpl: '€131', color: 'red' },
+              { industry: 'Consumentendiensten', cpc: '€6.40', ctr: '6.5%', cpl: '€70', color: 'orange' },
+              { industry: 'Technologie & Software', cpc: '€3.80', ctr: '5.2%', cpl: '€75', color: 'purple' },
+              { industry: 'Baby & Kinderproducten', cpc: '€1.80', ctr: '7.2%', cpl: '€35', color: 'green', highlight: true },
+              { industry: 'Horeca & Restaurants', cpc: '€1.50', ctr: '8.5%', cpl: '€30', color: 'blue' },
+            ].map((item, i) => (
+              <div key={i} className={`flex items-center gap-4 p-3 rounded-xl ${item.highlight ? 'bg-green-100 border-2 border-green-400' : 'bg-white border'}`}>
+                <div className={`w-3 h-10 rounded bg-${item.color}-500`}></div>
+                <div className="flex-1">
+                  <p className={`font-semibold ${item.highlight ? 'text-green-800' : 'text-gray-800'}`}>
+                    {item.industry}
+                    {item.highlight && <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded">ONZE MARKT</span>}
+                  </p>
+                </div>
+                <div className="text-center px-4">
+                  <p className="text-xs text-gray-500">CPC</p>
+                  <p className="font-bold">{item.cpc}</p>
+                </div>
+                <div className="text-center px-4">
+                  <p className="text-xs text-gray-500">CTR</p>
+                  <p className="font-bold">{item.ctr}</p>
+                </div>
+                <div className="text-center px-4">
+                  <p className="text-xs text-gray-500">CPL</p>
+                  <p className="font-bold">{item.cpl}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-200">
+              <p className="text-3xl font-bold text-blue-600">36%</p>
+              <p className="text-sm text-gray-700">Lagere CPC op Microsoft</p>
+              <p className="text-xs text-gray-500">vs Google in Nederland</p>
+            </div>
+            <div className="bg-green-50 rounded-xl p-4 text-center border border-green-200">
+              <p className="text-3xl font-bold text-green-600">6.8%</p>
+              <p className="text-sm text-gray-700">Hogere orderwaarde</p>
+              <p className="text-xs text-gray-500">Bing gebruikers</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-200">
+              <p className="text-3xl font-bold text-purple-600">21%</p>
+              <p className="text-sm text-gray-700">Meer winkelbezoek</p>
+              <p className="text-xs text-gray-500">met Local Inventory Ads</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // SLIDE 14: Koppen & Copy
     {
       id: 'copy',
       content: (
