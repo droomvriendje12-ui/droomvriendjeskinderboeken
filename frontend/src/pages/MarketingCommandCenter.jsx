@@ -887,18 +887,272 @@ const MarketingCommandCenter = () => {
         {/* Email Tab */}
         {activeTab === 'email' && (
           <div className="space-y-8 animate-fadeIn">
-            <h2 className="text-3xl font-black text-white">📧 Email Marketing</h2>
-            <p className="text-white/60">Manage your email campaigns with AI optimization</p>
-            
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
-              <Mail className="w-16 h-16 text-white/40 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Email Campaign Builder</h3>
-              <p className="text-white/60 mb-6">Create AI-powered email campaigns in minutes</p>
-              <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/30 mx-auto">
-                <Zap className="w-5 h-5" />
-                Start AI Wizard
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-black text-white">📧 Email Marketing</h2>
+                <p className="text-white/60">Beheer en maak email campagnes met AI optimalisatie</p>
+              </div>
+              <button 
+                onClick={() => setShowCampaignBuilder(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Nieuwe Campagne
               </button>
             </div>
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-4 gap-6">
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
+                <p className="text-sm font-bold text-white/60 uppercase mb-2">Totaal Leads</p>
+                <p className="text-4xl font-black text-white">{leadsStats.total_leads.toLocaleString()}</p>
+                <p className="text-sm text-emerald-400 font-semibold mt-2">+{Math.floor(leadsStats.total_leads * 0.32).toLocaleString()} deze maand</p>
+              </div>
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
+                <p className="text-sm font-bold text-white/60 uppercase mb-2">Actieve Campagnes</p>
+                <p className="text-4xl font-black text-emerald-400">3</p>
+                <p className="text-sm text-white/50 font-semibold mt-2">2 gepland</p>
+              </div>
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
+                <p className="text-sm font-bold text-white/60 uppercase mb-2">Gem. Open Rate</p>
+                <p className="text-4xl font-black text-blue-400">58.3%</p>
+                <p className="text-sm text-emerald-400 font-semibold mt-2">+23% vs. industry</p>
+              </div>
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
+                <p className="text-sm font-bold text-white/60 uppercase mb-2">ROI Deze Maand</p>
+                <p className="text-4xl font-black text-emerald-400">6.2x</p>
+                <p className="text-sm text-emerald-400 font-semibold mt-2">€18,742 winst</p>
+              </div>
+            </div>
+            
+            {/* Active Campaigns */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">Actieve Campagnes</h3>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Campaign 1 */}
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-bold text-white mb-1">Voorjaar Sale 2026</h4>
+                      <p className="text-sm text-white/60">Premium Leads • 35-65 jaar</p>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold uppercase">Live</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-white/10 mb-4">
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Verzonden</p>
+                      <p className="text-xl font-black text-white">2,847</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Open Rate</p>
+                      <p className="text-xl font-black text-blue-400">62.3%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Conversies</p>
+                      <p className="text-xl font-black text-emerald-400">387</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-semibold text-white/70">ROI Progress</span>
+                      <span className="font-bold text-emerald-400">€16,291 winst</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style={{ width: '82%' }} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => showNotification('📊 Analytics geopend voor Voorjaar Sale 2026')}
+                      className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-semibold text-sm text-white transition-all"
+                    >
+                      📊 Analytics
+                    </button>
+                    <button 
+                      onClick={() => showNotification('✏️ Campagne editor geopend')}
+                      className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-all"
+                    >
+                      ✏️ Bewerken
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Campaign 2 */}
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-bold text-white mb-1">Moederdag Special</h4>
+                      <p className="text-sm text-white/60">Vrouwen • 30-65 jaar</p>
+                    </div>
+                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-bold uppercase">Live</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-white/10 mb-4">
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Verzonden</p>
+                      <p className="text-xl font-black text-white">1,234</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Open Rate</p>
+                      <p className="text-xl font-black text-blue-400">54.8%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-white/60 mb-1">Conversies</p>
+                      <p className="text-xl font-black text-emerald-400">143</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-semibold text-white/70">ROI Progress</span>
+                      <span className="font-bold text-emerald-400">€5,147 winst</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style={{ width: '68%' }} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => showNotification('📊 Analytics geopend voor Moederdag Special')}
+                      className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-semibold text-sm text-white transition-all"
+                    >
+                      📊 Analytics
+                    </button>
+                    <button 
+                      onClick={() => showNotification('✏️ Campagne editor geopend')}
+                      className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-all"
+                    >
+                      ✏️ Bewerken
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Campaign Builder Modal */}
+            {showCampaignBuilder && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-8">
+                <div className="bg-slate-900 border border-white/20 rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold text-white">⚡ Snelle Campagne Maker</h3>
+                    <button onClick={() => setShowCampaignBuilder(false)} className="text-white/60 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <label className="block text-sm font-bold text-white mb-2">Campagne Naam</label>
+                      <input 
+                        type="text" 
+                        value={campaignName}
+                        onChange={(e) => setCampaignName(e.target.value)}
+                        placeholder="Bijv: Moederdag Actie 2026" 
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-white mb-2">Campagne Type</label>
+                      <select 
+                        value={campaignType}
+                        onChange={(e) => setCampaignType(e.target.value)}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="promotional">Promotional (Korting/Sale)</option>
+                        <option value="educational">Educational (Tips/Content)</option>
+                        <option value="product-launch">Product Launch</option>
+                        <option value="seasonal">Seasonal (Feestdagen)</option>
+                        <option value="abandoned-cart">Abandoned Cart Recovery</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-white mb-3">Doelgroep Selectie</label>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        { id: 'all', label: `Alle Leads (${leadsStats.total_leads.toLocaleString()})`, color: 'bg-blue-500/20 text-blue-400' },
+                        { id: 'female', label: `Alleen Vrouwen (${(leadsStats.by_gender?.female || 0).toLocaleString()})`, color: 'bg-pink-500/20 text-pink-400' },
+                        { id: 'male', label: `Alleen Mannen (${(leadsStats.by_gender?.male || 0).toLocaleString()})`, color: 'bg-blue-500/20 text-blue-400' },
+                        { id: '50plus', label: '50+ jaar', color: 'bg-orange-500/20 text-orange-400' }
+                      ].map(segment => (
+                        <button
+                          key={segment.id}
+                          onClick={() => {
+                            if (selectedSegments.includes(segment.id)) {
+                              setSelectedSegments(selectedSegments.filter(s => s !== segment.id));
+                            } else {
+                              setSelectedSegments([...selectedSegments, segment.id]);
+                            }
+                          }}
+                          className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                            selectedSegments.includes(segment.id) 
+                              ? 'bg-emerald-500 text-white ring-2 ring-emerald-400' 
+                              : segment.color
+                          }`}
+                        >
+                          {segment.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/5 rounded-xl p-6 mb-6">
+                    <h4 className="font-bold text-white mb-3">📊 Voorspelde Performance</h4>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-xs text-white/60 mb-1">Bereik</p>
+                        <p className="text-2xl font-black text-white">{leadsStats.total_leads.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-white/60 mb-1">Est. Opens</p>
+                        <p className="text-2xl font-black text-blue-400">{Math.floor(leadsStats.total_leads * 0.58).toLocaleString()}</p>
+                        <p className="text-xs text-white/50">58.3%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-white/60 mb-1">Est. Clicks</p>
+                        <p className="text-2xl font-black text-purple-400">{Math.floor(leadsStats.total_leads * 0.11).toLocaleString()}</p>
+                        <p className="text-xs text-white/50">18.7%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-white/60 mb-1">Est. Winst</p>
+                        <p className="text-2xl font-black text-emerald-400">€{Math.floor(leadsStats.total_leads * 0.28).toLocaleString()}</p>
+                        <p className="text-xs text-white/50">ROI 6.2x</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setShowCampaignBuilder(false)}
+                      className="flex-1 py-4 bg-white/5 border border-white/20 rounded-xl text-white font-bold hover:bg-white/10 transition-all"
+                    >
+                      Annuleren
+                    </button>
+                    <button 
+                      onClick={createCampaign}
+                      disabled={sendingCampaign}
+                      className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {sendingCampaign ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                          Aanmaken...
+                        </>
+                      ) : (
+                        <>
+                          🚀 Campagne Aanmaken
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
