@@ -802,7 +802,7 @@ async def upload_csv_leads(file: UploadFile = File(...)):
             "age_35_50": age_35_50,
             "age_51_65": age_51_65,
             "age_65_plus": age_65_plus,
-            "source": new_leads[0]["source"] if new_leads else "eGENTIC"
+            "source": new_leads[0]["source"] if new_leads else "CSV Import"
         }
         
     except HTTPException:
