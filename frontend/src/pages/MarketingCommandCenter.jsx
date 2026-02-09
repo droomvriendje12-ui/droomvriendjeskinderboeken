@@ -292,7 +292,7 @@ const MarketingCommandCenter = () => {
         <nav className="p-4 space-y-1">
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-3 mb-3">Dashboard</p>
           
-          {navItems.slice(0, 2).map(item => (
+          {navItems.slice(0, 1).map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -305,6 +305,23 @@ const MarketingCommandCenter = () => {
               <item.icon className="w-5 h-5" />
               {item.label}
               {item.live && <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse ml-auto" />}
+            </button>
+          ))}
+          
+          <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-3 mb-3 mt-6">Lead Management</p>
+          
+          {navItems.slice(1, 3).map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === item.id 
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              {item.label}
               {item.badge && (
                 <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {item.badge}
@@ -315,7 +332,7 @@ const MarketingCommandCenter = () => {
           
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-3 mb-3 mt-6">Multi-Channel</p>
           
-          {navItems.slice(2, 4).map(item => (
+          {navItems.slice(3, 5).map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -337,7 +354,7 @@ const MarketingCommandCenter = () => {
           
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-3 mb-3 mt-6">Growth</p>
           
-          {navItems.slice(4).map(item => (
+          {navItems.slice(5).map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
