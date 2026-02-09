@@ -105,6 +105,8 @@ function App() {
               {/* Offline Marketing Landing Pages */}
               <Route path="/actie/:channel" element={<OfflineLandingPage />} />
               <Route path="/qr/:channel" element={<OfflineLandingPage />} />
+              {/* Marketing Presentatie */}
+              <Route path="/presentatie" element={<PresentationPage />} />
               {/* SEO Landing Pages */}
               <Route path="/slaapknuffel" element={<SeoLandingPage />} />
               <Route path="/knuffel-nachtlampje" element={<SeoLandingPage />} />
