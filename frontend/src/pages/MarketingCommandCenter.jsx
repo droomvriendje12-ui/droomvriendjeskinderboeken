@@ -565,8 +565,8 @@ const MarketingCommandCenter = () => {
           <div className="space-y-8 animate-fadeIn">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-black text-white">📥 eGENTIC Leads Importeren</h2>
-                <p className="text-white/60 mt-1">Upload CSV bestanden van eGENTIC (Datafanatics format)</p>
+                <h2 className="text-3xl font-black text-white">📥 Leads Importeren</h2>
+                <p className="text-white/60 mt-1">Upload CSV bestanden met leads (Gender;Firstname;Lastname;Date of birth;email;source)</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
