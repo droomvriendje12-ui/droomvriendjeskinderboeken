@@ -156,7 +156,7 @@ const ProductPage = () => {
   };
 
   // Carousel handlers
-  const relatedProducts = products.filter(p => p.id !== product.id);
+  const relatedProducts = product ? products.filter(p => p.id !== product.id) : [];
   const itemsPerView = 3;
   const maxIndex = Math.max(0, relatedProducts.length - itemsPerView);
 
