@@ -54,6 +54,7 @@ import VerzendingPage from "./pages/VerzendingPage";
 import CampaignManagementPage from "./pages/CampaignManagementPage";
 import OfflineLandingPage from "./pages/OfflineLandingPage";
 import SeoLandingPage from "./pages/SeoLandingPage";
+import BabySlaaptNietPage from "./pages/BabySlaaptNietPage";
 import AdminReviewsImporterPage from "./pages/AdminReviewsImporterPage";
 import AdminReviewsToolAdvanced from "./pages/AdminReviewsToolAdvanced";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
