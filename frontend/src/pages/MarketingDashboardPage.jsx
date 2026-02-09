@@ -67,7 +67,7 @@ const MarketingDashboardPage = () => {
   };
 
   const funnelData = [
-    { name: 'eGENTIC Leads (Triple Opt-In)', value: 4847, rate: 100, color: '#1e40af', cost: 3200, icon: '🎯' },
+    { name: 'Premium Leads (Triple Opt-In)', value: 4847, rate: 100, color: '#1e40af', cost: 3200, icon: '🎯' },
     { name: 'Email Geopend', value: 2826, rate: 58.3, color: '#10b981', icon: '📧' },
     { name: 'Link Geklikt', value: 907, rate: 18.7, color: '#3b82f6', icon: '🔗' },
     { name: 'Winkelwagen', value: 724, rate: 79.8, color: '#f59e0b', icon: '🛒' },
@@ -79,7 +79,7 @@ const MarketingDashboardPage = () => {
       id: 1,
       name: 'Voorjaar Sale 2026', 
       type: 'Email + Retargeting',
-      source: 'eGENTIC Premium',
+      source: 'Premium Premium',
       sourceColor: '#dbeafe',
       sourceTextColor: '#1e40af',
       leads: 2847, 
@@ -96,7 +96,7 @@ const MarketingDashboardPage = () => {
       id: 2,
       name: 'Retargeting Q1', 
       type: 'Social Media Ads',
-      source: 'eGENTIC Qualified',
+      source: 'Premium Qualified',
       sourceColor: '#d1fae5',
       sourceTextColor: '#065f46',
       leads: 1234, 
@@ -131,7 +131,7 @@ const MarketingDashboardPage = () => {
   const ltvSegments = [
     { 
       name: 'PREMIUM SEGMENT', 
-      type: 'eGENTIC Premium Leads',
+      type: 'Premium Premium Leads',
       ltv: 387, 
       repeatRate: 62, 
       avgOrders: 4.1,
@@ -140,7 +140,7 @@ const MarketingDashboardPage = () => {
     },
     { 
       name: 'QUALIFIED SEGMENT', 
-      type: 'eGENTIC Qualified Leads',
+      type: 'Premium Qualified Leads',
       ltv: 241, 
       repeatRate: 47, 
       avgOrders: 2.8,
@@ -159,10 +159,10 @@ const MarketingDashboardPage = () => {
   ];
 
   const leadsList = [
-    { id: 1, email: 'jan.devries@email.nl', name: 'Jan de Vries', source: 'eGENTIC Premium', status: 'converted', date: '2026-02-08', value: '€89.95' },
-    { id: 2, email: 'maria.jansen@gmail.com', name: 'Maria Jansen', source: 'eGENTIC Premium', status: 'qualified', date: '2026-02-08', value: '-' },
-    { id: 3, email: 'peter.bakker@outlook.nl', name: 'Peter Bakker', source: 'eGENTIC Qualified', status: 'converted', date: '2026-02-07', value: '€149.90' },
-    { id: 4, email: 'anna.smit@email.nl', name: 'Anna Smit', source: 'eGENTIC Premium', status: 'pending', date: '2026-02-07', value: '-' },
+    { id: 1, email: 'jan.devries@email.nl', name: 'Jan de Vries', source: 'Premium Premium', status: 'converted', date: '2026-02-08', value: '€89.95' },
+    { id: 2, email: 'maria.jansen@gmail.com', name: 'Maria Jansen', source: 'Premium Premium', status: 'qualified', date: '2026-02-08', value: '-' },
+    { id: 3, email: 'peter.bakker@outlook.nl', name: 'Peter Bakker', source: 'Premium Qualified', status: 'converted', date: '2026-02-07', value: '€149.90' },
+    { id: 4, email: 'anna.smit@email.nl', name: 'Anna Smit', source: 'Premium Premium', status: 'pending', date: '2026-02-07', value: '-' },
     { id: 5, email: 'kees.devos@gmail.com', name: 'Kees de Vos', source: 'Generic', status: 'converted', date: '2026-02-06', value: '€49.95' },
   ];
 
@@ -176,7 +176,7 @@ const MarketingDashboardPage = () => {
     { id: 'roi', label: 'ROI Dashboard', icon: DollarSign },
     { id: 'conversie', label: 'Conversie Tracking', icon: BarChart3 },
     { id: 'leads', label: 'Lead Kwaliteit', icon: Users },
-    { id: 'egentic', label: 'eGENTIC Leads', icon: Mail },
+    { id: 'egentic', label: 'Premium Leads', icon: Mail },
     { id: 'optin', label: 'Triple Opt-In Tracking', icon: CheckCircle },
     { id: 'campagnes', label: 'Campagnes', icon: Target },
     { id: 'ltv', label: 'Customer LTV', icon: Star },
@@ -247,7 +247,7 @@ const MarketingDashboardPage = () => {
           <div className="flex-1">
             <h3 className="font-extrabold text-amber-900 mb-1">Winst Optimalisatie Kans</h3>
             <p className="text-amber-800 text-sm leading-relaxed">
-              <strong>eGENTIC Triple Opt-In leads converteren 34% beter</strong> dan standaard leads. 
+              <strong>Premium Triple Opt-In leads converteren 34% beter</strong> dan standaard leads. 
               Door je budget met €800 te verhogen naar premium leads, kun je een extra <strong>€4,850 netto winst</strong> genereren deze maand.
             </p>
           </div>
@@ -329,16 +329,16 @@ const MarketingDashboardPage = () => {
         </div>
       </div>
 
-      {/* eGENTIC & ROI Cards */}
+      {/* Premium & ROI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* eGENTIC Lead Quality */}
+        {/* Premium Lead Quality */}
         <div 
           className="bg-gradient-to-br from-blue-900 to-blue-800 text-white rounded-2xl p-8 border-3 border-blue-500 cursor-pointer hover:shadow-2xl transition-all"
           onClick={() => setActiveNav('egentic')}
         >
           <div className="flex justify-between items-start mb-5">
             <div className="bg-white text-blue-800 font-black text-xl px-5 py-3 rounded-lg">
-              eGENTIC
+              Premium
             </div>
             <Button size="sm" variant="outline" className="border-white/30 text-white hover:bg-white/20">
               <ExternalLink className="w-4 h-4 mr-1" /> Details
@@ -603,14 +603,14 @@ const MarketingDashboardPage = () => {
     </div>
   );
 
-  // eGENTIC Leads Section
+  // Premium Leads Section
   const renderEGENTICLeads = () => (
     <div className="space-y-8">
       <div className="bg-gradient-to-br from-blue-900 to-blue-800 text-white rounded-2xl p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
             <div className="bg-white text-blue-800 font-black text-xl px-5 py-3 rounded-lg inline-block mb-4">
-              eGENTIC
+              Premium
             </div>
             <h2 className="text-3xl font-extrabold">Premium Lead Management</h2>
             <p className="text-blue-200 mt-2">Triple Opt-In DSGVO-conforme leads met verified data</p>
@@ -688,7 +688,7 @@ const MarketingDashboardPage = () => {
               <Download className="w-4 h-4 mr-2" /> Export Lead Lijst
             </Button>
             <Button variant="outline" className="w-full justify-start">
-              <RefreshCw className="w-4 h-4 mr-2" /> Sync met eGENTIC
+              <RefreshCw className="w-4 h-4 mr-2" /> Sync met Premium
             </Button>
           </div>
         </div>
@@ -735,7 +735,7 @@ const MarketingDashboardPage = () => {
               <h3 className="font-bold text-emerald-800 mb-2">Uitstekende Opt-In Ratio!</h3>
               <p className="text-emerald-700 text-sm">
                 79.4% van je leads doorloopt het volledige Triple Opt-In proces. Dit is <strong>23% hoger</strong> dan het industrie gemiddelde.
-                Premium eGENTIC leads hebben een 92% Triple Opt-In rate.
+                Premium Premium leads hebben een 92% Triple Opt-In rate.
               </p>
             </div>
           </div>
@@ -834,7 +834,7 @@ const MarketingDashboardPage = () => {
         <div className="mt-6 p-5 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-xl border-l-4 border-emerald-500">
           <p className="font-extrabold text-emerald-800 mb-2">💡 Data-Driven Aanbeveling</p>
           <p className="text-emerald-700 text-sm">
-            <strong>eGENTIC Premium leads genereren 3.2x meer netto winst</strong> dan generic leads. 
+            <strong>Premium Premium leads genereren 3.2x meer netto winst</strong> dan generic leads. 
             <button 
               className="underline ml-1 font-bold"
               onClick={() => setShowNewCampaignModal(true)}
@@ -885,14 +885,14 @@ const MarketingDashboardPage = () => {
             <div>
               <p className="font-extrabold text-amber-900 text-lg mb-2">Strategische Inzicht: Focus op Premium Leads</p>
               <p className="text-amber-800 text-sm leading-relaxed">
-                eGENTIC Premium leads hebben een <strong>2.7x hogere lifetime value</strong> dan generic leads. 
+                Premium Premium leads hebben een <strong>2.7x hogere lifetime value</strong> dan generic leads. 
                 ROI break-even na eerste herhaalaankoop (gem. 23 dagen).
               </p>
               <Button 
                 className="mt-4 bg-amber-600 hover:bg-amber-700"
                 onClick={() => setActiveNav('egentic')}
               >
-                Bekijk eGENTIC Dashboard →
+                Bekijk Premium Dashboard →
               </Button>
             </div>
           </div>
@@ -1166,8 +1166,8 @@ const MarketingDashboardPage = () => {
                   onChange={(e) => setNewCampaign({...newCampaign, targetAudience: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="premium">eGENTIC Premium Leads</option>
-                  <option value="qualified">eGENTIC Qualified Leads</option>
+                  <option value="premium">Premium Premium Leads</option>
+                  <option value="qualified">Premium Qualified Leads</option>
                   <option value="all">Alle Leads</option>
                 </select>
               </div>
