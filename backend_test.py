@@ -451,6 +451,139 @@ class DroomvriendjesAPITester:
             error = response.text if response else "Request failed"
             self.log_result("Create Order with Discounts", False, "Failed to create order", error)
     
+    def test_csv_import_apis(self):
+        """Test CSV Import functionality for Marketing Command Center"""
+        print("\n=== TESTING CSV IMPORT FUNCTIONALITY ===")
+        
+        # 1. Test POST /api/marketing/leads/upload-csv - CSV file upload
+        csv_file_path = "/app/test_leads.csv"
+        try:
+            with open(csv_file_path, 'rb') as f:
+                files = {'file': ('test_leads.csv', f, 'text/csv')}
+                response = requests.post(
+                    f"{self.base_url}/marketing/leads/upload-csv",
+                    files=files,
+                    timeout=30
+                )
+            
+            if response and response.status_code == 200:
+                result = response.json()
+                required_fields = ["success", "total_leads", "valid_leads", "duplicates", 
+                                 "male_count", "female_count", "male_percentage", "female_percentage",
+                                 "age_35_50", "age_51_65", "age_65_plus", "source"]
+                has_all_fields = all(field in result for field in required_fields)
+                
+                if has_all_fields and result.get("success"):
+                    self.log_result("CSV Upload", True, 
+                                   f"Uploaded {result['valid_leads']}/{result['total_leads']} leads, "
+                                   f"Duplicates: {result['duplicates']}, "
+                                   f"Gender: {result['male_count']}M/{result['female_count']}F")
+                else:
+                    missing = [f for f in required_fields if f not in result]
+                    self.log_result("CSV Upload", False, f"Missing fields: {missing}", result)
+            else:
+                error = response.text if response else "Request failed"
+                self.log_result("CSV Upload", False, "Failed to upload CSV", error)
+        except Exception as e:
+            self.log_result("CSV Upload", False, f"Exception during CSV upload: {str(e)}")
+        
+        # 2. Test GET /api/marketing/leads/stats - Lead statistics
+        response = self.make_request("GET", "/marketing/leads/stats")
+        if response and response.status_code == 200:
+            stats = response.json()
+            required_fields = ["total_leads", "by_source", "by_gender"]
+            has_all_fields = all(field in stats for field in required_fields)
+            
+            if has_all_fields:
+                by_source = stats["by_source"]
+                by_gender = stats["by_gender"]
+                self.log_result("Lead Statistics", True, 
+                               f"Total: {stats['total_leads']}, "
+                               f"Sources: {list(by_source.keys())}, "
+                               f"Gender: {list(by_gender.keys())}")
+            else:
+                missing = [f for f in required_fields if f not in stats]
+                self.log_result("Lead Statistics", False, f"Missing fields: {missing}", stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("Lead Statistics", False, "Failed to get lead stats", error)
+        
+        # 3. Test GET /api/marketing/leads - Get leads with pagination
+        test_params = [
+            {"skip": 0, "limit": 5, "description": "First 5 leads"},
+            {"skip": 0, "limit": 10, "source": "eGENTIC", "description": "eGENTIC leads only"},
+            {"skip": 0, "limit": 10, "gender": "female", "description": "Female leads only"},
+            {"skip": 2, "limit": 3, "description": "Pagination test (skip 2, limit 3)"}
+        ]
+        
+        for params in test_params:
+            desc = params.pop("description")
+            response = self.make_request("GET", "/marketing/leads", params=params)
+            if response and response.status_code == 200:
+                result = response.json()
+                required_fields = ["leads", "total", "skip", "limit"]
+                has_all_fields = all(field in result for field in required_fields)
+                
+                if has_all_fields:
+                    leads = result["leads"]
+                    # Verify lead structure if leads exist
+                    if leads:
+                        first_lead = leads[0]
+                        lead_fields = ["id", "gender", "firstname", "lastname", "email", "source"]
+                        has_lead_fields = all(field in first_lead for field in lead_fields)
+                        
+                        if has_lead_fields:
+                            self.log_result(f"Get Leads - {desc}", True, 
+                                           f"Retrieved {len(leads)} leads, Total: {result['total']}")
+                        else:
+                            missing_lead = [f for f in lead_fields if f not in first_lead]
+                            self.log_result(f"Get Leads - {desc}", False, 
+                                           f"Lead missing fields: {missing_lead}", first_lead)
+                    else:
+                        self.log_result(f"Get Leads - {desc}", True, "No leads found (empty result)")
+                else:
+                    missing = [f for f in required_fields if f not in result]
+                    self.log_result(f"Get Leads - {desc}", False, f"Missing fields: {missing}", result)
+            else:
+                error = response.text if response else "Request failed"
+                self.log_result(f"Get Leads - {desc}", False, "Failed to get leads", error)
+        
+        # 4. Test CSV upload with invalid file
+        try:
+            invalid_csv = "invalid,csv,format\nno,proper,headers"
+            files = {'file': ('invalid.csv', invalid_csv.encode(), 'text/csv')}
+            response = requests.post(
+                f"{self.base_url}/marketing/leads/upload-csv",
+                files=files,
+                timeout=30
+            )
+            
+            if response and response.status_code == 400:
+                self.log_result("Invalid CSV Upload", True, "Correctly rejected invalid CSV format")
+            else:
+                status = response.status_code if response else "No response"
+                self.log_result("Invalid CSV Upload", False, f"Expected 400, got {status}")
+        except Exception as e:
+            self.log_result("Invalid CSV Upload", False, f"Exception: {str(e)}")
+        
+        # 5. Test empty CSV upload
+        try:
+            empty_csv = "gender;firstname;lastname;date_of_birth;email;source\n"
+            files = {'file': ('empty.csv', empty_csv.encode(), 'text/csv')}
+            response = requests.post(
+                f"{self.base_url}/marketing/leads/upload-csv",
+                files=files,
+                timeout=30
+            )
+            
+            if response and response.status_code == 400:
+                self.log_result("Empty CSV Upload", True, "Correctly rejected empty CSV")
+            else:
+                status = response.status_code if response else "No response"
+                self.log_result("Empty CSV Upload", False, f"Expected 400, got {status}")
+        except Exception as e:
+            self.log_result("Empty CSV Upload", False, f"Exception: {str(e)}")
+
     def test_marketing_apis(self):
         """Test Marketing Command Center APIs"""
         print("\n=== TESTING MARKETING COMMAND CENTER APIs ===")
