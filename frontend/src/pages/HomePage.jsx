@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Star, ShoppingCart, Moon, Heart, Sparkles, Monitor, ShieldCheck, Truck, Award, Play, X, Plus, Minus, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import CartSidebar from '../components/CartSidebar';
 import Header from '../components/Header';
+import SchemaMarkup from '../components/SchemaMarkup';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { trackViewItemList, trackSelectItem } from '../utils/analytics';
