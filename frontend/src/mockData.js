@@ -241,8 +241,9 @@ export const products = [
     item_category5: "Met Beweging",
     item_variant: "roze-wit"
   },
+  // DUO SET - DATABASE ID: 15
   {
-    id: 6,
+    id: 15,
     name: "Droomvriendjes Duo Set – Liggend Schaapje & Witte Beer met Projector",
     shortName: "Duo Set",
     price: 89.95,
