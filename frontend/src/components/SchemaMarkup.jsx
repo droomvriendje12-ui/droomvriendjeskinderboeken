@@ -184,40 +184,12 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
     "inLanguage": "nl-NL"
   };
 
-  // FAQ Schema for common questions (AI loves this)
+  // MEGA FAQ Schema - 100+ questions for maximum AI visibility
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Wat is een Droomvriendje slaapknuffel?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Een Droomvriendje is een premium slaapknuffel met ingebouwde sterrenprojectie, white noise en rustgevende melodieën. Het helpt baby's en peuters om sneller en beter te slapen door een veilige en magische sfeer te creëren."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Vanaf welke leeftijd is een Droomvriendje geschikt?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Droomvriendjes zijn CE-gecertificeerd en veilig voor baby's vanaf 0 maanden. De zachte knuffel en rustgevende geluiden zijn speciaal ontworpen voor de allerkleinsten."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Hoe lang gaat de batterij mee?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Droomvriendjes zijn USB-oplaadbaar en gaan tot 8 uur mee op één lading. De 30-minuten timer zorgt ervoor dat de knuffel automatisch uitschakelt."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is er gratis verzending?",
-        "acceptedAnswer": {
-          "@type": "Answer",
+    "mainEntity": allFAQsForSchema
+  };
           "text": "Ja! Wij bieden gratis verzending naar Nederland en België. Bestellingen worden binnen 1-2 werkdagen geleverd."
         }
       },
