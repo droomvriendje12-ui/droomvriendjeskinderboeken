@@ -729,6 +729,7 @@ class DroomvriendjesAPITester:
         self.test_review_apis()
         self.test_product_advanced_apis()
         self.test_orders_api()
+        self.test_marketing_apis()
         self.test_edge_cases()
         
         # Cleanup
