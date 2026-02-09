@@ -709,11 +709,13 @@ const ProductPage = () => {
           <div className="order-1 lg:order-2">
             <img 
               src={
+                product.dimensionsImage ||
                 (galleryImages[3]?.url || galleryImages[3]) || 
                 (galleryImages[2]?.url || galleryImages[2]) || 
                 (product.image?.url || product.image)
               }
               alt={
+                product.dimensionsImage ? `${product.name} afmetingen` :
                 galleryImages[3]?.alt || 
                 galleryImages[2]?.alt || 
                 `${product.name} afmetingen`
