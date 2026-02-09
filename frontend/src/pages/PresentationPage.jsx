@@ -51,7 +51,7 @@ const PresentationPage = () => {
             Performance Max Briefing
           </h1>
           <p className="text-2xl text-[#8B7355] mb-8">
-            Droomvriendjes.nl × Emergent.sg
+            Droomvriendjes.nl - Marketing Briefing
           </p>
           <div className="flex gap-6 mt-8">
             <img src="/products/sheep/Sheep_front_prodcut_01.png" alt="Schaapje" className="h-32 object-contain" />
