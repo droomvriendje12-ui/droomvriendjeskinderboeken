@@ -176,12 +176,96 @@ const MarketingCommandCenter = () => {
   // Nav items
   const navItems = [
     { id: 'live', icon: Zap, label: 'Live Dashboard', badge: null, live: true },
+    { id: 'import', icon: Upload, label: 'CSV Importeren', badge: null },
     { id: 'email', icon: Mail, label: 'Email Campagnes', badge: 3 },
     { id: 'whatsapp', icon: MessageSquare, label: 'WhatsApp Marketing', badge: 2 },
     { id: 'sms', icon: Phone, label: 'SMS Campagnes', badge: 1 },
     { id: 'influencer', icon: Star, label: 'Influencers', badge: null },
     { id: 'affiliate', icon: Users, label: 'Affiliates', badge: null, notification: true }
   ];
+  
+  // Fetch leads stats
+  const fetchLeadsStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`${API_URL}/api/marketing/leads/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLeadsStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching leads stats:', error);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchLeadsStats();
+  }, [fetchLeadsStats]);
+  
+  // CSV Import functions
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      await handleFileUpload(files[0]);
+    }
+  };
+  
+  const handleFileSelect = async (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      await handleFileUpload(files[0]);
+    }
+  };
+  
+  const handleFileUpload = async (file) => {
+    if (!file.name.endsWith('.csv')) {
+      alert('Alleen CSV bestanden zijn toegestaan');
+      return;
+    }
+    
+    setImporting(true);
+    setImportResult(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch(`${API_URL}/api/marketing/leads/upload-csv`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setImportResult(result);
+        fetchLeadsStats(); // Refresh stats
+      } else {
+        const error = await response.json();
+        alert(`Fout: ${error.detail || 'Onbekende fout'}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Fout bij uploaden van bestand');
+    }
+    
+    setImporting(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
