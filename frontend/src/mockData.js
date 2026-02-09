@@ -278,7 +278,7 @@ export const products = [
     ageRange: "Vanaf 0 maanden",
     warranty: "30 dagen slaapgarantie",
     sku: "DUO-001",
-    item_id: "KNUF_006",
+    item_id: "KNUF_015",
     item_category: "Knuffels",
     item_category2: "Voordeelsets",
     item_category3: "Duo Sets",
