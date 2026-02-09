@@ -82,6 +82,9 @@ const HomePage = () => {
       {/* Shopping Cart Sidebar */}
       <CartSidebar />
       
+      {/* Schema Markup for AI SEO 2026 */}
+      <SchemaMarkup pageType="home" />
+      
       {/* Promo Banner - Warm Brown */}
       <div className="bg-warm-brown-500 text-white py-3 text-center">
         <p className="text-sm md:text-base font-medium tracking-wide">
