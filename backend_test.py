@@ -863,6 +863,7 @@ class DroomvriendjesAPITester:
         self.test_product_advanced_apis()
         self.test_orders_api()
         self.test_marketing_apis()
+        self.test_csv_import_apis()  # Add CSV import tests
         self.test_edge_cases()
         
         # Cleanup
