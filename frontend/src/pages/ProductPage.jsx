@@ -630,11 +630,13 @@ const ProductPage = () => {
           <div className="h-full min-h-[400px]">
             <img 
               src={
+                product.macroImage || 
                 (galleryImages[4]?.url || galleryImages[4]) || 
                 (galleryImages[1]?.url || galleryImages[1]) || 
                 (product.image?.url || product.image)
               }
               alt={
+                product.macroImage ? `${product.name} materiaal detail` :
                 galleryImages[4]?.alt || 
                 galleryImages[1]?.alt || 
                 `${product.name} materiaal detail`
