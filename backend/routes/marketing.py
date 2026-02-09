@@ -732,7 +732,7 @@ async def upload_csv_leads(file: UploadFile = File(...)):
             lastname = values[2].strip()
             date_of_birth = values[3].strip()
             email = values[4].strip().lower()
-            source = values[5].strip() if len(values) > 5 else "eGENTIC"
+            source = values[5].strip() if len(values) > 5 else "CSV Import"
             
             # Skip duplicates
             if email in email_set:
