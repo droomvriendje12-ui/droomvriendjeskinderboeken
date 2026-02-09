@@ -560,6 +560,197 @@ const MarketingCommandCenter = () => {
           </div>
         )}
         
+        {/* CSV Import Tab */}
+        {activeTab === 'import' && (
+          <div className="space-y-8 animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-black text-white">📥 eGENTIC Leads Importeren</h2>
+                <p className="text-white/60 mt-1">Upload CSV bestanden van eGENTIC (Datafanatics format)</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
+                  <span className="text-sm text-white/60">Totaal Leads: </span>
+                  <span className="text-lg font-bold text-emerald-400">{leadsStats.total_leads.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Upload Zone */}
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-3 border-dashed rounded-xl p-12 text-center transition-all ${
+                  isDragging 
+                    ? 'border-emerald-500 bg-emerald-500/10' 
+                    : 'border-white/20 hover:border-white/40'
+                }`}
+              >
+                {importing ? (
+                  <div className="flex flex-col items-center">
+                    <RefreshCw className="w-16 h-16 text-emerald-400 animate-spin mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-2">Bezig met importeren...</h3>
+                    <p className="text-white/60">Even geduld alsjeblieft</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-2">Sleep CSV bestand hier</h3>
+                    <p className="text-white/60 mb-4">of</p>
+                    <label className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-bold cursor-pointer hover:shadow-lg hover:shadow-emerald-500/30 transition-all">
+                      Kies Bestand
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        accept=".csv" 
+                        className="hidden" 
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                    <p className="text-sm text-white/50 mt-4">
+                      Ondersteund formaat: CSV (Gender;Firstname;Lastname;Date of birth;email;source)
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {/* Import Results */}
+            {importResult && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="bg-emerald-500/10 border-2 border-emerald-500/50 rounded-2xl p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Check className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-emerald-400 mb-4">Import Succesvol!</h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm text-white/60">Totaal Leads</p>
+                          <p className="text-3xl font-black text-white">{importResult.total_leads}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-white/60">Geldig</p>
+                          <p className="text-3xl font-black text-emerald-400">{importResult.valid_leads}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-white/60">Duplicaten</p>
+                          <p className="text-3xl font-black text-orange-400">{importResult.duplicates}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Lead Segmentation Preview */}
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <h3 className="text-lg font-bold text-white mb-6">📊 Lead Segmentatie</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm text-white/60 mb-4">Gender Verdeling</p>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-semibold text-blue-400">Man</span>
+                            <span className="text-white">{importResult.male_count} ({importResult.male_percentage}%)</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000"
+                              style={{ width: `${importResult.male_percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-semibold text-pink-400">Vrouw</span>
+                            <span className="text-white">{importResult.female_count} ({importResult.female_percentage}%)</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-pink-500 to-pink-600 rounded-full transition-all duration-1000"
+                              style={{ width: `${importResult.female_percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/60 mb-4">Leeftijd Verdeling</p>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-semibold text-white">35-50 jaar</span>
+                            <span className="text-white">{importResult.age_35_50}</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-1000"
+                              style={{ width: `${(importResult.age_35_50 / importResult.valid_leads * 100) || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-semibold text-white">51-65 jaar</span>
+                            <span className="text-white">{importResult.age_51_65}</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-1000"
+                              style={{ width: `${(importResult.age_51_65 / importResult.valid_leads * 100) || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-semibold text-white">65+ jaar</span>
+                            <span className="text-white">{importResult.age_65_plus}</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-1000"
+                              style={{ width: `${(importResult.age_65_plus / importResult.valid_leads * 100) || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('email')}
+                    className="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all"
+                  >
+                    ✅ Leads Opgeslagen - Ga naar Campagne Maken
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Existing Leads Stats */}
+            {leadsStats.total_leads > 0 && !importResult && (
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-white mb-4">📊 Bestaande Leads Overzicht</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white/5 rounded-xl p-4 text-center">
+                    <p className="text-xs text-white/60 mb-1">Totaal</p>
+                    <p className="text-2xl font-black text-white">{leadsStats.total_leads.toLocaleString()}</p>
+                  </div>
+                  {Object.entries(leadsStats.by_gender || {}).map(([gender, count]) => (
+                    <div key={gender} className="bg-white/5 rounded-xl p-4 text-center">
+                      <p className="text-xs text-white/60 mb-1 capitalize">{gender === 'male' ? 'Man' : gender === 'female' ? 'Vrouw' : gender}</p>
+                      <p className="text-2xl font-black text-white">{count.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
         {/* Email Tab */}
         {activeTab === 'email' && (
           <div className="space-y-8 animate-fadeIn">
