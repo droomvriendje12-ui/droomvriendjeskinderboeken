@@ -1181,38 +1181,64 @@ const MarketingCommandCenter = () => {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-bold text-white mb-2">Selecteer Segment</label>
-                  <select className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white">
-                    <option>Recent Buyers (487)</option>
-                    <option>High-Value Customers (234)</option>
-                    <option>Abandoned Cart (156)</option>
-                    <option>Newsletter Subscribers (2,847)</option>
+                  <select 
+                    value={whatsappSegment}
+                    onChange={(e) => setWhatsappSegment(e.target.value)}
+                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  >
+                    <option value="recent">Recent Buyers (487)</option>
+                    <option value="highvalue">High-Value Customers (234)</option>
+                    <option value="abandoned">Abandoned Cart (156)</option>
+                    <option value="newsletter">Newsletter Subscribers (2,847)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-white mb-2">Template</label>
-                  <select className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white">
-                    <option>🎁 Special Offer</option>
-                    <option>📦 Order Update</option>
-                    <option>💡 Product Tips</option>
-                    <option>🔔 Flash Sale</option>
+                  <select 
+                    value={whatsappTemplate}
+                    onChange={(e) => setWhatsappTemplate(e.target.value)}
+                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  >
+                    <option value="offer">🎁 Special Offer</option>
+                    <option value="order">📦 Order Update</option>
+                    <option value="tips">💡 Product Tips</option>
+                    <option value="flash">🔔 Flash Sale</option>
                   </select>
                 </div>
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-bold text-white mb-2">Bericht</label>
                 <textarea 
+                  value={whatsappMessage}
+                  onChange={(e) => setWhatsappMessage(e.target.value)}
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white resize-none" 
                   rows={4}
                   placeholder="Hoi {{naam}}, we hebben iets speciaals voor jou! 🎁"
                 />
               </div>
               <div className="flex gap-4">
-                <button className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white font-semibold hover:bg-white/10 transition-all">
+                <button 
+                  onClick={() => showNotification('📱 Preview: ' + (whatsappMessage || 'Hoi {{naam}}, we hebben iets speciaals voor jou! 🎁'))}
+                  className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white font-semibold hover:bg-white/10 transition-all"
+                >
                   Preview
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl text-white font-bold shadow-lg">
-                  <MessageSquare className="w-5 h-5" />
-                  Verzend Broadcast
+                <button 
+                  onClick={sendWhatsappBroadcast}
+                  disabled={sendingWhatsapp}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl text-white font-bold shadow-lg disabled:opacity-50"
+                >
+                  {sendingWhatsapp ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Verzenden...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-5 h-5" />
+                      Verzend Broadcast
+                    </>
+                  )}
                 </button>
               </div>
             </div>
