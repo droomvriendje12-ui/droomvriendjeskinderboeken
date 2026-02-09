@@ -39,7 +39,7 @@ const AdminAdvancedProductEditor = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState('images');
+  const [activeTab, setActiveTab] = useState('media');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
   
@@ -47,6 +47,10 @@ const AdminAdvancedProductEditor = () => {
   const [imageInfo, setImageInfo] = useState(null);
   const [mainImageOverride, setMainImageOverride] = useState('');
   const [galleryOverrides, setGalleryOverrides] = useState([]);
+  
+  // NEW: Specific image fields for admin control
+  const [macroImage, setMacroImage] = useState('');
+  const [dimensionsImage, setDimensionsImage] = useState('');
   
   // Editable product data
   const [editData, setEditData] = useState({
@@ -60,6 +64,8 @@ const AdminAdvancedProductEditor = () => {
 
   // File input refs
   const mainImageInputRef = useRef(null);
+  const macroImageInputRef = useRef(null);
+  const dimensionsImageInputRef = useRef(null);
   const galleryImageInputRef = useRef(null);
   const [currentGalleryIndex, setCurrentGalleryIndex] = useState(null);
 
