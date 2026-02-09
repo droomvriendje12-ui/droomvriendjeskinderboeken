@@ -438,6 +438,38 @@ async def seed_products():
         logger.error(f"Error seeding products: {e}")
 
 
+def apply_image_overrides(product: dict) -> dict:
+    """
+    Apply image overrides to a product.
+    If image_override exists and is not empty, use it instead of the default image.
+    Same for gallery_overrides.
+    """
+    # Apply main image override
+    if product.get("image_override"):
+        product["image"] = product["image_override"]
+    
+    # Apply gallery overrides (merge with defaults if partial)
+    if product.get("gallery_overrides"):
+        overrides = product["gallery_overrides"]
+        default_gallery = product.get("gallery", [])
+        
+        # Build new gallery: use override if exists, else use default
+        new_gallery = []
+        max_len = max(len(overrides), len(default_gallery))
+        
+        for i in range(max_len):
+            if i < len(overrides) and overrides[i]:
+                # Override exists for this position
+                new_gallery.append(overrides[i])
+            elif i < len(default_gallery):
+                # Use default
+                new_gallery.append(default_gallery[i])
+        
+        product["gallery"] = new_gallery
+    
+    return product
+
+
 @router.get("")
 async def get_all_products():
     """Get all products"""
@@ -446,6 +478,8 @@ async def get_all_products():
     
     try:
         products = await db.products.find({}, {"_id": 0}).to_list(length=100)
+        # Apply image overrides to all products
+        products = [apply_image_overrides(p) for p in products]
         return products
     except Exception as e:
         logger.error(f"Error fetching products: {e}")
