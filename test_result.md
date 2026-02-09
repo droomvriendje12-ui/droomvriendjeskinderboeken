@@ -164,6 +164,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ALL 10 MARKETING ENDPOINTS WORKING: stats, channel-performance, top-products, hourly-revenue, whatsapp/stats, sms/stats, influencers, affiliates, chat (AI), ai-insights. AI chat working with Dutch responses. Success rate: 10/10 passed."
+      - working: true
+        agent: "testing"
+        comment: "✅ CSV IMPORT FUNCTIONALITY WORKING: POST /api/marketing/leads/upload-csv (multipart file upload with proper format validation), GET /api/marketing/leads/stats (total leads, by_source, by_gender statistics), GET /api/marketing/leads (pagination with skip/limit, filtering by source/gender). Successfully tested with 8-lead CSV file. Duplicate detection working (8/8 duplicates found on re-upload). Gender distribution: 4M/4F. Age categorization: 5 age_35_50, 2 age_51_65. Fixed ObjectId serialization issue for JSON responses. All 3 CSV endpoints fully functional."
 
 frontend:
   - task: "Marketing Command Center Frontend Page"
