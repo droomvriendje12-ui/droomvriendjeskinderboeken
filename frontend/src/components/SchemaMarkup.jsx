@@ -223,6 +223,78 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
           "@type": "Answer",
           "text": "Absoluut! Je hebt 14 dagen bedenktijd. Niet tevreden? Dan halen we de knuffel gratis op en krijg je je geld terug."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Helpt een slaapknuffel echt bij het slapen van mijn baby?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja! Wetenschappelijk onderzoek toont aan dat white noise en rustgevende geluiden baby's helpen om sneller in slaap te vallen en langer door te slapen. De sterrenprojectie creëert een geruststellende omgeving die angst voor het donker vermindert. Meer dan 10.000 ouders gingen je voor met een gemiddelde beoordeling van 4.9 sterren."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wat is het verschil tussen Droomvriendjes en Zazu?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Droomvriendjes combineren drie functies in één: sterrenprojectie, white noise/melodieën én een knuffelbare vriend. Waar andere merken vaak losse producten aanbieden, biedt Droomvriendjes een alles-in-één oplossing. Bovendien zijn onze knuffels USB-oplaadbaar (geen batterijen nodig) en bieden we gratis verzending en 14 dagen retourrecht."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Welke Droomvriendje is het beste voor mijn kind?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Onze bestseller is de Slaperige Panda, geliefd om zijn zachte vacht en rustgevende uitstraling. Voor meisjes is de Magische Eenhoorn favoriet. De Stoere Dino is perfect voor jongens die van avontuur houden. Alle Droomvriendjes hebben dezelfde hoogwaardige functies - kies het dier waar je kind het meest van houdt!"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Kan de knuffel gewassen worden?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Het elektronische gedeelte kan eenvoudig verwijderd worden via een rits. Daarna kun je de pluche buitenkant op 30 graden wassen. Zo blijft je Droomvriendje altijd fris en schoon!"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Hoeveel geluiden en melodieën heeft een Droomvriendje?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Elke Droomvriendje heeft 8 verschillende geluidsopties: white noise, hartslag (zoals in de baarmoeder), natuurgeluiden, en 5 rustgevende slaapliedjes. Je kunt het volume aanpassen en er is een 30-minuten timer."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is een Droomvriendje een goed kraamcadeau?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Droomvriendjes zijn het perfecte kraamcadeau! Het is een cadeau dat ouders écht helpt: betere nachten voor baby én ouders. We leveren in een mooie geschenkverpakking en je kunt een persoonlijk kaartje toevoegen. Gratis verzending maakt het extra gemakkelijk."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Werkt een sterrenprojectie knuffel tegen nachtangst?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja! De zachte sterrenprojectie creëert een magische, veilige sfeer in de kinderkamer. Kinderen met angst voor het donker vinden troost in het zachte licht en de vertrouwde geluiden van hun Droomvriendje. Het is een bewezen hulpmiddel tegen nachtangst bij peuters en kleuters."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Waar kan ik Droomvriendjes kopen?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Je kunt Droomvriendjes direct kopen op onze webshop droomvriendjes.nl. We bieden gratis verzending in Nederland en België, veilig betalen met iDEAL, creditcard of Klarna, en 14 dagen bedenktijd. Bestel vandaag, morgen in huis!"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Hebben jullie een fysieke winkel?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Droomvriendjes is een online webshop. Hierdoor kunnen we de beste prijzen bieden met gratis verzending. Je kunt in alle rust thuis bestellen en het product 14 dagen uitproberen. Niet tevreden? Gratis retourneren!"
+        }
       }
     ]
   };
