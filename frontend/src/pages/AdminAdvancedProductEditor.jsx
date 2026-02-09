@@ -347,7 +347,9 @@ const AdminAdvancedProductEditor = () => {
           features: editData.features.filter(f => f.visible).map(f => f.text),
           benefits: editData.benefits.filter(b => b.visible).map(b => b.text),
           description: editData.description,
-          shortDescription: editData.shortDescription
+          shortDescription: editData.shortDescription,
+          macroImage: macroImage,
+          dimensionsImage: dimensionsImage
         })
       });
       
