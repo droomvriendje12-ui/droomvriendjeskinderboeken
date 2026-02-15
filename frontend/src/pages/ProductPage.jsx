@@ -1196,6 +1196,61 @@ const ProductPage = () => {
                     />
                   </div>
 
+                  {/* Photo Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Foto toevoegen (optioneel)
+                    </label>
+                    <div className="space-y-3">
+                      {/* Photo Preview */}
+                      {photoPreview && (
+                        <div className="relative inline-block">
+                          <img 
+                            src={photoPreview} 
+                            alt="Preview" 
+                            className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={removePhoto}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Upload Button */}
+                      {!photoPreview && (
+                        <div 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#8B7355] hover:bg-[#8B7355]/5 transition-colors"
+                        >
+                          {uploadingPhoto ? (
+                            <div className="flex items-center justify-center gap-2 text-gray-500">
+                              <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                              Uploaden...
+                            </div>
+                          ) : (
+                            <>
+                              <Camera className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-500">Klik om een foto te uploaden</p>
+                              <p className="text-xs text-gray-400 mt-1">Max 5MB • JPG, PNG, WebP of GIF</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
                   {/* Buttons */}
                   <div className="flex gap-4">
                     <Button
