@@ -252,7 +252,8 @@ const ProductPage = () => {
           email: reviewForm.email,
           rating: reviewForm.rating,
           title: reviewForm.title,
-          text: reviewForm.text
+          text: reviewForm.text,
+          photo_url: reviewForm.photo_url
         })
       });
 
