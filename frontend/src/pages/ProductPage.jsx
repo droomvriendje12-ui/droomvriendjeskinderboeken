@@ -45,6 +45,67 @@ const ProductPage = () => {
     return products.find(p => p.id === parseInt(id));
   }, [id]);
 
+  // Determine product series for dynamic specs
+  const productSeries = useMemo(() => {
+    if (!product) return 'basic';
+    
+    // AI Intelligent Serie (USB-C Oplaadbaar): FM666-61, FM666-62, FM666-67
+    const aiSerieSkus = ['FM666-61', 'FM666-62', 'FM666-67'];
+    if (aiSerieSkus.includes(product.sku)) {
+      return 'ai';
+    }
+    
+    // Nodding Off Serie (Batterijen): FM666-77, FM666-78, FM666-80, FM666-81, FM666-82, FM666-74
+    const noddingOffSkus = ['FM666-77', 'FM666-78', 'FM666-80', 'FM666-81', 'FM666-82', 'FM666-74'];
+    if (noddingOffSkus.includes(product.sku)) {
+      return 'nodding';
+    }
+    
+    // Also check by description/features for products without matching SKU
+    const desc = (product.description || '').toLowerCase();
+    const features = (product.features || []).join(' ').toLowerCase();
+    
+    if (desc.includes('usb-c') || features.includes('usb-c')) {
+      return 'ai';
+    }
+    if (desc.includes('60 melodieën') || desc.includes('60 slaapliedjes') || 
+        features.includes('60 slaapliedjes') || features.includes('nodding off')) {
+      return 'nodding';
+    }
+    
+    return 'basic';
+  }, [product]);
+
+  // Dynamic specifications based on product series
+  const productSpecs = useMemo(() => {
+    if (productSeries === 'ai') {
+      return {
+        projection: '3-in-1 (Sterren, Oceaan, Lamp)',
+        audio: '10 Slaapliedjes + 5 White Noise',
+        power: 'USB-C Oplaadbaar (Kabel incl.)',
+        timer: '30 minuten Auto-uit',
+        tipText: 'Oplaadbare batterijen zijn niet nodig, omdat deze Droomvriend volledig oplaadbaar is via USB-C. De module heeft een ingebouwde timer van 30 minuten voor optimaal energieverbruik.'
+      };
+    }
+    if (productSeries === 'nodding') {
+      return {
+        projection: '7 Lichtmodi + 3 Kappen (Sterren, Oceaan, Lamp)',
+        audio: '60 Slaapliedjes + 6 White Noise',
+        power: '3x AA Batterijen (Niet inbegrepen)',
+        timer: '30 minuten Auto-uit',
+        tipText: 'De Nodding Off functie creëert een kalmerende knikkende beweging die je baby helpt ontspannen. De batterijen gaan lang mee dankzij de auto-uit timer van 30 minuten.'
+      };
+    }
+    // Basic serie
+    return {
+      projection: 'Sterrenhemel & Oceaan Projectie',
+      audio: '10 Rustgevende Melodieën',
+      power: '3x AA Batterijen (Niet inbegrepen)',
+      timer: '30 minuten Auto-uit',
+      tipText: 'De batterijen gaan lang mee dankzij de auto-uit timer van 30 minuten. Ideaal voor een rustige nacht zonder zorgen over energieverbruik.'
+    };
+  }, [productSeries]);
+
   // Create gallery array - main image + unique gallery images (no duplicates)
   // Support both string URLs and objects with {url, alt}
   const galleryImages = useMemo(() => {
