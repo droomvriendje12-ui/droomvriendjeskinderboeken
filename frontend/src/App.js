@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "./context/CartContext";
+import { ProductsProvider } from "./context/ProductsContext";
 import { AdminAuthProvider, ProtectedAdminRoute } from "./context/AdminAuthContext";
 import HomePage from "./pages/HomePage";
 import ProductPage from "./pages/ProductPage";
