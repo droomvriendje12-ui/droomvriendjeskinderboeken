@@ -120,6 +120,101 @@ const AdminCommandCenter = () => {
     }
   };
 
+  // Product Edit Functions
+  const openProductEditor = (product) => {
+    setEditingProduct(product);
+    setProductForm({
+      name: product.name || '',
+      shortName: product.shortName || '',
+      price: product.price || 0,
+      originalPrice: product.originalPrice || 0,
+      description: product.description || '',
+      features: product.features || [],
+      benefits: product.benefits || [],
+      sku: product.sku || '',
+      series: product.series || 'basic',
+      badge: product.badge || '',
+      inStock: product.inStock !== false,
+      stock: product.stock || 100,
+      ageRange: product.ageRange || 'Vanaf 0 maanden',
+      warranty: product.warranty || '30 dagen slaapgarantie',
+    });
+    setSaveMessage(null);
+  };
+
+  const closeProductEditor = () => {
+    setEditingProduct(null);
+    setProductForm({});
+    setSaveMessage(null);
+  };
+
+  const handleProductFormChange = (field, value) => {
+    setProductForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFeatureChange = (index, value) => {
+    const newFeatures = [...(productForm.features || [])];
+    newFeatures[index] = value;
+    setProductForm(prev => ({ ...prev, features: newFeatures }));
+  };
+
+  const addFeature = () => {
+    setProductForm(prev => ({ ...prev, features: [...(prev.features || []), ''] }));
+  };
+
+  const removeFeature = (index) => {
+    const newFeatures = (productForm.features || []).filter((_, i) => i !== index);
+    setProductForm(prev => ({ ...prev, features: newFeatures }));
+  };
+
+  const handleBenefitChange = (index, value) => {
+    const newBenefits = [...(productForm.benefits || [])];
+    newBenefits[index] = value;
+    setProductForm(prev => ({ ...prev, benefits: newBenefits }));
+  };
+
+  const addBenefit = () => {
+    setProductForm(prev => ({ ...prev, benefits: [...(prev.benefits || []), ''] }));
+  };
+
+  const removeBenefit = (index) => {
+    const newBenefits = (productForm.benefits || []).filter((_, i) => i !== index);
+    setProductForm(prev => ({ ...prev, benefits: newBenefits }));
+  };
+
+  const saveProduct = async () => {
+    if (!editingProduct) return;
+    setSaving(true);
+    setSaveMessage(null);
+    
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(productForm)
+      });
+      
+      if (res.ok) {
+        const updatedProduct = await res.json();
+        setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productForm } : p));
+        setSaveMessage({ type: 'success', text: 'Product succesvol opgeslagen!' });
+        setTimeout(() => closeProductEditor(), 1500);
+      } else {
+        const error = await res.json();
+        setSaveMessage({ type: 'error', text: error.detail || 'Fout bij opslaan' });
+      }
+    } catch (error) {
+      console.error('Error saving product:', error);
+      setSaveMessage({ type: 'error', text: 'Netwerkfout bij opslaan' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Filter reviews
   const filteredReviews = useMemo(() => {
     let filtered = reviews;
