@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { 
@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronRight, Bell, Moon, Sun, BarChart3,
   Target, Zap, Globe, Mail, MessageSquare, Image, Plus,
   ArrowUpRight, ArrowDownRight, AlertTriangle, Sparkles,
-  X, Save, Upload, Grip
+  X, Save, Upload, Grip, Camera, ImagePlus, Layers
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -30,9 +30,18 @@ const AdminCommandCenter = () => {
   
   // Product Edit Modal State
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [productForm, setProductForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
+  
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(null); // 'main' | 'dimensions' | 'features' | 'gallery'
+  const [imagePreview, setImagePreview] = useState({});
+  const mainImageRef = useRef(null);
+  const dimensionsImageRef = useRef(null);
+  const featuresImageRef = useRef(null);
+  const galleryImageRef = useRef(null);
 
   // Fetch all data
   useEffect(() => {
