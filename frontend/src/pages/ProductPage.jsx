@@ -144,8 +144,70 @@ const ProductPage = () => {
     setShowReviewForm(false);
     setReviewSubmitted(false);
     setReviewError('');
-    setReviewForm({ name: '', email: '', rating: 5, title: '', text: '' });
+    setPhotoPreview(null);
+    setReviewForm({ name: '', email: '', rating: 5, title: '', text: '', photo_url: null });
   }, [id]);
+
+  // Photo upload handler
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      setReviewError('Alleen JPEG, PNG, WebP en GIF zijn toegestaan');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setReviewError('Bestand is te groot (max 5MB)');
+      return;
+    }
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => setPhotoPreview(e.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload to server
+    setUploadingPhoto(true);
+    setReviewError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_URL}/api/reviews/upload-photo`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setReviewForm(prev => ({ ...prev, photo_url: result.photo_url }));
+      } else {
+        setReviewError(result.detail || 'Fout bij uploaden van foto');
+        setPhotoPreview(null);
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      setReviewError('Netwerkfout bij uploaden van foto');
+      setPhotoPreview(null);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoPreview(null);
+    setReviewForm(prev => ({ ...prev, photo_url: null }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Fetch reviews from database
   const fetchReviews = async () => {
