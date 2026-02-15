@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { products, benefits, features, videos, faqs } from '../mockData';
+import { useProducts } from '../context/ProductsContext';
+import { benefits, features, videos, faqs } from '../mockData';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -22,6 +23,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 const HomePage = () => {
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart, updateQuantity, getTotal, getItemCount, isCartOpen, setIsCartOpen } = useCart();
+  const { products, loading: productsLoading } = useProducts();
   const [reviews, setReviews] = useState([]);
   const [fiveStarReviews, setFiveStarReviews] = useState([]);
   const [reviewStats, setReviewStats] = useState({ total: 0, avgRating: 4.9 });
