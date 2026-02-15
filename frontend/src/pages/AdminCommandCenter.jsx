@@ -1067,6 +1067,9 @@ const AdminCommandCenter = () => {
           renderContent()
         )}
       </main>
+      
+      {/* Product Edit Modal */}
+      {renderProductEditModal()}
     </div>
   );
 };
