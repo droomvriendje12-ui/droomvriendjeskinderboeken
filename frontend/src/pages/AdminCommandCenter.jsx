@@ -759,18 +759,66 @@ const AdminCommandCenter = () => {
   const renderProductEditModal = () => {
     if (!editingProduct) return null;
     
+    // Image Upload Zone Component
+    const ImageUploadZone = ({ type, label, description, imageUrl, inputRef }) => (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-slate-400">{label}</label>
+        <div 
+          onClick={() => !isCreatingNew && inputRef.current?.click()}
+          className={`relative border-2 border-dashed rounded-xl overflow-hidden cursor-pointer transition-all ${
+            imageUrl ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-slate-600 hover:border-amber-500/50 hover:bg-slate-700/30'
+          } ${isCreatingNew ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {imageUrl ? (
+            <div className="aspect-video relative">
+              <img src={imageUrl} alt={type} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span className="text-white text-sm font-medium">Klik om te wijzigen</span>
+              </div>
+            </div>
+          ) : (
+            <div className="aspect-video flex flex-col items-center justify-center p-4">
+              {uploadingImage === type ? (
+                <div className="flex items-center gap-2 text-amber-400">
+                  <RefreshCw className="w-6 h-6 animate-spin" />
+                  <span>Uploaden...</span>
+                </div>
+              ) : (
+                <>
+                  <Camera className="w-8 h-8 text-slate-500 mb-2" />
+                  <p className="text-sm text-slate-400 text-center">{description}</p>
+                  {isCreatingNew && <p className="text-xs text-amber-400 mt-1">Sla eerst het product op</p>}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], type)}
+          className="hidden"
+        />
+      </div>
+    );
+    
     return (
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between z-10">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-slate-700 overflow-hidden">
-                <img src={editingProduct.image} alt="" className="w-full h-full object-cover" />
+              <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${isCreatingNew ? 'bg-gradient-to-br from-amber-500 to-orange-500' : 'bg-slate-700 overflow-hidden'}`}>
+                {isCreatingNew ? (
+                  <Plus className="w-8 h-8 text-white" />
+                ) : (
+                  <img src={imagePreview.main || editingProduct.image} alt="" className="w-full h-full object-cover" />
+                )}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Product Bewerken</h2>
-                <p className="text-slate-400">{editingProduct.shortName} • SKU: {editingProduct.sku}</p>
+                <h2 className="text-xl font-bold text-white">{isCreatingNew ? 'Nieuw Product Aanmaken' : 'Product Bewerken'}</h2>
+                <p className="text-slate-400">{isCreatingNew ? 'Vul alle velden in' : `${editingProduct.shortName} • SKU: ${editingProduct.sku}`}</p>
               </div>
             </div>
             <button 
