@@ -45,7 +45,7 @@ const ProductPage = () => {
   
   const product = useMemo(() => {
     return products.find(p => p.id === parseInt(id));
-  }, [id]);
+  }, [id, products]);
 
   // Determine product series for dynamic specs
   const productSeries = useMemo(() => {
