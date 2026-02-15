@@ -729,41 +729,40 @@ const ProductPage = () => {
           </div>
         </section>
 
-        {/* Section 3: Technical Specs */}
+        {/* Section 3: Technical Specs - Dynamic based on product series */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="order-2 lg:order-1 space-y-8">
             <h2 className="text-3xl md:text-4xl font-black italic text-slate-800">Technische Specificaties</h2>
             <div className="space-y-0">
               <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
                 <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
-                  Projectie Standen
+                  Projectie / Licht
                 </span>
-                <span className="font-bold text-slate-800 italic">3-in-1 (Sterren, Oceaan, Lamp)</span>
+                <span className="font-bold text-slate-800 italic">{productSpecs.projection}</span>
               </div>
               <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
                 <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
                   Audio Content
                 </span>
-                <span className="font-bold text-slate-800 italic">10 Slaapliedjes + 5 White Noise</span>
+                <span className="font-bold text-slate-800 italic">{productSpecs.audio}</span>
               </div>
               <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
                 <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
                   Voeding
                 </span>
-                <span className="font-bold text-slate-800 italic">USB-C Oplaadbaar (Inbegrepen)</span>
+                <span className="font-bold text-slate-800 italic">{productSpecs.power}</span>
               </div>
               <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
                 <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
                   Timer
                 </span>
-                <span className="font-bold text-slate-800 italic">30 minuten Auto-uit</span>
+                <span className="font-bold text-slate-800 italic">{productSpecs.timer}</span>
               </div>
             </div>
             <div className="p-5 bg-warm-brown-50 rounded-2xl border border-warm-brown-100 italic">
               <p className="text-xs text-warm-brown-800 font-bold leading-relaxed">
                 <span className="uppercase mr-2 font-black">Tip:</span> 
-                Oplaadbare batterijen zijn niet nodig, omdat de {product.shortName} volledig oplaadbaar is via USB. 
-                De module heeft een ingebouwde timer van 30 minuten voor optimaal energieverbruik.
+                {productSpecs.tipText}
               </p>
             </div>
           </div>
