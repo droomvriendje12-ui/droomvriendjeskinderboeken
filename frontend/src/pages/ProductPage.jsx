@@ -692,39 +692,115 @@ const ProductPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <h4 className="text-xl font-black italic">AI Huilsensor</h4>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                De sensor herkent babygehuil en activeert direct om je kindje te troosten. Zo vallen ze vaak weer zelf in slaap zonder dat jij uit bed hoeft.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
-                </svg>
-              </div>
-              <h4 className="text-xl font-black italic">Zachte Projectie</h4>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                De 3-in-1 projector met sterren en oceaan stimuleert de melatonine aanmaak, wat de natuurlijke slaapcyclus van je baby ondersteunt.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <h4 className="text-xl font-black italic">Hartslag Geluid</h4>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                De baarmoderhartslag en white noise simuleren de veilige omgeving van de baarmoeder, voor een maximaal gevoel van geborgenheid.
-              </p>
-            </div>
+            {productSeries === 'ai' ? (
+              <>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">AI Huilsensor</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    De sensor herkent babygehuil en activeert direct om je kindje te troosten. Zo vallen ze vaak weer zelf in slaap.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">3-in-1 Projectie</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    Kies uit sterren, oceaan of nachtlampje. De zachte projectie stimuleert melatonine aanmaak voor betere slaap.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-4-4h-2v-2h2v2zm0-4h-2V7h2v4z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">USB-C Oplaadbaar</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    Geen gedoe met batterijen. De USB-C kabel is inbegrepen en de module is binnen enkele uren opgeladen.
+                  </p>
+                </div>
+              </>
+            ) : productSeries === 'nodding' ? (
+              <>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">60 Melodieën</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    Met 60 slaapliedjes en 6 white noise opties vind je altijd het perfecte geluid om je kindje rustig te laten inslapen.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">7 Lichtmodi</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    Van zachte nachtverlichting tot sfeervol licht. 7 verschillende standen plus 3 projectiekappen (sterren, oceaan, lamp).
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">Nodding Off Beweging</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    De unieke knikkende beweging kalmeert je baby en helpt bij het ontspannen. Wetenschappelijk bewezen effectief.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">Zachte Projectie</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    De sterrenhemel projectie stimuleert de melatonine aanmaak, wat de natuurlijke slaapcyclus van je baby ondersteunt.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">Rustgevende Melodieën</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    Kalmerende slaapliedjes en white noise geluiden helpen je kindje sneller en dieper in slaap te vallen.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-black italic">Geborgen Gevoel</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    De combinatie van zacht licht en kalmerende geluiden creëert een veilige omgeving voor je kindje.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
