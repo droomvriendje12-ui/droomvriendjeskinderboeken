@@ -132,6 +132,7 @@ const AdminCommandCenter = () => {
   // Product Edit Functions
   const openProductEditor = (product) => {
     setEditingProduct(product);
+    setIsCreatingNew(false);
     setProductForm({
       name: product.name || '',
       shortName: product.shortName || '',
@@ -147,13 +148,53 @@ const AdminCommandCenter = () => {
       stock: product.stock || 100,
       ageRange: product.ageRange || 'Vanaf 0 maanden',
       warranty: product.warranty || '30 dagen slaapgarantie',
+      image: product.image || '',
+      gallery: product.gallery || [],
+      dimensionsImage: product.dimensionsImage || '',
+      macroImage: product.macroImage || '',
+      itemCategory: product.itemCategory || 'Knuffels',
+      itemCategory2: product.itemCategory2 || '',
+      itemCategory3: product.itemCategory3 || '',
     });
+    setImagePreview({
+      main: product.image || '',
+      dimensions: product.dimensionsImage || '',
+      features: product.macroImage || '',
+    });
+    setSaveMessage(null);
+  };
+
+  const openNewProductEditor = () => {
+    setEditingProduct({ id: 'new' });
+    setIsCreatingNew(true);
+    setProductForm({
+      name: '',
+      shortName: '',
+      price: 0,
+      originalPrice: 0,
+      description: '',
+      features: [''],
+      benefits: [''],
+      sku: '',
+      series: 'basic',
+      badge: '',
+      inStock: true,
+      stock: 100,
+      ageRange: 'Vanaf 0 maanden',
+      warranty: '30 dagen slaapgarantie',
+      itemCategory: 'Knuffels',
+      itemCategory2: '',
+      itemCategory3: '',
+    });
+    setImagePreview({});
     setSaveMessage(null);
   };
 
   const closeProductEditor = () => {
     setEditingProduct(null);
+    setIsCreatingNew(false);
     setProductForm({});
+    setImagePreview({});
     setSaveMessage(null);
   };
 
@@ -191,26 +232,117 @@ const AdminCommandCenter = () => {
     setProductForm(prev => ({ ...prev, benefits: newBenefits }));
   };
 
+  // Image Upload Handler
+  const handleImageUpload = async (file, imageType) => {
+    if (!file || !editingProduct || editingProduct.id === 'new') return;
+    
+    setUploadingImage(imageType);
+    const token = localStorage.getItem('admin_token');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('image_type', imageType);
+      
+      const res = await fetch(`${API_URL}/api/products/${editingProduct.id}/upload-image`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      const result = await res.json();
+      
+      if (res.ok) {
+        // Update preview and form
+        setImagePreview(prev => ({ ...prev, [imageType]: result.image_url }));
+        
+        if (imageType === 'main') {
+          setProductForm(prev => ({ ...prev, image: result.image_url }));
+        } else if (imageType === 'dimensions') {
+          setProductForm(prev => ({ ...prev, dimensionsImage: result.image_url }));
+        } else if (imageType === 'features') {
+          setProductForm(prev => ({ ...prev, macroImage: result.image_url }));
+        } else if (imageType === 'gallery') {
+          setProductForm(prev => ({ ...prev, gallery: [...(prev.gallery || []), result.image_url] }));
+        }
+        
+        setSaveMessage({ type: 'success', text: `${imageType} afbeelding geüpload!` });
+        setTimeout(() => setSaveMessage(null), 2000);
+      } else {
+        setSaveMessage({ type: 'error', text: result.detail || 'Upload mislukt' });
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setSaveMessage({ type: 'error', text: 'Netwerkfout bij uploaden' });
+    } finally {
+      setUploadingImage(null);
+    }
+  };
+
+  const removeGalleryImage = async (index) => {
+    if (!editingProduct || editingProduct.id === 'new') return;
+    
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/api/products/${editingProduct.id}/gallery/${index}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        const newGallery = [...(productForm.gallery || [])];
+        newGallery.splice(index, 1);
+        setProductForm(prev => ({ ...prev, gallery: newGallery }));
+      }
+    } catch (error) {
+      console.error('Error removing gallery image:', error);
+    }
+  };
+
   const saveProduct = async () => {
     if (!editingProduct) return;
     setSaving(true);
     setSaveMessage(null);
     
     const token = localStorage.getItem('admin_token');
+    
     try {
-      const res = await fetch(`${API_URL}/api/admin/products/${editingProduct.id}`, {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(productForm)
-      });
+      let res;
+      
+      if (isCreatingNew) {
+        // Create new product
+        res = await fetch(`${API_URL}/api/products/create`, {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(productForm)
+        });
+      } else {
+        // Update existing product
+        res = await fetch(`${API_URL}/api/products/${editingProduct.id}/full`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(productForm)
+        });
+      }
       
       if (res.ok) {
-        const updatedProduct = await res.json();
-        setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productForm } : p));
-        setSaveMessage({ type: 'success', text: 'Product succesvol opgeslagen!' });
+        const result = await res.json();
+        if (isCreatingNew) {
+          setProducts([...products, result.product]);
+        } else {
+          setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productForm } : p));
+        }
+        setSaveMessage({ type: 'success', text: isCreatingNew ? 'Product aangemaakt!' : 'Product opgeslagen!' });
+        
+        // Refresh products list
+        fetchAllData();
+        
         setTimeout(() => closeProductEditor(), 1500);
       } else {
         const error = await res.json();
