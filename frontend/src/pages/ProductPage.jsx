@@ -8,7 +8,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 import { Input } from '../components/ui/input';
-import { Star, ShoppingCart, Check, Sparkles, Shield, ChevronLeft, ChevronRight, Send, User, MessageSquare } from 'lucide-react';
+import { Star, ShoppingCart, Check, Sparkles, Shield, ChevronLeft, ChevronRight, Send, User, MessageSquare, Camera } from 'lucide-react';
 import Layout from '../components/Layout';
 import StickyAddToCart from '../components/StickyAddToCart';
 import { trackViewItem } from '../utils/analytics';
