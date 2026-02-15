@@ -18,6 +18,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 const ProductPage = () => {
   const { id } = useParams();
   const { addToCart, setIsCartOpen, isCartOpen } = useCart();
+  const { products } = useProducts();
   const [selectedImage, setSelectedImage] = useState(0);
   const [productReviews, setProductReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
