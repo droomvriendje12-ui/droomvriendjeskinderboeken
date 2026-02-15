@@ -862,3 +862,200 @@ async def get_product_image_info(product_id: int):
         logger.error(f"Error getting image info for product {product_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============== PRODUCT IMAGE UPLOAD ==============
+
+def get_product_folder(product_name: str) -> str:
+    """Generate safe folder name from product name"""
+    # Convert to lowercase and replace spaces/special chars
+    safe_name = product_name.lower().strip()
+    safe_name = safe_name.replace(" ", "-").replace("–", "-")
+    # Remove non-alphanumeric except dashes
+    safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
+    # Remove multiple dashes
+    while "--" in safe_name:
+        safe_name = safe_name.replace("--", "-")
+    return safe_name
+
+
+@router.post("/{product_id}/upload-image")
+async def upload_product_image(
+    product_id: int,
+    file: UploadFile = File(...),
+    image_type: str = Form("main")  # main, dimensions, features, gallery
+):
+    """
+    Upload a product image
+    image_type: 'main' | 'dimensions' | 'features' | 'gallery'
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Alleen JPEG, PNG, WebP en GIF zijn toegestaan")
+    
+    # Read file content
+    contents = await file.read()
+    
+    # Validate file size (max 10MB)
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Bestand is te groot (max 10MB)")
+    
+    # Get product
+    product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    try:
+        # Create folder based on product name
+        product_folder = get_product_folder(product.get("shortName", f"product-{product_id}"))
+        upload_dir = f"/app/frontend/public/products/{product_folder}"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate filename based on type
+        file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        
+        if image_type == "main":
+            filename = f"{product_folder}-main.{file_ext}"
+        elif image_type == "dimensions":
+            filename = f"{product_folder}-dimensions.{file_ext}"
+        elif image_type == "features":
+            filename = f"{product_folder}-features.{file_ext}"
+        else:  # gallery
+            filename = f"{product_folder}-gallery-{uuid.uuid4().hex[:8]}.{file_ext}"
+        
+        # Save file
+        file_path = os.path.join(upload_dir, filename)
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        # Generate URL
+        image_url = f"/products/{product_folder}/{filename}"
+        
+        # Update database based on image type
+        update_data = {"updatedAt": datetime.now(timezone.utc).isoformat()}
+        
+        if image_type == "main":
+            update_data["image"] = image_url
+        elif image_type == "dimensions":
+            update_data["dimensionsImage"] = image_url
+        elif image_type == "features":
+            update_data["macroImage"] = image_url
+        else:  # gallery - append to gallery array
+            await db.products.update_one(
+                {"id": product_id},
+                {"$push": {"gallery": image_url}, "$set": {"updatedAt": update_data["updatedAt"]}}
+            )
+            logger.info(f"Gallery image added for product {product_id}: {image_url}")
+            return {"success": True, "image_url": image_url, "type": image_type}
+        
+        # Update product
+        await db.products.update_one({"id": product_id}, {"$set": update_data})
+        
+        logger.info(f"Product image uploaded for {product_id}: {image_url} (type: {image_type})")
+        return {"success": True, "image_url": image_url, "type": image_type}
+        
+    except Exception as e:
+        logger.error(f"Error uploading image for product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{product_id}/gallery/{image_index}")
+async def remove_gallery_image(product_id: int, image_index: int):
+    """Remove an image from the product gallery by index"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    gallery = product.get("gallery", [])
+    if image_index < 0 or image_index >= len(gallery):
+        raise HTTPException(status_code=400, detail="Ongeldige gallery index")
+    
+    try:
+        # Remove the image at the specified index
+        gallery.pop(image_index)
+        
+        await db.products.update_one(
+            {"id": product_id},
+            {"$set": {"gallery": gallery, "updatedAt": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"success": True, "message": f"Afbeelding {image_index} verwijderd uit gallery"}
+        
+    except Exception as e:
+        logger.error(f"Error removing gallery image: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create")
+async def create_new_product(product: ProductCreate):
+    """Create a new product"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Get the next available ID
+        last_product = await db.products.find_one(sort=[("id", -1)])
+        new_id = (last_product.get("id", 0) + 1) if last_product else 1
+        
+        # Create product document
+        now = datetime.now(timezone.utc).isoformat()
+        product_doc = {
+            "id": new_id,
+            **product.dict(),
+            "image": "/products/placeholder.png",  # Will be updated when image is uploaded
+            "gallery": [],
+            "rating": 0,
+            "reviews": 0,
+            "createdAt": now,
+            "updatedAt": now,
+            "visible": True
+        }
+        
+        await db.products.insert_one(product_doc)
+        
+        # Remove MongoDB _id for response
+        if "_id" in product_doc:
+            del product_doc["_id"]
+        
+        logger.info(f"New product created: {product.shortName} (ID: {new_id})")
+        return {"success": True, "product": product_doc}
+        
+    except Exception as e:
+        logger.error(f"Error creating product: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/{product_id}/full")
+async def update_product_full(product_id: int, product: ProductUpdate):
+    """Full product update with all fields"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    existing = await db.products.find_one({"id": product_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    try:
+        # Build update dict only with non-None values
+        update_data = {k: v for k, v in product.dict().items() if v is not None}
+        update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.products.update_one({"id": product_id}, {"$set": update_data})
+        
+        # Get updated product
+        updated = await db.products.find_one({"id": product_id}, {"_id": 0})
+        
+        logger.info(f"Product {product_id} fully updated")
+        return {"success": True, "product": updated}
+        
+    except Exception as e:
+        logger.error(f"Error updating product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
