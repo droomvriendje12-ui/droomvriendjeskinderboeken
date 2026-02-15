@@ -152,6 +152,7 @@ async def submit_user_review(review: UserReviewSubmit):
         "text": review.text.strip(),
         "verified": False,  # User-submitted reviews are not verified by default
         "avatar": get_default_avatar(review.name),
+        "photo_url": review.photo_url,  # Customer uploaded photo
         "date": "vandaag",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source": "user_submitted",
