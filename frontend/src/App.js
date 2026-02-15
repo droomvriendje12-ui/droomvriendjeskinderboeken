@@ -158,6 +158,7 @@ function App() {
           </AdminAuthProvider>
         </BrowserRouter>
       </CartProvider>
+      </ProductsProvider>
     </div>
     </HelmetProvider>
   );
