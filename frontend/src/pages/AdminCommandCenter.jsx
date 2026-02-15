@@ -590,11 +590,17 @@ const AdminCommandCenter = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-3">
-                <button className="flex-1 py-2 bg-slate-700/50 text-slate-300 rounded-lg text-sm hover:bg-slate-700 transition-all">
+                <button 
+                  onClick={() => openProductEditor(product)}
+                  className="flex-1 py-2 bg-slate-700/50 text-slate-300 rounded-lg text-sm hover:bg-slate-700 transition-all"
+                >
                   <Edit3 className="w-4 h-4 inline mr-1" />
                   Bewerken
                 </button>
-                <button className="py-2 px-3 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-700 transition-all">
+                <button 
+                  onClick={() => window.open(`/product/${product.id}`, '_blank')}
+                  className="py-2 px-3 bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-700 transition-all"
+                >
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -604,6 +610,263 @@ const AdminCommandCenter = () => {
       </div>
     </div>
   );
+
+  // Product Edit Modal
+  const renderProductEditModal = () => {
+    if (!editingProduct) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-xl bg-slate-700 overflow-hidden">
+                <img src={editingProduct.image} alt="" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Product Bewerken</h2>
+                <p className="text-slate-400">{editingProduct.shortName} • SKU: {editingProduct.sku}</p>
+              </div>
+            </div>
+            <button 
+              onClick={closeProductEditor}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Form Content */}
+          <div className="p-6 space-y-6">
+            {/* Save Message */}
+            {saveMessage && (
+              <div className={`p-4 rounded-xl flex items-center gap-3 ${
+                saveMessage.type === 'success' ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border border-red-500/30 text-red-400'
+              }`}>
+                {saveMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                {saveMessage.text}
+              </div>
+            )}
+
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Productnaam (volledig)</label>
+                <input
+                  type="text"
+                  value={productForm.name || ''}
+                  onChange={(e) => handleProductFormChange('name', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Volledige productnaam"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Korte naam</label>
+                <input
+                  type="text"
+                  value={productForm.shortName || ''}
+                  onChange={(e) => handleProductFormChange('shortName', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  placeholder="Bijv. Slaperig Schaapje"
+                />
+              </div>
+            </div>
+
+            {/* Pricing */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Prijs (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={productForm.price || ''}
+                  onChange={(e) => handleProductFormChange('price', parseFloat(e.target.value))}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Originele prijs (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={productForm.originalPrice || ''}
+                  onChange={(e) => handleProductFormChange('originalPrice', parseFloat(e.target.value))}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Voorraad</label>
+                <input
+                  type="number"
+                  value={productForm.stock || ''}
+                  onChange={(e) => handleProductFormChange('stock', parseInt(e.target.value))}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            {/* Series & Badge */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Product Serie</label>
+                <select
+                  value={productForm.series || 'basic'}
+                  onChange={(e) => handleProductFormChange('series', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                >
+                  <option value="ai">AI Serie (USB-C)</option>
+                  <option value="nodding">Nodding Off (60 melodieën)</option>
+                  <option value="basic">Basic Serie</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Badge</label>
+                <select
+                  value={productForm.badge || ''}
+                  onChange={(e) => handleProductFormChange('badge', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                >
+                  <option value="">Geen badge</option>
+                  <option value="BESTSELLER">BESTSELLER</option>
+                  <option value="POPULAIR">POPULAIR</option>
+                  <option value="NIEUW">NIEUW</option>
+                  <option value="FAVORIET">FAVORIET</option>
+                  <option value="MAGISCH">MAGISCH</option>
+                  <option value="VOORDEELSET">VOORDEELSET</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">SKU</label>
+                <input
+                  type="text"
+                  value={productForm.sku || ''}
+                  onChange={(e) => handleProductFormChange('sku', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">Beschrijving</label>
+              <textarea
+                value={productForm.description || ''}
+                onChange={(e) => handleProductFormChange('description', e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-500 resize-none"
+                placeholder="Productbeschrijving..."
+              />
+            </div>
+
+            {/* Features */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-slate-400">Features</label>
+                <button 
+                  onClick={addFeature}
+                  className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Toevoegen
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(productForm.features || []).map((feature, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={feature}
+                      onChange={(e) => handleFeatureChange(index, e.target.value)}
+                      className="flex-1 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-amber-500"
+                      placeholder="Feature..."
+                    />
+                    <button 
+                      onClick={() => removeFeature(index)}
+                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-slate-400">Voordelen (met emoji's)</label>
+                <button 
+                  onClick={addBenefit}
+                  className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Toevoegen
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(productForm.benefits || []).map((benefit, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={benefit}
+                      onChange={(e) => handleBenefitChange(index, e.target.value)}
+                      className="flex-1 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-amber-500"
+                      placeholder="🎶 Voordeel met emoji..."
+                    />
+                    <button 
+                      onClick={() => removeBenefit(index)}
+                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Stock Toggle */}
+            <div className="flex items-center gap-4 p-4 bg-slate-700/30 rounded-xl">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={productForm.inStock}
+                  onChange={(e) => handleProductFormChange('inStock', e.target.checked)}
+                  className="w-5 h-5 rounded bg-slate-600 border-slate-500 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-white font-medium">Product is op voorraad</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 p-6 flex items-center justify-end gap-3">
+            <button 
+              onClick={closeProductEditor}
+              className="px-6 py-3 bg-slate-700 text-white rounded-xl font-medium hover:bg-slate-600 transition-all"
+            >
+              Annuleren
+            </button>
+            <button 
+              onClick={saveProduct}
+              disabled={saving}
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {saving ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  Opslaan...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Opslaan
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Render orders section
   const renderOrders = () => (
