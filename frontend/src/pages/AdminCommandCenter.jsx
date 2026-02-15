@@ -1267,18 +1267,57 @@ const AdminCommandCenter = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { icon: Globe, title: 'SEO Optimalisatie', desc: 'Meta tags & content', color: 'from-blue-500 to-indigo-500' },
-          { icon: Mail, title: 'Email Campagnes', desc: 'Nieuwsbrieven & flows', color: 'from-emerald-500 to-teal-500' },
-          { icon: Target, title: 'Google Ads', desc: 'PPC campagnes', color: 'from-red-500 to-orange-500' },
+          { icon: Globe, title: 'SEO Optimalisatie', desc: 'Meta tags & content', color: 'from-blue-500 to-indigo-500', link: '/admin/merchant-feed' },
+          { icon: Mail, title: 'Email Campagnes', desc: 'Nieuwsbrieven & flows', color: 'from-emerald-500 to-teal-500', link: '/admin/email-marketing' },
+          { icon: Target, title: 'Google Ads', desc: 'PPC campagnes', color: 'from-red-500 to-orange-500', link: '/admin/google-ads' },
         ].map((item, i) => (
-          <div key={i} className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 hover:border-amber-500/30 transition-all cursor-pointer group">
+          <div 
+            key={i} 
+            onClick={() => navigate(item.link)}
+            className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 hover:border-amber-500/30 transition-all cursor-pointer group"
+          >
             <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
               <item.icon className="w-7 h-7 text-white" />
             </div>
             <h3 className="text-lg font-bold text-white mb-1">{item.title}</h3>
             <p className="text-sm text-slate-400">{item.desc}</p>
+            <div className="mt-4 flex items-center text-amber-400 text-sm font-medium group-hover:translate-x-1 transition-transform">
+              Openen <ChevronRight className="w-4 h-4 ml-1" />
+            </div>
           </div>
         ))}
+      </div>
+
+      {/* Additional Marketing Tools */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div 
+          onClick={() => navigate('/admin/shopping-campaigns')}
+          className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 hover:border-amber-500/30 transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <ShoppingCart className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Shopping Campaigns</h3>
+              <p className="text-sm text-slate-400">Google Shopping beheer</p>
+            </div>
+          </div>
+        </div>
+        <div 
+          onClick={() => navigate('/admin/keywords')}
+          className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 hover:border-amber-500/30 transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+              <Search className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Keyword Research</h3>
+              <p className="text-sm text-slate-400">Zoekwoorden analyse</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
