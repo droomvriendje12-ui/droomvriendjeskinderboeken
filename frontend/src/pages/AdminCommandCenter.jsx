@@ -7,7 +7,8 @@ import {
   XCircle, Edit3, Trash2, Search, Filter, RefreshCw, 
   ChevronDown, ChevronRight, Bell, Moon, Sun, BarChart3,
   Target, Zap, Globe, Mail, MessageSquare, Image, Plus,
-  ArrowUpRight, ArrowDownRight, AlertTriangle, Sparkles
+  ArrowUpRight, ArrowDownRight, AlertTriangle, Sparkles,
+  X, Save, Upload, Grip
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -26,6 +27,12 @@ const AdminCommandCenter = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDays, setSelectedDays] = useState(30);
   const [reviewFilter, setReviewFilter] = useState('all'); // all, pending, approved
+  
+  // Product Edit Modal State
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
 
   // Fetch all data
   useEffect(() => {
