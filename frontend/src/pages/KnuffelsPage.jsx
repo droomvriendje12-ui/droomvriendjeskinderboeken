@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { products } from '../mockData';
+import { useProducts } from '../context/ProductsContext';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Star, ShoppingCart, Filter } from 'lucide-react';
@@ -9,19 +9,24 @@ import { trackViewItemList, trackSelectItem } from '../utils/analytics';
 
 const KnuffelsPage = () => {
   const { addToCart } = useCart();
+  const { products, loading } = useProducts();
 
   // Sort products: in-stock first, out-of-stock at the end
-  const sortedProducts = [...products].sort((a, b) => {
-    const aInStock = a.inStock !== false;
-    const bInStock = b.inStock !== false;
-    if (aInStock === bInStock) return 0;
-    return aInStock ? -1 : 1;
-  });
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      const aInStock = a.inStock !== false;
+      const bInStock = b.inStock !== false;
+      if (aInStock === bInStock) return 0;
+      return aInStock ? -1 : 1;
+    });
+  }, [products]);
 
   // GA4: Track view_item_list when page loads
   useEffect(() => {
-    trackViewItemList(sortedProducts, 'alle_knuffels', 'Alle Knuffels');
-  }, []);
+    if (sortedProducts.length > 0) {
+      trackViewItemList(sortedProducts, 'alle_knuffels', 'Alle Knuffels');
+    }
+  }, [sortedProducts]);
 
   // GA4: Track product click
   const handleProductClick = (product, index) => {
