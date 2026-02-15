@@ -1,6 +1,7 @@
-import React, { useMemo, useEffect, useState, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { products, faqs } from '../mockData';
+import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useProducts } from '../context/ProductsContext';
+import { faqs } from '../mockData';
 import { useCart } from '../context/CartContext';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
