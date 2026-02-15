@@ -1,11 +1,14 @@
 """
 Products API Routes - MongoDB based product catalog
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import List, Optional
 from datetime import datetime, timezone
+from pydantic import BaseModel
 import logging
-from bson import ObjectId
+import uuid
+import os
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,49 @@ def set_database(database):
     """Set the database connection"""
     global db
     db = database
+
+
+# Pydantic models for product CRUD
+class ProductCreate(BaseModel):
+    name: str
+    shortName: str
+    price: float
+    originalPrice: Optional[float] = None
+    description: str
+    features: List[str] = []
+    benefits: List[str] = []
+    sku: str
+    series: str = "basic"
+    badge: Optional[str] = None
+    inStock: bool = True
+    stock: int = 100
+    ageRange: str = "Vanaf 0 maanden"
+    warranty: str = "30 dagen slaapgarantie"
+    itemCategory: str = "Knuffels"
+    itemCategory2: Optional[str] = None
+    itemCategory3: Optional[str] = None
+    itemVariant: Optional[str] = None
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    shortName: Optional[str] = None
+    price: Optional[float] = None
+    originalPrice: Optional[float] = None
+    description: Optional[str] = None
+    features: Optional[List[str]] = None
+    benefits: Optional[List[str]] = None
+    sku: Optional[str] = None
+    series: Optional[str] = None
+    badge: Optional[str] = None
+    inStock: Optional[bool] = None
+    stock: Optional[int] = None
+    ageRange: Optional[str] = None
+    warranty: Optional[str] = None
+    image: Optional[str] = None
+    gallery: Optional[List[str]] = None
+    macroImage: Optional[str] = None
+    dimensionsImage: Optional[str] = None
 
 # Initial product data to seed the database
 INITIAL_PRODUCTS = [
