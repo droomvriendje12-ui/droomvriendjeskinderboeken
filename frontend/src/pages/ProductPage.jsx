@@ -30,11 +30,15 @@ const ProductPage = () => {
     email: '',
     rating: 5,
     title: '',
-    text: ''
+    text: '',
+    photo_url: null
   });
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Carousel state for "Andere Knuffels"
   const [carouselIndex, setCarouselIndex] = useState(0);
