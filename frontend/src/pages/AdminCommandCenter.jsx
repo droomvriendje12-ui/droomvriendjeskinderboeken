@@ -951,6 +951,87 @@ const AdminCommandCenter = () => {
               />
             </div>
 
+            {/* ============== MEDIA GALERIJ ============== */}
+            <div className="border-t border-slate-700 pt-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-amber-400" />
+                Media Galerij
+              </h3>
+              
+              {/* Main Images Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <ImageUploadZone 
+                  type="main"
+                  label="Hoofdfoto"
+                  description="Primaire afbeelding voor de shop"
+                  imageUrl={imagePreview.main}
+                  inputRef={mainImageRef}
+                />
+                <ImageUploadZone 
+                  type="dimensions"
+                  label="Detailfoto 1 (Afmetingen)"
+                  description="Technische specificaties"
+                  imageUrl={imagePreview.dimensions}
+                  inputRef={dimensionsImageRef}
+                />
+                <ImageUploadZone 
+                  type="features"
+                  label="Detailfoto 2 (Kenmerken)"
+                  description="Marketing features"
+                  imageUrl={imagePreview.features}
+                  inputRef={featuresImageRef}
+                />
+              </div>
+
+              {/* Gallery Carousel */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-slate-400">Extra Carrousel Foto's</label>
+                  {!isCreatingNew && (
+                    <button 
+                      onClick={() => galleryImageRef.current?.click()}
+                      className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                    >
+                      <ImagePlus className="w-3 h-3" /> Foto toevoegen
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={galleryImageRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'gallery')}
+                  className="hidden"
+                />
+                
+                {/* Gallery Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {(productForm.gallery || []).map((img, idx) => (
+                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-600">
+                      <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <button 
+                          onClick={() => removeGalleryImage(idx)}
+                          className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <span className="absolute bottom-1 left-1 text-xs bg-black/70 text-white px-1.5 py-0.5 rounded">
+                        {idx + 1}
+                      </span>
+                    </div>
+                  ))}
+                  {(productForm.gallery || []).length === 0 && (
+                    <div className="col-span-full text-center py-8 text-slate-500 border border-dashed border-slate-600 rounded-lg">
+                      {isCreatingNew ? 'Sla eerst het product op om foto\'s toe te voegen' : 'Nog geen extra foto\'s toegevoegd'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {/* ============== END MEDIA GALERIJ ============== */}
+
             {/* Features */}
             <div>
               <div className="flex items-center justify-between mb-2">
