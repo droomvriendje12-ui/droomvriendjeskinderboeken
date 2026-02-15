@@ -169,6 +169,41 @@ async def submit_user_review(review: UserReviewSubmit):
     return {"success": True, "message": "Review succesvol ingediend!", "review": review_doc}
 
 
+@router.post("/upload-photo")
+async def upload_review_photo(file: UploadFile = File(...)):
+    """Upload a photo for a review"""
+    import os
+    import base64
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Alleen JPEG, PNG, WebP en GIF zijn toegestaan")
+    
+    # Validate file size (max 5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Bestand is te groot (max 5MB)")
+    
+    # Generate unique filename
+    file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    unique_filename = f"review_{uuid.uuid4().hex[:12]}.{file_ext}"
+    
+    # Save to static directory
+    upload_dir = "/app/frontend/public/uploads/reviews"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, unique_filename)
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    
+    # Return the URL
+    photo_url = f"/uploads/reviews/{unique_filename}"
+    
+    logger.info(f"Review photo uploaded: {photo_url}")
+    return {"success": True, "photo_url": photo_url, "filename": unique_filename}
+
+
 @router.patch("/{review_id}/visibility")
 async def toggle_review_visibility(review_id: str, visible: bool):
     """Toggle review visibility (hide/show)"""
