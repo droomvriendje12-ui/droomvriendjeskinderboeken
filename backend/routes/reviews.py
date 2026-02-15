@@ -39,6 +39,7 @@ class UserReviewSubmit(BaseModel):
     rating: int
     title: str
     text: str
+    photo_url: Optional[str] = None  # URL of uploaded photo
 
 class ReviewResponse(BaseModel):
     id: str
