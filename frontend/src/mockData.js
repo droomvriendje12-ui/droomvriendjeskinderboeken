@@ -817,8 +817,8 @@ export const faqs = [
     answer: "Onze knuffels zijn geschikt vanaf 0 maanden. Ze zijn veilig getest en voldoen aan alle Europese veiligheidsnormen (CE-gecertificeerd)."
   },
   {
-    question: "Wat is de 2 KOPEN 3E GRATIS actie?",
-    answer: "Bij aankoop van 2 knuffels krijg je de 3e knuffel helemaal gratis! De korting wordt automatisch toegepast in je winkelwagen. Perfect voor grotere gezinnen of als cadeau!"
+    question: "Hoe lang gaat de batterij mee?",
+    answer: "Goed nieuws: de batterijen gaan gemiddeld meerdere weken mee, afhankelijk van hoe vaak je de knuffel gebruikt. En je hoeft je geen zorgen te maken over onnodig verbruik – de knuffel schakelt zichzelf automatisch uit na 30 minuten om energie te besparen. Zo geniet je kindje langer van zijn droomvriendje zonder dat jij steeds aan de batterijen hoeft te denken!"
   },
   {
     question: "Hoe werken de licht- en muziekfuncties?",
