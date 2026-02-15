@@ -695,7 +695,10 @@ const AdminCommandCenter = () => {
           <h2 className="text-2xl font-bold text-white">Producten Beheer</h2>
           <p className="text-slate-400">{products.length} producten in de database</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition-all">
+        <button 
+          onClick={openNewProductEditor}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition-all"
+        >
           <Plus className="w-5 h-5" />
           Nieuw Product
         </button>
