@@ -37,6 +37,8 @@ const MarketingCommandCenter = () => {
   const [campaignType, setCampaignType] = useState('promotional');
   const [selectedSegments, setSelectedSegments] = useState(['all']);
   const [sendingCampaign, setSendingCampaign] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignsSummary, setCampaignsSummary] = useState(null);
   
   // WhatsApp state
   const [whatsappSegment, setWhatsappSegment] = useState('recent');
