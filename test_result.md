@@ -142,6 +142,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PRODUCT ADVANCED APIs WORKING: PUT /products/{id}/advanced (save customizations), GET /products/{id}/advanced (fetch with customizations). Tested gallery images with both string URLs and objects with alt-text, sections, features. Backward compatibility confirmed - existing products work without migration. Mixed gallery formats supported correctly."
+      - working: "NA"
+        agent: "main"
+        comment: "Feb 19: Backend API remains unchanged. Enhanced editor now also uses PUT /api/products/{id} for core field updates (name, price, badge, stock, rating, etc.) in addition to advanced customizations."
 
   - task: "Orders API - Discount Calculations"
     implemented: true
