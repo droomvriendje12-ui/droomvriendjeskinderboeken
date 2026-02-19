@@ -46,6 +46,7 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminDiscountCodesPage from "./pages/AdminDiscountCodesPage";
 import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminProductsPageV2 from "./pages/AdminProductsPageV2";
 import AdminAdvancedProductEditor from "./pages/AdminAdvancedProductEditor";
 import AdminCommandCenter from "./pages/AdminCommandCenter";
 import MarketingDashboardPage from "./pages/MarketingDashboardPage";
