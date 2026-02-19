@@ -164,198 +164,77 @@ SHOP_URL = os.environ.get('SHOP_URL', 'https://droomvriendjes.nl')
 MERCHANT_CENTER_ID = os.environ.get('GOOGLE_MERCHANT_CENTER_ID', '5713316340')
 
 # Product data for Google Shopping Feed
-PRODUCTS_DATA = [
-    {
-        "id": "KNUF_001",
-        "title": "Baby Slaapmaatje Leeuw - Projector Nachtlamp met White Noise",
-        "description": "Projector nachtlamp met rustgevende geluiden. Perfect voor een betere nachtrust.",
-        "link": "/product/1",
-        "image_link": "https://i.imgur.com/E4g3eOy.jpeg",
-        "additional_image_links": ["https://i.imgur.com/zYLuTAg.jpeg", "https://i.imgur.com/WfHQKKr.jpeg"],
-        "availability": "in_stock",
-        "price": "49.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Wilde Dieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Geel/Bruin",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_002",
-        "title": "Baby Nachtlamp Schaap - Slaapknuffel met Sterrenprojector",
-        "description": "Slaapknuffel met projector en white noise. Helpt je kind tot rust te komen.",
-        "link": "/product/2",
-        "image_link": "https://i.imgur.com/vYpeb4c.jpeg",
-        "additional_image_links": ["https://i.imgur.com/62h7jyd.jpeg", "https://i.imgur.com/JxKouOL.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Boerderijdieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Wit/Crème",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_003",
-        "title": "Teddy Projector Knuffel - Bruine Beer met Nachtlicht",
-        "description": "Bruine teddy met nachtlicht en rustgevende geluiden. Voor een rustige nachtrust.",
-        "link": "/product/3",
-        "image_link": "https://i.imgur.com/jM6J4oV.jpeg",
-        "additional_image_links": ["https://i.imgur.com/bMpTi4F.jpeg", "https://i.imgur.com/LuZnyJN.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Beren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Bruin",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_004",
-        "title": "Pinguïn Nachtlampje - Slaapknuffel met Projectie",
-        "description": "Schattige pinguïn met sterrenprojector en rustgevende geluiden.",
-        "link": "/product/4",
-        "image_link": "https://i.imgur.com/sYVb8K4.jpeg",
-        "additional_image_links": ["https://i.imgur.com/RqYk1oe.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Pooldieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Blauw/Wit",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_005",
-        "title": "Dinosaurus Slaapknuffel - Stoere Dino met Nachtlamp",
-        "description": "Stoere dinosaurus met nachtlamp en white noise. Perfect voor avonturiers!",
-        "link": "/product/5",
-        "image_link": "https://i.imgur.com/z4cyllw.jpeg",
-        "additional_image_links": ["https://i.imgur.com/mWJSBxI.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Fantasiedieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Groen",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_006",
-        "title": "Slaapknuffel Duo Schaap & Teddy - Voordeelset",
-        "description": "Twee schattige slaapknuffels met nachtlampjes. Perfect voor broertjes en zusjes!",
-        "link": "/product/6",
-        "image_link": "https://i.imgur.com/4blLAM7.jpeg",
-        "additional_image_links": ["https://i.imgur.com/1JbBGgT.jpeg"],
-        "availability": "in_stock",
-        "price": "89.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Voordeelsets > Duo Sets",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Wit/Bruin",
-        "material": "Pluche",
-        "shipping_weight": "1.0 kg"
-    },
-    {
-        "id": "KNUF_007",
-        "title": "Beer Sterrenprojector Nachtlamp - Slaapknuffel",
-        "description": "Schattige beer met sterrenprojector en rustgevende slaapgeluiden.",
-        "link": "/product/7",
-        "image_link": "https://i.imgur.com/q2c7zsP.jpeg",
-        "additional_image_links": ["https://i.imgur.com/xyXHy7f.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Beren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Beige",
-        "material": "Pluche",
-        "shipping_weight": "0.4 kg"
-    },
-    {
-        "id": "KNUF_008",
-        "title": "Schaap Knuffel Nachtlampje - Liggend Schaapje",
-        "description": "Liggend schaapje met kalmerend licht en rustgevende geluiden. Super zacht!",
-        "link": "/product/8",
-        "image_link": "https://i.imgur.com/8mKVYOY.jpeg",
-        "additional_image_links": ["https://i.imgur.com/N1vjMHQ.jpeg"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Boerderijdieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Wit/Crème",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_009",
-        "title": "Kalmerende Eenhoorn Knuffel - Magische Unicorn",
-        "description": "Magische eenhoorn met kalmerend licht. De perfecte slaaphulp!",
-        "link": "/product/9",
-        "image_link": "https://i.imgur.com/KRNfDsV.jpeg",
-        "additional_image_links": ["https://i.imgur.com/x4PTZXD.png"],
-        "availability": "in_stock",
-        "price": "59.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Fantasiedieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Roze/Regenboog",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    },
-    {
-        "id": "KNUF_011",
-        "title": "Panda Projector Knuffel - Slaapknuffel met Sterrenhemel",
-        "description": "Schattige panda met rustgevende muziek en nachtlicht. Perfect voor rustige nachtjes!",
-        "link": "/product/11",
-        "image_link": "https://i.imgur.com/fhVs30E.jpeg",
-        "additional_image_links": ["https://i.imgur.com/COWpWna.jpeg"],
-        "availability": "in_stock",
-        "price": "49.95 EUR",
-        "brand": "Droomvriendjes",
-        "condition": "new",
-        "google_product_category": "588 > 4186",
-        "product_type": "Knuffels > Slaapknuffels > Wilde Dieren",
-        "identifier_exists": "no",
-        "age_group": "infant",
-        "color": "Zwart/Wit",
-        "material": "Pluche",
-        "shipping_weight": "0.5 kg"
-    }
-]
+# NOTE: Old hardcoded products removed (Feb 19, 2026)
+# Google Merchant Feed now uses products from MongoDB database dynamically
+# This ensures the feed always shows current products
+
+async def get_products_for_feed():
+    """
+    Fetch all products from MongoDB and format them for Google Shopping feed
+    Returns products in the same format as the old PRODUCTS_DATA
+    """
+    try:
+        # Fetch all products from MongoDB
+        products = await db.products.find({}, {"_id": 0}).to_list(length=100)
+        
+        # Format products for Google Shopping feed
+        formatted_products = []
+        for product in products:
+            # Extract gallery images (handle both string and object format)
+            gallery = product.get('gallery', [product.get('image', '')])
+            if not gallery:
+                gallery = [product.get('image', '')]
+            
+            # Get main image
+            main_image = gallery[0] if gallery else product.get('image', '')
+            if isinstance(main_image, dict):
+                main_image = main_image.get('url', '')
+            
+            # Get additional images (rest of gallery)
+            additional_images = []
+            for img in gallery[1:]:
+                if isinstance(img, str):
+                    additional_images.append(img)
+                elif isinstance(img, dict):
+                    additional_images.append(img.get('url', ''))
+            
+            # Determine product category from existing data
+            item_category = product.get('itemCategory', 'Knuffels')
+            item_category2 = product.get('itemCategory2', 'Slaapknuffels')
+            item_category3 = product.get('itemCategory3', 'Baby')
+            product_type = f"{item_category} > {item_category2} > {item_category3}"
+            
+            # Format product for feed
+            formatted_product = {
+                "id": product.get('sku', product.get('itemId', f"KNUF_{product.get('id', '')}")),
+                "title": product.get('name', ''),
+                "description": product.get('description', '')[:500],  # Google limit
+                "link": f"/product/{product.get('id')}",
+                "image_link": main_image,
+                "additional_image_links": additional_images,
+                "availability": "in_stock" if product.get('inStock', True) else "out_of_stock",
+                "price": f"{product.get('price', 0):.2f} EUR",
+                "brand": "Droomvriendjes",
+                "condition": "new",
+                "google_product_category": "588 > 4186",  # Toys & Games > Toys > Baby & Toddler Toys
+                "product_type": product_type,
+                "identifier_exists": "no",
+                "age_group": "infant",
+                "color": "Multicolor",  # Could be enhanced with actual product color
+                "material": "Pluche",
+                "shipping_weight": "0.5 kg"
+            }
+            
+            # Add sale price if original price exists
+            if product.get('originalPrice') and product.get('originalPrice') > product.get('price', 0):
+                formatted_product["sale_price"] = f"{product.get('price', 0):.2f} EUR"
+            
+            formatted_products.append(formatted_product)
+        
+        return formatted_products
+    except Exception as e:
+        logger.error(f"Error fetching products for feed: {e}")
+        return []
 
 
 # ============== HEALTH CHECK ENDPOINT (Required for Kubernetes) ==============
