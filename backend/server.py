@@ -2432,12 +2432,13 @@ async def debug_env():
 # Feed products JSON endpoint (moet voor include_router)
 @api_router.get("/feed/products")
 async def get_feed_products():
-    """Get all products formatted for Google Shopping feed (JSON)"""
+    """Get all products formatted for Google Shopping feed (JSON) - Dynamic from MongoDB"""
+    products_data = await get_products_for_feed()
     return {
         "merchant_center_id": MERCHANT_CENTER_ID,
         "shop_url": SHOP_URL,
-        "products_count": len(PRODUCTS_DATA),
-        "products": PRODUCTS_DATA,
+        "products_count": len(products_data),
+        "products": products_data,
         "feed_url": f"{SHOP_URL}/api/feed/google-shopping.xml"
     }
 
