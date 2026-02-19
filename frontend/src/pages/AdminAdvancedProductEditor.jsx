@@ -647,6 +647,7 @@ const AdminAdvancedProductEditor = () => {
               
               <nav className="space-y-1">
                 {[
+                  { id: 'details', label: 'Product Details', icon: Edit2, priority: true },
                   { id: 'media', label: 'Media Beheer', icon: Camera, badge: imageInfo?.has_overrides ? '●' : null },
                   { id: 'images', label: 'Afbeeldingen', icon: ImageIcon },
                   { id: 'sections', label: 'Secties', icon: Layers },
@@ -660,6 +661,8 @@ const AdminAdvancedProductEditor = () => {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
                       activeTab === tab.id
                         ? 'bg-[#8B7355] text-white'
+                        : tab.priority 
+                        ? 'text-[#8B7355] font-semibold hover:bg-[#fdf8f3] border border-[#8B7355]'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                     data-testid={`tab-${tab.id}`}
