@@ -363,6 +363,30 @@ frontend:
         agent: "main"
         comment: "Added SEO alt-text support: Admin editor pre-fills with 10 Dutch SEO keywords (Droomvriendjes Slaapknuffel, Knuffel met hartslag baby, etc.), dedicated alt-text input field with visual guidance, ProductPage updated to render alt-text in HTML <img> tags. Supports both legacy string URLs and new object format {url, alt}. Backward compatible."
 
+  - task: "Admin Products Page V2 - Complete Redesign"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminProductsPageV2.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Feb 19: Completely rebuilt /admin/products with modern design. Features: 7-stat dashboard (total, in stock, out of stock, with badge, avg price, avg rating, total reviews), grid/list view toggle, advanced filtering (search, stock status, badge, price range), bulk operations (select all, bulk delete), enhanced product cards with hover effects, real-time search. Fetches ALL products from MongoDB via GET /api/products. Old page preserved at /admin/products-old. Route: /admin/products now uses AdminProductsPageV2."
+
+  - task: "Advanced Product Editor - Enhanced with Product Details Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminAdvancedProductEditor.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Feb 19: Enhanced existing advanced editor with new 'Product Details' tab (appears first in navigation). Allows editing of: Product name, short name, SKU, sale price, original price (with live discount calculation), stock status toggle, badge selector, rating (with star preview), review count, age range, warranty. Save functionality updated to call both PUT /products/{id}/advanced AND PUT /products/{id} to save all changes. All existing tabs (Media, Images, Sections, Content, Features, Benefits) preserved and working."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
