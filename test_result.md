@@ -395,20 +395,15 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Admin Products Page V2 - Complete Redesign"
+    - "Advanced Product Editor - Enhanced with Product Details Tab"
     - "Checkout Discount Logic & Coupon Persistence"
     - "Reviews Tool Advanced Page"
     - "Public Reviews Page - Droomvriendjes Reviews"
-    - "Admin Dashboard - Reviews Tool Link"
-    - "Admin Products - Advanced Editor Link"
-    - "App Routing Updates"
-    - "AdSense Section Removal from ProductPage"
-    - "Product Card Grid Normalization"
-    - "Scarcity Logic Fix - Sticky Bar Stock Counter"
-    - "SEO Alt-Text Integration - Admin & Frontend"
   stuck_tasks:
     - "Checkout Discount Logic & Coupon Persistence"
-  test_all: true
-  test_priority: "stuck_first"
+  test_all: false
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
