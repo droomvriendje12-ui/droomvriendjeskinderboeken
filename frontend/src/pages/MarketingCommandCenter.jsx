@@ -1012,12 +1012,12 @@ const MarketingCommandCenter = () => {
               </div>
               <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
                 <p className="text-sm font-bold text-white/60 uppercase mb-2">Actieve Campagnes</p>
-                <p className="text-4xl font-black text-emerald-400">3</p>
-                <p className="text-sm text-white/50 font-semibold mt-2">2 gepland</p>
+                <p className="text-4xl font-black text-emerald-400">{campaignsSummary?.active_campaigns || 0}</p>
+                <p className="text-sm text-white/50 font-semibold mt-2">{campaignsSummary?.paused_campaigns || 0} gepauzeerd</p>
               </div>
               <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
                 <p className="text-sm font-bold text-white/60 uppercase mb-2">Gem. Open Rate</p>
-                <p className="text-4xl font-black text-blue-400">58.3%</p>
+                <p className="text-4xl font-black text-blue-400">{campaignsSummary?.avg_open_rate || 0}%</p>
                 <p className="text-sm text-emerald-400 font-semibold mt-2">+23% vs. industry</p>
               </div>
               <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-xl p-6">
