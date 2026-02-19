@@ -3132,7 +3132,10 @@ from fastapi.responses import Response
 
 @app.get("/api/feed/google-shopping.xml")
 async def google_shopping_feed():
-    """Generate Google Shopping Product Feed in XML format"""
+    """Generate Google Shopping Product Feed in XML format - Dynamic from MongoDB"""
+    
+    # Fetch products from database
+    products_data = await get_products_for_feed()
     
     xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
@@ -3142,7 +3145,7 @@ async def google_shopping_feed():
     <description>Ontdek onze slaapknuffels met sterrenprojector en rustgevende geluiden. Gratis verzending en 14 dagen retour.</description>
 '''
     
-    for product in PRODUCTS_DATA:
+    for product in products_data:
         xml_content += f'''
     <item>
       <g:id>{product["id"]}</g:id>
