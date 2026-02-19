@@ -16,7 +16,9 @@ import {
   Upload,
   CheckCircle,
   AlertCircle,
-  Rocket
+  Rocket,
+  Trash2,
+  X
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -28,6 +30,9 @@ const MerchantFeedPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // null, 'success', 'error'
   const [uploadMessage, setUploadMessage] = useState('');
+  const [deletingProductId, setDeletingProductId] = useState(null);
+  const [deleteStatus, setDeleteStatus] = useState(null); // null, 'success', 'error'
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   useEffect(() => {
     fetchFeedData();
@@ -55,6 +60,68 @@ const MerchantFeedPage = () => {
 
   const openFeed = () => {
     window.open(`${API_URL}/api/feed/google-shopping.xml`, '_blank');
+  };
+
+  const handleDeleteProduct = async (productId, productTitle) => {
+    // Confirm deletion
+    const confirmed = window.confirm(
+      `Weet je zeker dat je "${productTitle}" wilt verwijderen?\n\n` +
+      `Dit product wordt permanent verwijderd uit:\n` +
+      `• De database\n` +
+      `• Google Merchant Feed\n` +
+      `• De website\n\n` +
+      `Deze actie kan niet ongedaan worden gemaakt!`
+    );
+    
+    if (!confirmed) return;
+    
+    setDeletingProductId(productId);
+    setDeleteStatus(null);
+    setDeleteMessage('');
+    
+    try {
+      // Extract numeric ID from product ID (e.g., "KNUF_001" -> get from link)
+      const product = feedData.products.find(p => p.id === productId);
+      if (!product) {
+        throw new Error('Product niet gevonden');
+      }
+      
+      // Extract ID from link (e.g., "/product/1" -> 1)
+      const numericId = product.link.split('/').pop();
+      
+      const response = await fetch(`${API_URL}/api/products/${numericId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Verwijderen mislukt');
+      }
+      
+      // Success - refresh feed data
+      setDeleteStatus('success');
+      setDeleteMessage(`✅ "${productTitle}" succesvol verwijderd!`);
+      
+      // Refresh the feed after a short delay
+      setTimeout(async () => {
+        await fetchFeedData();
+        setDeleteStatus(null);
+        setDeleteMessage('');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      setDeleteStatus('error');
+      setDeleteMessage(`❌ Fout: ${error.message}`);
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setDeleteStatus(null);
+        setDeleteMessage('');
+      }, 5000);
+    } finally {
+      setDeletingProductId(null);
+    }
   };
 
   const uploadToMerchantCenter = async () => {
