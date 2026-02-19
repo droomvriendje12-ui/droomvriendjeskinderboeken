@@ -905,3 +905,294 @@ async def delete_lead(lead_id: str):
         logger.error(f"Error deleting lead: {e}")
         raise HTTPException(status_code=500, detail=f"Fout bij verwijderen: {str(e)}")
 
+
+# ========================================
+# CAMPAIGN MANAGEMENT ENDPOINTS
+# ========================================
+
+class CampaignCreate(BaseModel):
+    name: str
+    type: str  # promotional, newsletter, abandoned_cart, etc.
+    segments: List[str]
+    subject: Optional[str] = None
+    content: Optional[str] = None
+    scheduled_date: Optional[str] = None
+
+class CampaignUpdate(BaseModel):
+    status: Optional[str] = None
+    stats: Optional[Dict[str, Any]] = None
+
+@router.post("/campaigns")
+async def create_campaign(campaign: CampaignCreate):
+    """Create a new email campaign"""
+    try:
+        campaign_id = str(uuid.uuid4())
+        
+        # Calculate recipient count based on segments
+        recipient_count = 0
+        for segment in campaign.segments:
+            if segment == 'all':
+                recipient_count = await db.marketing_leads.count_documents({})
+            elif segment == 'recent':
+                recipient_count += await db.marketing_leads.count_documents({
+                    "imported_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()}
+                })
+            elif segment == 'male':
+                recipient_count += await db.marketing_leads.count_documents({"gender": "male"})
+            elif segment == 'female':
+                recipient_count += await db.marketing_leads.count_documents({"gender": "female"})
+        
+        # Create campaign document
+        campaign_doc = {
+            "id": campaign_id,
+            "name": campaign.name,
+            "type": campaign.type,
+            "segments": campaign.segments,
+            "subject": campaign.subject or f"{campaign.name} - Special Offer",
+            "content": campaign.content or "Campaign content",
+            "status": "active",  # active, paused, completed, scheduled
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "scheduled_date": campaign.scheduled_date,
+            "stats": {
+                "sent": 0,
+                "delivered": 0,
+                "opened": 0,
+                "clicked": 0,
+                "conversions": 0,
+                "revenue": 0,
+                "open_rate": 0,
+                "click_rate": 0,
+                "conversion_rate": 0
+            },
+            "recipient_count": recipient_count
+        }
+        
+        await db.campaigns.insert_one(campaign_doc)
+        
+        # Simulate sending - in reality, this would trigger email service
+        # For demo: gradually update stats
+        await db.campaigns.update_one(
+            {"id": campaign_id},
+            {"$set": {
+                "stats.sent": recipient_count,
+                "stats.delivered": int(recipient_count * 0.98),
+                "stats.opened": int(recipient_count * 0.55),
+                "stats.clicked": int(recipient_count * 0.15),
+                "stats.conversions": int(recipient_count * 0.08),
+                "stats.revenue": round(recipient_count * 0.08 * 54.95, 2),
+                "stats.open_rate": 55.0,
+                "stats.click_rate": 15.0,
+                "stats.conversion_rate": 8.0
+            }}
+        )
+        
+        return {
+            "success": True,
+            "campaign_id": campaign_id,
+            "message": f"Campagne '{campaign.name}' is aangemaakt!",
+            "recipient_count": recipient_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij aanmaken campagne: {str(e)}")
+
+@router.get("/campaigns")
+async def get_campaigns(
+    status: Optional[str] = None,
+    limit: int = 50,
+    skip: int = 0
+):
+    """Get all campaigns with optional status filter"""
+    try:
+        query = {}
+        if status:
+            query["status"] = status
+        
+        campaigns = await db.campaigns.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=limit)
+        total = await db.campaigns.count_documents(query)
+        
+        return {
+            "campaigns": campaigns,
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        }
+    except Exception as e:
+        logger.error(f"Error fetching campaigns: {e}")
+        return {"campaigns": [], "total": 0, "skip": skip, "limit": limit}
+
+@router.get("/campaigns/{campaign_id}")
+async def get_campaign(campaign_id: str):
+    """Get a specific campaign by ID"""
+    try:
+        campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+        
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+        
+        return campaign
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij ophalen campagne: {str(e)}")
+
+@router.put("/campaigns/{campaign_id}")
+async def update_campaign(campaign_id: str, update_data: CampaignUpdate):
+    """Update campaign status or stats"""
+    try:
+        update_fields = {}
+        if update_data.status:
+            update_fields["status"] = update_data.status
+        if update_data.stats:
+            for key, value in update_data.stats.items():
+                update_fields[f"stats.{key}"] = value
+        
+        if not update_fields:
+            raise HTTPException(status_code=400, detail="Geen update data opgegeven")
+        
+        update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        result = await db.campaigns.update_one(
+            {"id": campaign_id},
+            {"$set": update_fields}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+        
+        return {"success": True, "message": "Campagne bijgewerkt"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij bijwerken campagne: {str(e)}")
+
+@router.delete("/campaigns/{campaign_id}")
+async def delete_campaign(campaign_id: str):
+    """Delete a campaign"""
+    try:
+        result = await db.campaigns.delete_one({"id": campaign_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+        
+        return {"success": True, "message": "Campagne verwijderd"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij verwijderen campagne: {str(e)}")
+
+@router.post("/campaigns/{campaign_id}/pause")
+async def pause_campaign(campaign_id: str):
+    """Pause an active campaign"""
+    try:
+        result = await db.campaigns.update_one(
+            {"id": campaign_id},
+            {"$set": {
+                "status": "paused",
+                "paused_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+        
+        return {"success": True, "message": "Campagne gepauzeerd"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error pausing campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij pauzeren campagne: {str(e)}")
+
+@router.post("/campaigns/{campaign_id}/resume")
+async def resume_campaign(campaign_id: str):
+    """Resume a paused campaign"""
+    try:
+        result = await db.campaigns.update_one(
+            {"id": campaign_id},
+            {"$set": {
+                "status": "active",
+                "resumed_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+        
+        return {"success": True, "message": "Campagne hervat"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resuming campaign: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij hervatten campagne: {str(e)}")
+
+@router.get("/campaigns/stats/summary")
+async def get_campaigns_summary():
+    """Get summary stats for all campaigns"""
+    try:
+        total = await db.campaigns.count_documents({})
+        active = await db.campaigns.count_documents({"status": "active"})
+        paused = await db.campaigns.count_documents({"status": "paused"})
+        completed = await db.campaigns.count_documents({"status": "completed"})
+        
+        # Calculate aggregate stats
+        pipeline = [
+            {"$group": {
+                "_id": None,
+                "total_sent": {"$sum": "$stats.sent"},
+                "total_opened": {"$sum": "$stats.opened"},
+                "total_clicked": {"$sum": "$stats.clicked"},
+                "total_conversions": {"$sum": "$stats.conversions"},
+                "total_revenue": {"$sum": "$stats.revenue"}
+            }}
+        ]
+        
+        agg_result = await db.campaigns.aggregate(pipeline).to_list(length=1)
+        
+        if agg_result:
+            stats = agg_result[0]
+            avg_open_rate = (stats["total_opened"] / stats["total_sent"] * 100) if stats["total_sent"] > 0 else 0
+            avg_click_rate = (stats["total_clicked"] / stats["total_sent"] * 100) if stats["total_sent"] > 0 else 0
+        else:
+            stats = {
+                "total_sent": 0,
+                "total_opened": 0,
+                "total_clicked": 0,
+                "total_conversions": 0,
+                "total_revenue": 0
+            }
+            avg_open_rate = 0
+            avg_click_rate = 0
+        
+        return {
+            "total_campaigns": total,
+            "active_campaigns": active,
+            "paused_campaigns": paused,
+            "completed_campaigns": completed,
+            "total_sent": stats["total_sent"],
+            "total_opened": stats["total_opened"],
+            "total_clicked": stats["total_clicked"],
+            "total_conversions": stats["total_conversions"],
+            "total_revenue": stats["total_revenue"],
+            "avg_open_rate": round(avg_open_rate, 1),
+            "avg_click_rate": round(avg_click_rate, 1)
+        }
+    except Exception as e:
+        logger.error(f"Error getting campaign summary: {e}")
+        return {
+            "total_campaigns": 0,
+            "active_campaigns": 0,
+            "paused_campaigns": 0,
+            "completed_campaigns": 0,
+            "total_sent": 0,
+            "total_opened": 0,
+            "total_clicked": 0,
+            "total_conversions": 0,
+            "total_revenue": 0,
+            "avg_open_rate": 0,
+            "avg_click_rate": 0
+        }
+
