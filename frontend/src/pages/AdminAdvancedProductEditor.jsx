@@ -700,6 +700,263 @@ const AdminAdvancedProductEditor = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             
+            {/* NEW: Product Details Tab */}
+            {activeTab === 'details' && (
+              <div className="space-y-6">
+                {/* Basic Info */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                    <Edit2 className="w-5 h-5 text-[#8B7355]" />
+                    Basis Informatie
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Productnaam *
+                      </label>
+                      <Input
+                        value={editData.name}
+                        onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Baby Slaapmaatje Leeuw - Projector Nachtlamp"
+                        className="text-base"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Korte Naam (voor kaarten)
+                      </label>
+                      <Input
+                        value={editData.shortName}
+                        onChange={(e) => setEditData(prev => ({ ...prev, shortName: e.target.value }))}
+                        placeholder="Leeuw Projector"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SKU / Item ID
+                      </label>
+                      <Input
+                        value={editData.sku}
+                        onChange={(e) => setEditData(prev => ({ ...prev, sku: e.target.value }))}
+                        placeholder="KNUF_001"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                    <Euro className="w-5 h-5 text-[#8B7355]" />
+                    Prijzen
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Verkoopprijs (€) *
+                      </label>
+                      <Input
+                        type="number"
+                        value={editData.price}
+                        onChange={(e) => setEditData(prev => ({ ...prev, price: e.target.value }))}
+                        placeholder="49.95"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Originele Prijs (€) - optioneel
+                      </label>
+                      <Input
+                        type="number"
+                        value={editData.originalPrice || ''}
+                        onChange={(e) => setEditData(prev => ({ ...prev, originalPrice: e.target.value }))}
+                        placeholder="64.95"
+                        step="0.01"
+                        min="0"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Voor doorgestreepte prijzen (korting tonen)</p>
+                    </div>
+                    
+                    {editData.price && editData.originalPrice && editData.originalPrice > editData.price && (
+                      <div className="md:col-span-2 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-sm text-green-800">
+                          ✨ Korting: <strong>€{(editData.originalPrice - editData.price).toFixed(2)}</strong> 
+                          {' '}({Math.round((1 - editData.price / editData.originalPrice) * 100)}% besparing)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status & Badge */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-[#8B7355]" />
+                    Status & Badge
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Voorraad Status
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEditData(prev => ({ ...prev, inStock: !prev.inStock }))}
+                          className={`relative w-14 h-7 rounded-full transition-colors ${
+                            editData.inStock ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                        >
+                          <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                            editData.inStock ? 'left-8' : 'left-1'
+                          }`} />
+                        </button>
+                        <span className={`text-sm font-medium ${editData.inStock ? 'text-green-700' : 'text-red-700'}`}>
+                          {editData.inStock ? '✓ Op voorraad' : '✗ Uitverkocht'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Product Badge
+                      </label>
+                      <select
+                        value={editData.badge}
+                        onChange={(e) => setEditData(prev => ({ ...prev, badge: e.target.value }))}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7355]"
+                      >
+                        <option value="">Geen badge</option>
+                        <option value="BESTSELLER">BESTSELLER</option>
+                        <option value="POPULAIR">POPULAIR</option>
+                        <option value="NIEUW">NIEUW</option>
+                        <option value="VOORDEELSET">VOORDEELSET</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reviews & Rating */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-[#8B7355]" />
+                    Beoordelingen
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Gemiddelde Rating (1-5)
+                      </label>
+                      <Input
+                        type="number"
+                        value={editData.rating}
+                        onChange={(e) => setEditData(prev => ({ ...prev, rating: e.target.value }))}
+                        min="1"
+                        max="5"
+                        step="0.1"
+                      />
+                      <div className="mt-2 flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-5 h-5 ${
+                              i < Math.floor(editData.rating)
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className="ml-2 text-sm font-medium text-gray-700">{editData.rating}</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Aantal Reviews
+                      </label>
+                      <Input
+                        type="number"
+                        value={editData.reviews}
+                        onChange={(e) => setEditData(prev => ({ ...prev, reviews: e.target.value }))}
+                        min="0"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Wordt getoond op de productkaart</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-[#8B7355]" />
+                    Aanvullende Informatie
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Leeftijdsbereik
+                      </label>
+                      <Input
+                        value={editData.ageRange}
+                        onChange={(e) => setEditData(prev => ({ ...prev, ageRange: e.target.value }))}
+                        placeholder="Vanaf 0 maanden"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Garantie
+                      </label>
+                      <Input
+                        value={editData.warranty}
+                        onChange={(e) => setEditData(prev => ({ ...prev, warranty: e.target.value }))}
+                        placeholder="14 dagen geld-terug-garantie"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Vergeet niet je wijzigingen op te slaan
+                      </p>
+                      {saveSuccess && (
+                        <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Succesvol opgeslagen!
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="bg-[#8B7355] hover:bg-[#6d5a45]"
+                    >
+                      {saving ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Opslaan...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Wijzigingen Opslaan
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* NEW: Media Management Tab */}
             {activeTab === 'media' && (
               <div className="space-y-6">
