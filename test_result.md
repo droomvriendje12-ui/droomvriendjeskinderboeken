@@ -103,9 +103,14 @@
 #====================================================================================================
 
 user_problem_statement: |
-  Implement two new features into the Droomvriendjes application:
+  SESSION 1: Implement two new features into the Droomvriendjes application:
   1. Reviews Tool Advanced - Advanced review management system
   2. Product Page Editor Enhancement - Advanced product customization editor
+  
+  SESSION 2 (Feb 19, 2026): Product Management System Redesign
+  1. Rebuild /admin/products page with modern design and layout
+  2. Ensure page lists ALL products identically from database
+  3. Enhance Advanced Product Editor with comprehensive editing capabilities
 
 backend:
   - task: "Review API Enhancement - Edit, Bulk Delete, Filtering"
