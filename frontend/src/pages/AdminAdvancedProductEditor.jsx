@@ -131,7 +131,19 @@ const AdminAdvancedProductEditor = () => {
             features: (data.features || []).map((f, i) => ({ id: i, text: f, visible: true })),
             benefits: (data.benefits || []).map((b, i) => ({ id: i, text: b, visible: true })),
             description: data.description || '',
-            shortDescription: data.shortDescription || ''
+            shortDescription: data.shortDescription || '',
+            // NEW: Initialize core product fields
+            name: data.name || '',
+            shortName: data.shortName || '',
+            price: data.price || 0,
+            originalPrice: data.originalPrice || 0,
+            badge: data.badge || '',
+            inStock: data.inStock !== false,
+            rating: data.rating || 4.5,
+            reviews: data.reviews || 0,
+            sku: data.sku || data.itemId || '',
+            ageRange: data.ageRange || 'Vanaf 0 maanden',
+            warranty: data.warranty || '14 dagen geld-terug-garantie'
           });
           
           // Load specific image fields
