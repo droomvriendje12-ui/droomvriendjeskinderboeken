@@ -1030,109 +1030,96 @@ const MarketingCommandCenter = () => {
             {/* Active Campaigns */}
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Actieve Campagnes</h3>
-              <div className="grid grid-cols-2 gap-6">
-                {/* Campaign 1 */}
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-white mb-1">Voorjaar Sale 2026</h4>
-                      <p className="text-sm text-white/60">Premium Leads • 35-65 jaar</p>
-                    </div>
-                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-bold uppercase">Live</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-white/10 mb-4">
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Verzonden</p>
-                      <p className="text-xl font-black text-white">2,847</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Open Rate</p>
-                      <p className="text-xl font-black text-blue-400">62.3%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Conversies</p>
-                      <p className="text-xl font-black text-emerald-400">387</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="font-semibold text-white/70">ROI Progress</span>
-                      <span className="font-bold text-emerald-400">€16,291 winst</span>
-                    </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style={{ width: '82%' }} />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => showNotification('📊 Analytics geopend voor Voorjaar Sale 2026')}
-                      className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-semibold text-sm text-white transition-all"
-                    >
-                      📊 Analytics
-                    </button>
-                    <button 
-                      onClick={() => showNotification('✏️ Campagne editor geopend')}
-                      className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-all"
-                    >
-                      ✏️ Bewerken
-                    </button>
-                  </div>
+              {campaigns.length === 0 ? (
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
+                  <Mail className="w-16 h-16 text-white/20 mx-auto mb-4" />
+                  <p className="text-white/60 mb-4">Nog geen campagnes aangemaakt</p>
+                  <button
+                    onClick={() => setShowCampaignBuilder(true)}
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-emerald-700 transition-all"
+                  >
+                    <Plus className="w-4 h-4 inline mr-2" />
+                    Maak je eerste campagne
+                  </button>
                 </div>
-                
-                {/* Campaign 2 */}
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-white mb-1">Moederdag Special</h4>
-                      <p className="text-sm text-white/60">Vrouwen • 30-65 jaar</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-6">
+                  {campaigns.map((campaign) => (
+                    <div key={campaign.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="text-lg font-bold text-white mb-1">{campaign.name}</h4>
+                          <p className="text-sm text-white/60">{campaign.segments.join(' • ')}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                          campaign.status === 'active' 
+                            ? 'bg-emerald-500/20 text-emerald-400' 
+                            : campaign.status === 'paused'
+                            ? 'bg-orange-500/20 text-orange-400'
+                            : 'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {campaign.status === 'active' ? 'Live' : campaign.status === 'paused' ? 'Gepauzeerd' : 'Gepland'}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 py-4 border-y border-white/10 mb-4">
+                        <div className="text-center">
+                          <p className="text-xs text-white/60 mb-1">Verzonden</p>
+                          <p className="text-xl font-black text-white">{campaign.stats.sent.toLocaleString()}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-white/60 mb-1">Open Rate</p>
+                          <p className="text-xl font-black text-blue-400">{campaign.stats.open_rate}%</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-white/60 mb-1">Conversies</p>
+                          <p className="text-xl font-black text-emerald-400">{campaign.stats.conversions}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="font-semibold text-white/70">ROI Progress</span>
+                          <span className="font-bold text-emerald-400">€{campaign.stats.revenue.toLocaleString()} winst</span>
+                        </div>
+                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style={{ width: `${Math.min(campaign.stats.open_rate, 100)}%` }} />
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {campaign.status === 'active' ? (
+                          <button 
+                            onClick={() => pauseCampaign(campaign.id, campaign.name)}
+                            className="flex-1 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg font-semibold text-sm transition-all"
+                          >
+                            ⏸️ Pauzeer
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => resumeCampaign(campaign.id, campaign.name)}
+                            className="flex-1 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 rounded-lg font-semibold text-sm transition-all"
+                          >
+                            ▶️ Hervatten
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => showNotification(`📊 Analytics: ${campaign.stats.sent} verzonden, ${campaign.stats.opened} geopend, ${campaign.stats.conversions} conversies`)}
+                          className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-semibold text-sm text-white transition-all"
+                        >
+                          📊 Analytics
+                        </button>
+                        <button 
+                          onClick={() => deleteCampaign(campaign.id, campaign.name)}
+                          className="py-2 px-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-semibold text-sm transition-all"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
-                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-bold uppercase">Live</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-white/10 mb-4">
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Verzonden</p>
-                      <p className="text-xl font-black text-white">1,234</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Open Rate</p>
-                      <p className="text-xl font-black text-blue-400">54.8%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-white/60 mb-1">Conversies</p>
-                      <p className="text-xl font-black text-emerald-400">143</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="font-semibold text-white/70">ROI Progress</span>
-                      <span className="font-bold text-emerald-400">€5,147 winst</span>
-                    </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style={{ width: '68%' }} />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => showNotification('📊 Analytics geopend voor Moederdag Special')}
-                      className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-semibold text-sm text-white transition-all"
-                    >
-                      📊 Analytics
-                    </button>
-                    <button 
-                      onClick={() => showNotification('✏️ Campagne editor geopend')}
-                      className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-all"
-                    >
-                      ✏️ Bewerken
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
             
             {/* Campaign Builder Modal */}
