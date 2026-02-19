@@ -60,7 +60,19 @@ const AdminAdvancedProductEditor = () => {
     features: [],
     benefits: [],
     description: '',
-    shortDescription: ''
+    shortDescription: '',
+    // NEW: Core product fields
+    name: '',
+    shortName: '',
+    price: 0,
+    originalPrice: 0,
+    badge: '',
+    inStock: true,
+    rating: 4.5,
+    reviews: 0,
+    sku: '',
+    ageRange: '',
+    warranty: ''
   });
 
   // File input refs
