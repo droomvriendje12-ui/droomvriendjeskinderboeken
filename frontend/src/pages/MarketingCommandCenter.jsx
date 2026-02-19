@@ -554,6 +554,12 @@ const MarketingCommandCenter = () => {
                   <Plus className="w-4 h-4" />
                   Nieuwe Campagne
                 </button>
+                <Link to="/admin/leads">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all">
+                    <Users className="w-4 h-4" />
+                    Beheer Leads
+                  </button>
+                </Link>
               </div>
             </div>
             
