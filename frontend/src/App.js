@@ -146,7 +146,8 @@ function App() {
               {/* Protected Admin Routes */}
               <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrdersPage /></ProtectedAdminRoute>} />
               <Route path="/admin/discount-codes" element={<ProtectedAdminRoute><AdminDiscountCodesPage /></ProtectedAdminRoute>} />
-              <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProductsPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProductsPageV2 /></ProtectedAdminRoute>} />
+              <Route path="/admin/products-old" element={<ProtectedAdminRoute><AdminProductsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/products/:productId/advanced-editor" element={<ProtectedAdminRoute><AdminAdvancedProductEditor /></ProtectedAdminRoute>} />
               <Route path="/admin/google-ads" element={<ProtectedAdminRoute><GoogleAdsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/google-ads/callback" element={<GoogleAdsCallbackPage />} />
