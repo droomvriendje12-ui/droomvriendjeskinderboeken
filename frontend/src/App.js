@@ -51,6 +51,7 @@ import AdminAdvancedProductEditor from "./pages/AdminAdvancedProductEditor";
 import AdminCommandCenter from "./pages/AdminCommandCenter";
 import MarketingDashboardPage from "./pages/MarketingDashboardPage";
 import MarketingCommandCenter from "./pages/MarketingCommandCenter";
+import LeadManagementPage from "./pages/LeadManagementPage";
 import TipsBedtijdPage from "./pages/TipsBedtijdPage";
 import OudersSlaaptipsPage from "./pages/OudersSlaaptipsPage";
 import RustmomentOudersPage from "./pages/RustmomentOudersPage";
