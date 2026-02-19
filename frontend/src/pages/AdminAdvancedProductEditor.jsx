@@ -363,7 +363,8 @@ const AdminAdvancedProductEditor = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`${API_URL}/api/products/${productId}/advanced`, {
+      // Save to advanced endpoint
+      const advancedResponse = await fetch(`${API_URL}/api/products/${productId}/advanced`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -378,12 +379,38 @@ const AdminAdvancedProductEditor = () => {
         })
       });
       
-      if (response.ok) {
+      // NEW: Also update core product fields
+      const coreResponse = await fetch(`${API_URL}/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editData.name,
+          shortName: editData.shortName,
+          price: parseFloat(editData.price),
+          originalPrice: editData.originalPrice ? parseFloat(editData.originalPrice) : null,
+          badge: editData.badge || null,
+          inStock: editData.inStock,
+          rating: parseFloat(editData.rating),
+          reviews: parseInt(editData.reviews),
+          sku: editData.sku,
+          ageRange: editData.ageRange,
+          warranty: editData.warranty
+        })
+      });
+      
+      if (advancedResponse.ok && coreResponse.ok) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
+        // Refresh product data
+        const productResponse = await fetch(`${API_URL}/api/products/${productId}/advanced`);
+        if (productResponse.ok) {
+          const data = await productResponse.json();
+          setProduct(data);
+        }
       }
     } catch (error) {
       console.error('Error saving:', error);
+      alert('Fout bij opslaan. Probeer het opnieuw.');
     }
     setSaving(false);
   };
