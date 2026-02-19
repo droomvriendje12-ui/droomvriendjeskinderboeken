@@ -866,3 +866,42 @@ async def get_leads_stats():
     except Exception as e:
         logger.error(f"Error getting leads stats: {e}")
         return {"total_leads": 0, "by_source": {}, "by_gender": {}}
+
+@router.put("/leads/{lead_id}")
+async def update_lead(lead_id: str, update_data: dict):
+    """Update a specific lead"""
+    try:
+        result = await db.marketing_leads.update_one(
+            {"id": lead_id},
+            {"$set": {
+                **update_data,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Lead niet gevonden")
+        
+        return {"success": True, "message": "Lead bijgewerkt"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating lead: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij bijwerken: {str(e)}")
+
+@router.delete("/leads/{lead_id}")
+async def delete_lead(lead_id: str):
+    """Delete a specific lead"""
+    try:
+        result = await db.marketing_leads.delete_one({"id": lead_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Lead niet gevonden")
+        
+        return {"success": True, "message": "Lead verwijderd"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting lead: {e}")
+        raise HTTPException(status_code=500, detail=f"Fout bij verwijderen: {str(e)}")
+
