@@ -75,13 +75,101 @@ const MarketingCommandCenter = () => {
     }
     setSendingCampaign(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: campaignName,
+          type: campaignType,
+          segments: selectedSegments
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showNotification(`✅ Campagne "${campaignName}" is aangemaakt met ${result.recipient_count} ontvangers!`, 'success');
+        setCampaignName('');
+        setShowCampaignBuilder(false);
+        // Refresh campaigns list
+        fetchCampaigns();
+      } else {
+        showNotification('❌ Fout bij aanmaken campagne', 'error');
+      }
+    } catch (error) {
+      console.error('Campaign creation error:', error);
+      showNotification('❌ Fout bij aanmaken campagne', 'error');
+    }
     
-    showNotification(`✅ Campagne "${campaignName}" is aangemaakt en wordt voorbereid!`, 'success');
-    setCampaignName('');
-    setShowCampaignBuilder(false);
     setSendingCampaign(false);
+  };
+  
+  const fetchCampaigns = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns?status=active&limit=10`);
+      const data = await response.json();
+      setCampaigns(data.campaigns || []);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+    }
+  };
+  
+  const fetchCampaignsSummary = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns/stats/summary`);
+      const data = await response.json();
+      setCampaignsSummary(data);
+    } catch (error) {
+      console.error('Error fetching campaign summary:', error);
+    }
+  };
+  
+  const pauseCampaign = async (campaignId, campaignName) => {
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}/pause`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        showNotification(`⏸️ Campagne "${campaignName}" gepauzeerd`, 'success');
+        fetchCampaigns();
+      }
+    } catch (error) {
+      showNotification('❌ Fout bij pauzeren', 'error');
+    }
+  };
+  
+  const resumeCampaign = async (campaignId, campaignName) => {
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}/resume`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        showNotification(`▶️ Campagne "${campaignName}" hervat`, 'success');
+        fetchCampaigns();
+      }
+    } catch (error) {
+      showNotification('❌ Fout bij hervatten', 'error');
+    }
+  };
+  
+  const deleteCampaign = async (campaignId, campaignName) => {
+    if (!window.confirm(`Weet je zeker dat je campagne "${campaignName}" wilt verwijderen?`)) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        showNotification(`🗑️ Campagne "${campaignName}" verwijderd`, 'success');
+        fetchCampaigns();
+      }
+    } catch (error) {
+      showNotification('❌ Fout bij verwijderen', 'error');
+    }
   };
   
   // WhatsApp functions
