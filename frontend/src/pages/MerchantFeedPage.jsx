@@ -331,9 +331,29 @@ const MerchantFeedPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* Delete Status Message */}
+                  {deleteStatus && (
+                    <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${
+                      deleteStatus === 'success' 
+                        ? 'bg-green-100 border border-green-300' 
+                        : 'bg-red-100 border border-red-300'
+                    }`}>
+                      {deleteStatus === 'success' ? (
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-6 h-6 text-red-600" />
+                      )}
+                      <p className={`font-semibold ${
+                        deleteStatus === 'success' ? 'text-green-800' : 'text-red-800'
+                      }`}>
+                        {deleteMessage}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-4">
                     {feedData.products.map((product) => (
-                      <div key={product.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <div key={product.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors relative">
                         {/* Product Image */}
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-white border shrink-0">
                           <img 
@@ -346,7 +366,7 @@ const MerchantFeedPage = () => {
                         {/* Product Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
-                            <div>
+                            <div className="flex-1">
                               <h3 className="font-semibold text-gray-900 line-clamp-1">{product.title}</h3>
                               <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
                             </div>
@@ -358,22 +378,45 @@ const MerchantFeedPage = () => {
                             </div>
                           </div>
                           
-                          {/* Tags */}
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            <Badge variant="outline" className="text-xs">
-                              <Tag className="w-3 h-3 mr-1" />
-                              {product.id}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {product.brand}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {product.color}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              <ImageIcon className="w-3 h-3 mr-1" />
-                              {1 + (product.additional_image_links?.length || 0)} foto's
-                            </Badge>
+                          {/* Tags and Delete Button Row */}
+                          <div className="flex items-center justify-between gap-4 mt-3">
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                <Tag className="w-3 h-3 mr-1" />
+                                {product.id}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {product.brand}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {product.color}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                <ImageIcon className="w-3 h-3 mr-1" />
+                                {1 + (product.additional_image_links?.length || 0)} foto's
+                              </Badge>
+                            </div>
+                            
+                            {/* Delete Button */}
+                            <Button
+                              onClick={() => handleDeleteProduct(product.id, product.title)}
+                              disabled={deletingProductId === product.id}
+                              variant="outline"
+                              size="sm"
+                              className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shrink-0"
+                            >
+                              {deletingProductId === product.id ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                                  Verwijderen...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="w-4 h-4 mr-1" />
+                                  Verwijder
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </div>
                       </div>
