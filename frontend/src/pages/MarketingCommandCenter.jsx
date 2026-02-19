@@ -307,7 +307,13 @@ const MarketingCommandCenter = () => {
   
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    fetchCampaigns();
+    fetchCampaignsSummary();
+    const interval = setInterval(() => {
+      fetchData();
+      fetchCampaigns();
+      fetchCampaignsSummary();
+    }, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, [fetchData]);
   
