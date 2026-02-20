@@ -23,7 +23,7 @@ class TestContactFormAPI:
             "telefoon": "06-12345678",
             "onderwerp": "Test Vraag",
             "bericht": "Dit is een test bericht voor de email notificatie.",
-            "page_url": "https://product-catalog-mgmt.preview.emergentagent.com/contact"
+            "page_url": "https://droomvriendjes.nl/contact"
         }
         
         response = requests.post(f"{BASE_URL}/api/contact", json=payload)
