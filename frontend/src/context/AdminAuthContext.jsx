@@ -1,36 +1,14 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-const LOCAL_API_URL = '';
+// In development/preview: use relative URLs which will be proxied
+// In production: use the full URL
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-// Helper function to fetch with local-first fallback
-const fetchWithFallback = async (endpoint, options = {}) => {
-  // Try LOCAL API first (faster in dev/preview), then external
-  try {
-    const localResponse = await fetch(`${LOCAL_API_URL}${endpoint}`, options);
-    if (localResponse.ok) return localResponse;
-    // If local returns error response (not network error), return it
-    if (localResponse.status >= 400) return localResponse;
-  } catch (err) {
-    console.log('Local API not available, trying external...');
-  }
-  
-  // Fallback to external API with short timeout
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-  
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
+// Simple fetch that works with proxy (relative URLs)
+const fetchAPI = async (endpoint, options = {}) => {
+  // Always try relative URL first (works with proxy in dev, direct in prod)
+  return fetch(endpoint, options);
 };
 
 // Auth Context
