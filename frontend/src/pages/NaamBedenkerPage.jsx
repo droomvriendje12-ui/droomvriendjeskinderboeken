@@ -156,7 +156,7 @@ const NaamBedenkerPage = () => {
             <div className="relative">
               <div className="bg-white rounded-3xl p-8 shadow-xl">
                 <img 
-                  src={landingProducts[0]?.image || "https://i.imgur.com/E4g3eOy.jpeg"}
+                  src={landingProducts[0]?.image || "/products/Lion/Lion_Front_product_01.png"}
                   alt="Droomvriendjes Slaapknuffel"
                   className="w-full h-auto max-h-96 object-contain mx-auto"
                 />
