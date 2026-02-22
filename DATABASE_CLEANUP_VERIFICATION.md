@@ -85,7 +85,7 @@ Found and updated references to old preview domain:
 #### Changes:
 **Before:**
 ```
-https://product-catalog-mgmt.preview.emergentagent.com
+https://clean-import-update.preview.emergentagent.com
 ```
 
 **After:**
