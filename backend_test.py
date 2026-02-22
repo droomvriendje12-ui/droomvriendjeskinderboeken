@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Droomvriendjes Project
-Tests all backend endpoints with focus on new features:
-1. Review Management APIs
-2. Product Advanced Editor APIs  
-3. Orders API
+Testing priority endpoints as requested:
+1. Products API - GET /api/products (all products), GET /api/products/{id}, GET /api/products/{id}/advanced
+2. Reviews API - GET /api/reviews/admin, GET /api/reviews/filter, GET /api/reviews/five-star-random, PATCH /api/reviews/{id}, DELETE /api/reviews/{id}
+3. Orders API - GET /api/orders, POST /api/orders (test discount calculation)
+4. Marketing API - GET /api/marketing/stats, GET /api/marketing/leads/stats, GET /api/marketing/channel-performance
+
+Expected Results:
+- Products: Should return 10 products from database
+- Reviews: Should have ~46 reviews
+- Marketing Leads: Should have ~37,000 leads
 """
 
 import requests
