@@ -170,9 +170,13 @@ const HomePage = () => {
           <div className="hidden md:flex items-center min-h-[600px] lg:min-h-[650px] px-6 lg:px-8">
             {/* Left Content */}
             <div className="w-1/2 pr-8 lg:pr-16">
-              {/* Urgency Badge */}
-              <div className="inline-flex items-center bg-warm-brown-50 text-warm-brown-700 px-4 py-2 rounded-full text-sm font-semibold mb-4 border border-warm-brown-100">
-                Trusted by 10,000+ Parents
+              {/* Trust Badge */}
+              <div className="inline-flex items-center gap-3 bg-white border-[1.5px] border-[#e8d5c4] rounded-xl px-5 py-3 mb-4">
+                <div className="text-[#c8833a] text-lg tracking-widest">★★★★★</div>
+                <div>
+                  <div className="font-bold text-[15px] text-[#2d1f14]">Vertrouwd door 500+ ouders</div>
+                  <div className="text-xs text-[#9c7b65]">Gemiddeld 4,9 / 5 sterren</div>
+                </div>
               </div>
               
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-extrabold text-slate-900 mb-4 leading-tight">
