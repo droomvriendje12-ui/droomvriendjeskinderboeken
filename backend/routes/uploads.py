@@ -40,7 +40,7 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 @router.post("/image")
 async def upload_image(
     file: UploadFile = File(...),
-    product_id: Optional[int] = Form(None),
+    product_id: Optional[str] = Form(None),
     image_type: str = Form("gallery")  # "main" or "gallery"
 ):
     """
