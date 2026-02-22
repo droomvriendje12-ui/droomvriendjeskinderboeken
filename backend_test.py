@@ -204,7 +204,7 @@ class DroomvriendjesAPITester:
         
         # First create a test review for testing
         test_review_data = {
-            "product_id": int(self.test_product_id) if isinstance(self.test_product_id, str) else self.test_product_id,
+            "product_id": 2,  # Use a simple integer for testing, as the API expects int
             "name": "Test Reviewer",
             "rating": 5,
             "title": "Excellent product!",
