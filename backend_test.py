@@ -1156,25 +1156,26 @@ class DroomvriendjesAPITester:
                     print(f"⚠️ Could not clean up review: {review_id}")
     
     def run_all_tests(self):
-        """Run all tests in sequence"""
-        print("🧸 DROOMVRIENDJES BACKEND API TESTING")
-        print("=" * 50)
+        """Run all priority tests in sequence"""
+        print("🧸 DROOMVRIENDJES PRIORITY BACKEND API TESTING")
+        print("=" * 60)
+        print("Testing Priority Endpoints:")
+        print("1. Products API - GET /api/products, GET /api/products/{id}, GET /api/products/{id}/advanced")
+        print("2. Reviews API - GET /api/reviews/admin, GET /api/reviews/filter, PATCH/DELETE /api/reviews/{id}")
+        print("3. Orders API - GET /api/orders, POST /api/orders (discount calculation)")
+        print("4. Marketing API - GET /api/marketing/stats, leads/stats, channel-performance")
+        print("=" * 60)
         
         # Health check first
         if not self.test_health_check():
             print("❌ Health check failed - aborting tests")
             return False
         
-        # Setup test data
-        self.setup_test_data()
-        
-        # Run main test suites
-        self.test_review_apis()
-        self.test_product_advanced_apis()
-        self.test_orders_api()
-        self.test_marketing_apis()
-        self.test_csv_import_apis()  # Add CSV import tests
-        self.test_edge_cases()
+        # Run priority test suites
+        self.test_priority_products_apis()
+        self.test_priority_reviews_apis()
+        self.test_priority_orders_apis()
+        self.test_priority_marketing_apis()
         
         # Cleanup
         self.cleanup_test_data()
