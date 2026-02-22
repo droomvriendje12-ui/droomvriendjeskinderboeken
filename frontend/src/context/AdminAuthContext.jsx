@@ -1,15 +1,8 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// In development/preview: use relative URLs which will be proxied
-// In production: use the full URL
+// Use relative URLs - works with proxy in dev/preview, and with production URL in build
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
-
-// Simple fetch that works with proxy (relative URLs)
-const fetchAPI = async (endpoint, options = {}) => {
-  // Always try relative URL first (works with proxy in dev, direct in prod)
-  return fetch(endpoint, options);
-};
 
 // Auth Context
 const AdminAuthContext = createContext(null);
@@ -33,7 +26,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetchAPI('/api/admin/verify', {
+      const response = await fetch(`${API_URL}/api/admin/verify`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -52,7 +45,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetchAPI('/api/admin/login', {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
