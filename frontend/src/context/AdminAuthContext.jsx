@@ -2,6 +2,20 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
+const LOCAL_API_URL = '';
+
+// Helper function to fetch with fallback
+const fetchWithFallback = async (endpoint, options = {}) => {
+  // Try external API first
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    if (response.ok) return response;
+  } catch (err) {
+    console.log('External API failed, trying local...');
+  }
+  // Fallback to local API (via proxy)
+  return fetch(`${LOCAL_API_URL}${endpoint}`, options);
+};
 
 // Auth Context
 const AdminAuthContext = createContext(null);
@@ -25,7 +39,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/verify`, {
+      const response = await fetchWithFallback('/api/admin/verify', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -44,7 +58,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/login`, {
+      const response = await fetchWithFallback('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
