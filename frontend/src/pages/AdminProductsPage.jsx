@@ -17,8 +17,7 @@ import {
   Settings
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-
+// Use relative URL for proxy
 const AdminProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
