@@ -119,7 +119,7 @@ const HomePage = () => {
               
               {/* Mobile Social Proof */}
               <div className="bg-white/90 rounded-xl p-3 mb-4 shadow-sm">
-                <p className="text-xs text-gray-500 text-center mb-1">Trusted by 10,000+ Parents</p>
+                <p className="text-xs text-gray-500 text-center mb-1">Vertrouwd door 500+ ouders</p>
                 <div className="flex items-center justify-center gap-2">
                   <div className="flex -space-x-1">
                     <img src="https://i.pravatar.cc/24?img=1" alt="" className="w-6 h-6 rounded-full border-2 border-white" />
