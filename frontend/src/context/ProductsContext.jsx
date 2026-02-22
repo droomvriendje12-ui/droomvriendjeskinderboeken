@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+// Fallback to local API for development/preview environments
+const LOCAL_API_URL = '';
 
 const ProductsContext = createContext();
 
@@ -17,11 +19,22 @@ export const ProductsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all products from API
+  // Fetch all products from API with fallback to local
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/products`);
+      
+      // Try external API first
+      let response;
+      try {
+        response = await fetch(`${API_URL}/api/products`);
+        if (!response.ok) throw new Error('External API failed');
+      } catch (externalErr) {
+        // Fallback to local API (same origin)
+        console.log('Falling back to local API...');
+        response = await fetch(`${LOCAL_API_URL}/api/products`);
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
