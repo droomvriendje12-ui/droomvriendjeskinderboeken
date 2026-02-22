@@ -1208,14 +1208,12 @@ class DroomvriendjesAPITester:
                     if result["details"]:
                         print(f"     Details: {result['details']}")
         
-        print("\n🎯 KEY FEATURES TESTED:")
-        print("  ✓ Review Management (Edit, Bulk Delete, Filtering)")
-        print("  ✓ Product Advanced Editor (Images with Alt-text)")
-        print("  ✓ Orders API (Discount Calculations)")
-        print("  ✓ Marketing Command Center (Stats, Channels, AI Chat)")
-        print("  ✓ CSV Import Functionality (Upload, Stats, Pagination)")
-        print("  ✓ Edge Cases & Error Handling")
-        print("  ✓ Backward Compatibility")
+        print("\n🎯 PRIORITY ENDPOINTS TESTED:")
+        print("  ✓ Products API - All products, single product, advanced product data")
+        print("  ✓ Reviews API - Admin reviews, filtering, random 5-star, edit/delete")
+        print("  ✓ Orders API - Order creation with discount calculations")
+        print("  ✓ Marketing API - Statistics, leads stats, channel performance")
+        print("  ✓ Expected Results Validation (10 products, ~46 reviews, ~37K leads)")
 
 
 if __name__ == "__main__":
