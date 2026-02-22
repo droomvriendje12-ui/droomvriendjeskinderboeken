@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
-
+// Use relative URL for local proxy
 const ProductsContext = createContext();
 
 export const useProducts = () => {
@@ -17,11 +16,11 @@ export const ProductsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all products from API
+  // Fetch all products from API - use relative URL for proxy
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/products`);
+      const response = await fetch('/api/products');
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
