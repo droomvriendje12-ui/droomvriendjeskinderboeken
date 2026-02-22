@@ -52,7 +52,8 @@ export const ProductsProvider = ({ children }) => {
 
   // Get product from local state (faster)
   const getProductById = useCallback((id) => {
-    return products.find(p => p.id === parseInt(id));
+    // Support both string UUIDs and numeric IDs
+    return products.find(p => String(p.id) === String(id));
   }, [products]);
 
   // Refresh products
