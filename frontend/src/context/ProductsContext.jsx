@@ -36,17 +36,10 @@ export const ProductsProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch single product by ID with fallback
+  // Fetch single product by ID using relative URL
   const fetchProductById = useCallback(async (id) => {
     try {
-      let response;
-      try {
-        response = await fetch(`${API_URL}/api/products/${id}`);
-        if (!response.ok) throw new Error('External API failed');
-      } catch (externalErr) {
-        // Fallback to local API
-        response = await fetch(`${LOCAL_API_URL}/api/products/${id}`);
-      }
+      const response = await fetch(`/api/products/${id}`);
       
       if (!response.ok) {
         throw new Error('Product not found');
