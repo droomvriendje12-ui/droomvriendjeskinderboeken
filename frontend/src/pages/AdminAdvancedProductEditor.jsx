@@ -296,22 +296,25 @@ const AdminAdvancedProductEditor = () => {
     setCurrentGalleryIndex(null);
   };
 
-  // Save image overrides to backend
+  // Save image overrides to backend - use GET for CRA proxy compatibility
   const saveImageOverride = async (mainOverride, galleryOverridesList) => {
     try {
-      const body = {};
+      // Build URL with query parameters
+      const params = new URLSearchParams();
+      
       if (mainOverride !== null) {
-        body.image_override = mainOverride;
-      }
-      if (galleryOverridesList !== null) {
-        body.gallery_overrides = galleryOverridesList;
+        params.set('image', mainOverride || '');
       }
       
-      const response = await fetch(`/api/products/${productId}/image-override`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      if (galleryOverridesList !== null) {
+        // Convert array to comma-separated string, null becomes 'null'
+        const galleryStr = galleryOverridesList
+          .map(o => o || 'null')
+          .join(',');
+        params.set('gallery', galleryStr);
+      }
+      
+      const response = await fetch(`/api/products/${productId}/set-image-override?${params.toString()}`);
       
       if (response.ok) {
         // Refresh image info
@@ -320,6 +323,8 @@ const AdminAdvancedProductEditor = () => {
           const info = await infoResponse.json();
           setImageInfo(info);
         }
+      } else {
+        console.error('Failed to save override:', await response.text());
       }
     } catch (error) {
       console.error('Error saving override:', error);
