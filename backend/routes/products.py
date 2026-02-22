@@ -696,6 +696,42 @@ async def update_product_image_override(product_id: str, updates: dict):
     
     Set to null or empty string to clear override and use default image.
     """
+    return await _do_update_image_override(product_id, updates)
+
+
+@router.get("/{product_id}/set-image-override")
+async def set_product_image_override_get(
+    product_id: str, 
+    image: str = None,
+    gallery: str = None,
+    clear: bool = False
+):
+    """
+    GET-based image override for CRA proxy compatibility.
+    - image: URL encoded main image override URL
+    - gallery: Comma-separated gallery override URLs (use 'null' for no override at position)
+    - clear: If true, clear all overrides
+    """
+    updates = {}
+    
+    if clear:
+        updates["image_override"] = ""
+        updates["gallery_overrides"] = []
+    else:
+        if image is not None:
+            updates["image_override"] = image
+        if gallery is not None:
+            # Parse comma-separated, handle 'null' as None
+            gallery_list = [
+                None if g.strip().lower() == 'null' else g.strip() 
+                for g in gallery.split(',')
+            ]
+            updates["gallery_overrides"] = gallery_list
+    
+    return await _do_update_image_override(product_id, updates)
+
+
+async def _do_update_image_override(product_id: str, updates: dict):
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
     
