@@ -33,7 +33,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetchWithFallback('/api/admin/verify', {
+      const response = await fetchAPI('/api/admin/verify', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -52,7 +52,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetchWithFallback('/api/admin/login', {
+      const response = await fetchAPI('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
