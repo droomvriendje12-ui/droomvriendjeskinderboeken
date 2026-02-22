@@ -1637,6 +1637,25 @@ async def admin_login(login: AdminLogin):
     raise HTTPException(status_code=401, detail="Ongeldige gebruikersnaam of wachtwoord")
 
 
+# Development helper - GET-based login for proxy issues
+@api_router.get("/admin/dev-login")
+async def admin_dev_login(u: str = "", p: str = ""):
+    """Development login endpoint (GET) for CRA proxy compatibility"""
+    password_hash = hashlib.sha256(p.encode()).hexdigest()
+    
+    if u == ADMIN_USERNAME and password_hash == ADMIN_PASSWORD_HASH:
+        token = secrets.token_urlsafe(32)
+        admin_tokens[token] = {"username": u, "created_at": datetime.now(timezone.utc).isoformat()}
+        logger.info(f"Admin dev-login successful: {u}")
+        return {
+            "success": True,
+            "token": token,
+            "admin": {"username": u}
+        }
+    
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
 @api_router.get("/admin/verify")
 async def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Verify admin token"""
