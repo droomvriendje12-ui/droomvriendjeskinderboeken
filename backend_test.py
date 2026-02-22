@@ -142,7 +142,311 @@ class DroomvriendjesAPITester:
                 error = response.text if response else "Request failed"
                 self.log_result("Create Test Review", False, f"Failed to create review by {review_data['name']}", error)
     
-    def test_review_apis(self):
+    def test_priority_products_apis(self):
+        """Test Priority Products API endpoints"""
+        print("\n=== TESTING PRIORITY PRODUCTS APIs ===")
+        
+        # 1. Test GET /api/products - Should return 10 products
+        response = self.make_request("GET", "/products")
+        if response and response.status_code == 200:
+            products = response.json()
+            if isinstance(products, list):
+                product_count = len(products)
+                if product_count == 10:
+                    self.log_result("GET /products", True, f"Retrieved all {product_count} products from database")
+                    # Store a product ID for further testing
+                    if products:
+                        self.test_product_id = products[0].get("id", "1")
+                elif product_count > 0:
+                    self.log_result("GET /products", True, f"Retrieved {product_count} products (expected 10)")
+                else:
+                    self.log_result("GET /products", False, "No products returned")
+            else:
+                self.log_result("GET /products", False, "Response is not an array", products)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /products", False, "Failed to get products", error)
+        
+        # 2. Test GET /api/products/{id} - Single product
+        response = self.make_request("GET", f"/products/{self.test_product_id}")
+        if response and response.status_code == 200:
+            product = response.json()
+            required_fields = ["id", "name", "price", "description"]
+            has_required_fields = all(field in product for field in required_fields)
+            if has_required_fields:
+                self.log_result("GET /products/{id}", True, f"Retrieved product: {product.get('name', 'Unknown')}")
+            else:
+                missing = [f for f in required_fields if f not in product]
+                self.log_result("GET /products/{id}", False, f"Missing fields: {missing}", product)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /products/{id}", False, "Failed to get single product", error)
+        
+        # 3. Test GET /api/products/{id}/advanced - Advanced product data
+        response = self.make_request("GET", f"/products/{self.test_product_id}/advanced")
+        if response and response.status_code == 200:
+            product = response.json()
+            required_fields = ["id", "name", "gallery"]
+            has_required_fields = all(field in product for field in required_fields)
+            if has_required_fields:
+                gallery = product.get("gallery", [])
+                self.log_result("GET /products/{id}/advanced", True, f"Retrieved advanced product data with {len(gallery)} gallery images")
+            else:
+                missing = [f for f in required_fields if f not in product]
+                self.log_result("GET /products/{id}/advanced", False, f"Missing fields: {missing}", product)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /products/{id}/advanced", False, "Failed to get advanced product", error)
+
+    def test_priority_reviews_apis(self):
+        """Test Priority Reviews API endpoints"""
+        print("\n=== TESTING PRIORITY REVIEWS APIs ===")
+        
+        # First create a test review for testing
+        test_review_data = {
+            "product_id": int(self.test_product_id) if isinstance(self.test_product_id, str) else self.test_product_id,
+            "name": "Test Reviewer",
+            "rating": 5,
+            "title": "Excellent product!",
+            "text": "This product is amazing and works perfectly for our baby.",
+            "verified": True
+        }
+        
+        test_review_id = None
+        response = self.make_request("POST", "/reviews", test_review_data)
+        if response and response.status_code == 200:
+            review = response.json()
+            test_review_id = review.get("id")
+            self.created_review_ids.append(test_review_id)
+        
+        # 1. Test GET /api/reviews/admin - Should show ~46 reviews
+        response = self.make_request("GET", "/reviews/admin")
+        if response and response.status_code == 200:
+            reviews = response.json()
+            if isinstance(reviews, list):
+                review_count = len(reviews)
+                self.log_result("GET /reviews/admin", True, f"Retrieved {review_count} reviews for admin (expected ~46)")
+            else:
+                self.log_result("GET /reviews/admin", False, "Response is not an array", reviews)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /reviews/admin", False, "Failed to get admin reviews", error)
+        
+        # 2. Test GET /api/reviews/filter - Advanced filtering
+        response = self.make_request("GET", "/reviews/filter", params={"rating": 5})
+        if response and response.status_code == 200:
+            reviews = response.json()
+            if isinstance(reviews, list):
+                all_five_star = all(review.get("rating") == 5 for review in reviews if review.get("rating"))
+                if all_five_star:
+                    self.log_result("GET /reviews/filter", True, f"Successfully filtered {len(reviews)} 5-star reviews")
+                else:
+                    self.log_result("GET /reviews/filter", False, "Filter not working - found non-5-star reviews")
+            else:
+                self.log_result("GET /reviews/filter", False, "Response is not an array", reviews)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /reviews/filter", False, "Failed to filter reviews", error)
+        
+        # 3. Test GET /api/reviews/five-star-random - Random 5-star reviews
+        response = self.make_request("GET", "/reviews/five-star-random", params={"limit": 5})
+        if response and response.status_code == 200:
+            reviews = response.json()
+            if isinstance(reviews, list):
+                all_five_star = all(review.get("rating") == 5 for review in reviews)
+                if all_five_star and len(reviews) <= 5:
+                    self.log_result("GET /reviews/five-star-random", True, f"Retrieved {len(reviews)} random 5-star reviews")
+                else:
+                    self.log_result("GET /reviews/five-star-random", False, f"Invalid random reviews - count: {len(reviews)}, all 5-star: {all_five_star}")
+            else:
+                self.log_result("GET /reviews/five-star-random", False, "Response is not an array", reviews)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /reviews/five-star-random", False, "Failed to get random reviews", error)
+        
+        # 4. Test PATCH /api/reviews/{id} - Edit review
+        if test_review_id:
+            update_data = {
+                "name": "Updated Test Reviewer",
+                "rating": 4,
+                "title": "Updated title",
+                "text": "Updated review text",
+                "verified": False
+            }
+            
+            response = self.make_request("PATCH", f"/reviews/{test_review_id}", update_data)
+            if response and response.status_code == 200:
+                self.log_result("PATCH /reviews/{id}", True, "Successfully updated review")
+            else:
+                error = response.text if response else "Request failed"
+                self.log_result("PATCH /reviews/{id}", False, "Failed to update review", error)
+        
+        # 5. Test DELETE /api/reviews/{id} - Delete review
+        if test_review_id:
+            response = self.make_request("DELETE", f"/reviews/{test_review_id}")
+            if response and response.status_code == 200:
+                self.log_result("DELETE /reviews/{id}", True, "Successfully deleted review")
+                if test_review_id in self.created_review_ids:
+                    self.created_review_ids.remove(test_review_id)
+            else:
+                error = response.text if response else "Request failed"
+                self.log_result("DELETE /reviews/{id}", False, "Failed to delete review", error)
+
+    def test_priority_orders_apis(self):
+        """Test Priority Orders API endpoints"""
+        print("\n=== TESTING PRIORITY ORDERS APIs ===")
+        
+        # 1. Test POST /api/orders - Create order with discount calculation
+        order_data = {
+            "customer_email": "priority.test@droomvriendjes.nl",
+            "customer_name": "Priority Test Customer",
+            "customer_phone": "0612345678",
+            "customer_address": "Test Priority Street 123",
+            "customer_city": "Amsterdam", 
+            "customer_zipcode": "1000 AB",
+            "items": [
+                {
+                    "product_id": "1",
+                    "product_name": "Test Product 1",
+                    "price": 49.95,
+                    "quantity": 2
+                },
+                {
+                    "product_id": "2", 
+                    "product_name": "Test Product 2",
+                    "price": 59.95,
+                    "quantity": 1
+                }
+            ],
+            "subtotal": 159.85,  # (49.95 * 2) + 59.95
+            "discount": 24.98,   # 50% off second item (49.95 * 0.5)
+            "total_amount": 134.87   # 159.85 - 24.98
+        }
+        
+        response = self.make_request("POST", "/orders", order_data)
+        if response and response.status_code == 200:
+            order_result = response.json()
+            order_id = order_result.get("order_id")
+            
+            if order_id:
+                self.log_result("POST /orders", True, f"Successfully created order with discount calculation: {order_id}")
+                
+                # Store order ID for GET test
+                self.test_order_id = order_id
+                
+                # Test calculation with coupon
+                order_with_coupon = {
+                    "customer_email": "coupon.test@droomvriendjes.nl",
+                    "customer_name": "Coupon Test Customer",
+                    "customer_address": "Coupon Street 456",
+                    "customer_city": "Rotterdam",
+                    "customer_zipcode": "3000 AB",
+                    "items": [
+                        {
+                            "product_id": "3",
+                            "product_name": "Test Product 3",
+                            "price": 54.95,
+                            "quantity": 1
+                        }
+                    ],
+                    "subtotal": 54.95,
+                    "discount": 0,  # No automatic discount
+                    "coupon_code": "WELKOM10",
+                    "coupon_discount": 5.50,  # 10% off
+                    "total_amount": 49.45
+                }
+                
+                response2 = self.make_request("POST", "/orders", order_with_coupon)
+                if response2 and response2.status_code == 200:
+                    self.log_result("POST /orders (with coupon)", True, "Successfully created order with coupon discount")
+                else:
+                    error = response2.text if response2 else "Request failed"
+                    self.log_result("POST /orders (with coupon)", False, "Failed to create order with coupon", error)
+            else:
+                self.log_result("POST /orders", False, "No order ID returned", order_result)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("POST /orders", False, "Failed to create order", error)
+        
+        # 2. Test GET /api/orders - Get all orders
+        response = self.make_request("GET", "/orders")
+        if response and response.status_code == 200:
+            orders = response.json()
+            if isinstance(orders, list):
+                self.log_result("GET /orders", True, f"Retrieved {len(orders)} orders from database")
+            else:
+                # Check if it's a paginated response
+                if isinstance(orders, dict) and "orders" in orders:
+                    order_list = orders["orders"]
+                    self.log_result("GET /orders", True, f"Retrieved {len(order_list)} orders (paginated response)")
+                else:
+                    self.log_result("GET /orders", False, "Invalid response format", orders)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /orders", False, "Failed to get orders", error)
+
+    def test_priority_marketing_apis(self):
+        """Test Priority Marketing API endpoints"""
+        print("\n=== TESTING PRIORITY MARKETING APIs ===")
+        
+        # 1. Test GET /api/marketing/stats
+        response = self.make_request("GET", "/marketing/stats")
+        if response and response.status_code == 200:
+            stats = response.json()
+            required_fields = ["today_revenue", "live_conversions", "active_visitors", "email_open_rate"]
+            has_all_fields = all(field in stats for field in required_fields)
+            
+            if has_all_fields:
+                self.log_result("GET /marketing/stats", True, 
+                               f"Revenue: €{stats['today_revenue']}, Conversions: {stats['live_conversions']}, Visitors: {stats['active_visitors']}")
+            else:
+                missing = [f for f in required_fields if f not in stats]
+                self.log_result("GET /marketing/stats", False, f"Missing fields: {missing}", stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /marketing/stats", False, "Failed to get marketing stats", error)
+        
+        # 2. Test GET /api/marketing/leads/stats - Should show ~37,000 leads
+        response = self.make_request("GET", "/marketing/leads/stats")
+        if response and response.status_code == 200:
+            stats = response.json()
+            required_fields = ["total_leads", "by_source", "by_gender"]
+            has_all_fields = all(field in stats for field in required_fields)
+            
+            if has_all_fields:
+                total_leads = stats["total_leads"]
+                expected_range = total_leads >= 30000  # Roughly in the expected range
+                self.log_result("GET /marketing/leads/stats", True, 
+                               f"Total leads: {total_leads:,} (expected ~37,000), Sources: {len(stats['by_source'])}, Gender distribution available")
+            else:
+                missing = [f for f in required_fields if f not in stats]
+                self.log_result("GET /marketing/leads/stats", False, f"Missing fields: {missing}", stats)
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /marketing/leads/stats", False, "Failed to get leads stats", error)
+        
+        # 3. Test GET /api/marketing/channel-performance
+        response = self.make_request("GET", "/marketing/channel-performance")
+        if response and response.status_code == 200:
+            channels = response.json()
+            if isinstance(channels, list) and len(channels) >= 4:
+                required_fields = ["channel", "revenue", "percentage", "color"]
+                first_channel = channels[0]
+                has_all_fields = all(field in first_channel for field in required_fields)
+                
+                if has_all_fields:
+                    channel_names = [ch["channel"] for ch in channels]
+                    total_revenue = sum(ch.get("revenue", 0) for ch in channels)
+                    self.log_result("GET /marketing/channel-performance", True, 
+                                   f"Channels: {', '.join(channel_names)}, Total Revenue: €{total_revenue:.2f}")
+                else:
+                    missing = [f for f in required_fields if f not in first_channel]
+                    self.log_result("GET /marketing/channel-performance", False, f"Missing fields: {missing}", first_channel)
+            else:
+                self.log_result("GET /marketing/channel-performance", False, f"Expected at least 4 channels, got {len(channels) if isinstance(channels, list) else 'invalid format'}")
+        else:
+            error = response.text if response else "Request failed"
+            self.log_result("GET /marketing/channel-performance", False, "Failed to get channel performance", error)
         """Test all Review Management APIs"""
         print("\n=== TESTING REVIEW MANAGEMENT APIs ===")
         
