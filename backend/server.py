@@ -142,6 +142,7 @@ from routes import discount_codes as discount_codes_route
 from routes import reviews as reviews_route
 from routes import uploads as uploads_route
 from routes import marketing as marketing_route
+from routes import database_info as database_info_route
 
 # Set database for routes
 products_route.set_database(db)
@@ -149,6 +150,7 @@ discount_codes_route.set_database(db)
 reviews_route.set_database(db)
 uploads_route.set_database(db)
 marketing_route.set_database(db)
+database_info_route.set_database(db)
 
 # Include modular routers
 api_router.include_router(products_route.router)
@@ -158,6 +160,9 @@ api_router.include_router(uploads_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)
+
+# Include database info router
+app.include_router(database_info_route.router)
 
 # ============== GOOGLE SHOPPING FEED CONSTANTS ==============
 SHOP_URL = os.environ.get('SHOP_URL', 'https://droomvriendjes.nl')
