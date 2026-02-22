@@ -167,36 +167,42 @@ class DroomvriendjesAPITester:
             error = response.text if response else "Request failed"
             self.log_result("GET /products", False, "Failed to get products", error)
         
-        # 2. Test GET /api/products/{id} - Single product
-        response = self.make_request("GET", f"/products/{self.test_product_id}")
-        if response and response.status_code == 200:
-            product = response.json()
-            required_fields = ["id", "name", "price", "description"]
-            has_required_fields = all(field in product for field in required_fields)
-            if has_required_fields:
-                self.log_result("GET /products/{id}", True, f"Retrieved product: {product.get('name', 'Unknown')}")
+        # 2. Test GET /api/products/{id} - Single product (use UUID from first product)
+        if isinstance(self.test_product_id, str):
+            response = self.make_request("GET", f"/products/{self.test_product_id}")
+            if response and response.status_code == 200:
+                product = response.json()
+                required_fields = ["id", "name", "price", "description"]
+                has_required_fields = all(field in product for field in required_fields)
+                if has_required_fields:
+                    self.log_result("GET /products/{id}", True, f"Retrieved product: {product.get('name', 'Unknown')}")
+                else:
+                    missing = [f for f in required_fields if f not in product]
+                    self.log_result("GET /products/{id}", False, f"Missing fields: {missing}", product)
             else:
-                missing = [f for f in required_fields if f not in product]
-                self.log_result("GET /products/{id}", False, f"Missing fields: {missing}", product)
+                error = response.text if response else "Request failed"
+                self.log_result("GET /products/{id}", False, "Failed to get single product", error)
         else:
-            error = response.text if response else "Request failed"
-            self.log_result("GET /products/{id}", False, "Failed to get single product", error)
+            self.log_result("GET /products/{id}", False, "No valid product ID available")
         
         # 3. Test GET /api/products/{id}/advanced - Advanced product data
-        response = self.make_request("GET", f"/products/{self.test_product_id}/advanced")
-        if response and response.status_code == 200:
-            product = response.json()
-            required_fields = ["id", "name", "gallery"]
-            has_required_fields = all(field in product for field in required_fields)
-            if has_required_fields:
-                gallery = product.get("gallery", [])
-                self.log_result("GET /products/{id}/advanced", True, f"Retrieved advanced product data with {len(gallery)} gallery images")
+        if isinstance(self.test_product_id, str):
+            response = self.make_request("GET", f"/products/{self.test_product_id}/advanced")
+            if response and response.status_code == 200:
+                product = response.json()
+                required_fields = ["id", "name", "gallery"]
+                has_required_fields = all(field in product for field in required_fields)
+                if has_required_fields:
+                    gallery = product.get("gallery", [])
+                    self.log_result("GET /products/{id}/advanced", True, f"Retrieved advanced product data with {len(gallery)} gallery images")
+                else:
+                    missing = [f for f in required_fields if f not in product]
+                    self.log_result("GET /products/{id}/advanced", False, f"Missing fields: {missing}", product)
             else:
-                missing = [f for f in required_fields if f not in product]
-                self.log_result("GET /products/{id}/advanced", False, f"Missing fields: {missing}", product)
+                error = response.text if response else "Request failed"
+                self.log_result("GET /products/{id}/advanced", False, "Failed to get advanced product", error)
         else:
-            error = response.text if response else "Request failed"
-            self.log_result("GET /products/{id}/advanced", False, "Failed to get advanced product", error)
+            self.log_result("GET /products/{id}/advanced", False, "No valid product ID available")
 
     def test_priority_reviews_apis(self):
         """Test Priority Reviews API endpoints"""
