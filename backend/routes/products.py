@@ -536,7 +536,7 @@ async def get_all_products():
 
 
 @router.get("/{product_id}")
-async def get_product(product_id: int):
+async def get_product(product_id: str):
     """Get a single product by ID"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -580,7 +580,7 @@ async def create_product(product: dict):
 
 
 @router.put("/{product_id}")
-async def update_product(product_id: int, updates: dict):
+async def update_product(product_id: str, updates: dict):
     """Update a product (admin only)"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -610,7 +610,7 @@ async def update_product(product_id: int, updates: dict):
 
 
 @router.delete("/{product_id}")
-async def delete_product(product_id: int):
+async def delete_product(product_id: str):
     """Delete a product (admin only)"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -631,7 +631,7 @@ async def delete_product(product_id: int):
 
 
 @router.put("/{product_id}/advanced")
-async def update_product_advanced(product_id: int, updates: dict):
+async def update_product_advanced(product_id: str, updates: dict):
     """
     Update product with advanced customizations (images, sections, etc.)
     For the Advanced Product Editor
@@ -666,7 +666,7 @@ async def update_product_advanced(product_id: int, updates: dict):
 
 
 @router.get("/{product_id}/advanced")
-async def get_product_advanced(product_id: int):
+async def get_product_advanced(product_id: str):
     """Get product with all advanced customizations"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -687,7 +687,7 @@ async def get_product_advanced(product_id: int):
 
 
 @router.put("/{product_id}/image-override")
-async def update_product_image_override(product_id: int, updates: dict):
+async def update_product_image_override(product_id: str, updates: dict):
     """
     Update product image overrides.
     Supports:
@@ -761,7 +761,7 @@ async def update_product_image_override(product_id: int, updates: dict):
 
 
 @router.delete("/{product_id}/image-override")
-async def clear_product_image_overrides(product_id: int):
+async def clear_product_image_overrides(product_id: str):
     """Clear all image overrides for a product, reverting to default images"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -804,7 +804,7 @@ async def clear_product_image_overrides(product_id: int):
 
 
 @router.get("/{product_id}/image-info")
-async def get_product_image_info(product_id: int):
+async def get_product_image_info(product_id: str):
     """
     Get detailed image information for a product including:
     - Default images (original)
@@ -880,7 +880,7 @@ def get_product_folder(product_name: str) -> str:
 
 @router.post("/{product_id}/upload-image")
 async def upload_product_image(
-    product_id: int,
+    product_id: str,
     file: UploadFile = File(...),
     image_type: str = Form("main")  # main, dimensions, features, gallery
 ):
@@ -963,7 +963,7 @@ async def upload_product_image(
 
 
 @router.delete("/{product_id}/gallery/{image_index}")
-async def remove_gallery_image(product_id: int, image_index: int):
+async def remove_gallery_image(product_id: str, image_index: int):
     """Remove an image from the product gallery by index"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -1032,7 +1032,7 @@ async def create_new_product(product: ProductCreate):
 
 
 @router.put("/{product_id}/full")
-async def update_product_full(product_id: int, product: ProductUpdate):
+async def update_product_full(product_id: str, product: ProductUpdate):
     """Full product update with all fields"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
