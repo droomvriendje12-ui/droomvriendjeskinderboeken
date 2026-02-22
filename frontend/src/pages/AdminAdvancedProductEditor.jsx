@@ -28,6 +28,7 @@ import {
   RotateCcw,
   AlertCircle,
   CheckCircle2,
+  Edit2,
   Sparkles
 } from 'lucide-react';
 
