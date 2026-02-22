@@ -127,12 +127,15 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ALL REVIEW APIs WORKING: PATCH /reviews/{id} (edit), POST /reviews/bulk-delete (bulk delete), GET /reviews/filter (advanced filtering), GET /reviews/five-star-random (homepage), GET /reviews/admin (admin panel), GET /reviews/stats (statistics), PATCH /reviews/{id}/visibility (toggle), DELETE /reviews/{id} (single delete). Tested with real data, filtering, search, concurrent operations. Success rate: 12/12 tests passed."
+      - working: true
+        agent: "testing"
+        comment: "✅ PRIORITY REVIEW ENDPOINTS VERIFIED: GET /reviews/admin (47 reviews), GET /reviews/filter (35 5-star reviews), GET /reviews/five-star-random (5 random), PATCH /reviews/{id} (update working), DELETE /reviews/{id} (delete working). All expected ~46 reviews confirmed in database."
 
   - task: "Product Advanced Editor API"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/routes/products.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -145,6 +148,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Feb 19: Backend API remains unchanged. Enhanced editor now also uses PUT /api/products/{id} for core field updates (name, price, badge, stock, rating, etc.) in addition to advanced customizations."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: Single product endpoints failing with validation error. GET /products/{id} and GET /products/{id}/advanced return 422 Unprocessable Entity. Products database contains UUID strings but routes expect integer validation. GET /products (all products) works and returns 10 products correctly."
 
   - task: "Orders API - Discount Calculations"
     implemented: true
@@ -157,6 +163,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ORDERS API WORKING: POST /orders endpoint correctly handles both automatic discount (2nd item 50%) and manual coupon (WELKOM10). Verified calculation: total_amount = subtotal - discount - coupon_discount. Tested edge cases: auto-only, coupon-only, combined discounts. All order fields (subtotal, discount, coupon_code, coupon_discount, total_amount) persist correctly in database."
+      - working: true
+        agent: "testing"
+        comment: "✅ PRIORITY ORDER ENDPOINTS VERIFIED: POST /orders with discount calculation working (created order with €24.98 auto discount + €5.50 coupon). Order creation successful with proper calculation. NOTE: GET /orders endpoint does not exist - only GET /orders/{id} is available, which is expected behavior."
 
   - task: "CSV Import for Marketing Leads"
     implemented: true
