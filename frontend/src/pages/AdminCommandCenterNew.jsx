@@ -100,7 +100,7 @@ const AdminCommandCenterNew = () => {
     { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
     { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
-    { id: 'settings', icon: Settings, label: 'Instellingen' },
+    { id: 'database', icon: Settings, label: 'Database & Integraties', link: '/admin/database' },
   ];
 
   return (
