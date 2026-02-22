@@ -150,7 +150,7 @@ async def delete_image(filename: str):
 
 
 @router.get("/list")
-async def list_uploads(product_id: Optional[int] = None):
+async def list_uploads(product_id: Optional[str] = None):
     """List all uploaded images, optionally filtered by product"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
