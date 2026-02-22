@@ -5,7 +5,6 @@ import { Star, Filter, ChevronDown, RefreshCw } from 'lucide-react';
 import { products } from '../mockData';
 import Layout from '../components/Layout';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ReviewsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState('all');
@@ -19,7 +18,7 @@ const ReviewsPage = () => {
     const fetchReviews = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/api/reviews`);
+        const response = await fetch(`/api/reviews`);
         if (response.ok) {
           const data = await response.json();
           setReviews(data);
@@ -32,7 +31,7 @@ const ReviewsPage = () => {
 
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/reviews/stats`);
+        const response = await fetch(`/api/reviews/stats`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);

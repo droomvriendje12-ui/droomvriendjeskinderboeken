@@ -18,7 +18,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/reviews`);
+        const response = await fetch(`/api/reviews`);
         if (response.ok) {
           const data = await response.json();
           setReviews(data);

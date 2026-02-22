@@ -7,7 +7,6 @@ import { Card, CardContent } from '../components/ui/card';
 import { Star, Truck, RotateCcw, ShieldCheck, Check, Sparkles, Moon, Volume2 } from 'lucide-react';
 import { products } from '../mockData';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 // SEO Keyword Landing Page Configurations
 const seoPages = {
@@ -116,7 +115,7 @@ const SeoLandingPage = () => {
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        await fetch(`${API_URL}/api/tracking/seo-visit`, {
+        await fetch(`/api/tracking/seo-visit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

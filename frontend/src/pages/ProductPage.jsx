@@ -13,7 +13,6 @@ import Layout from '../components/Layout';
 import StickyAddToCart from '../components/StickyAddToCart';
 import { trackViewItem } from '../utils/analytics';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -179,7 +178,7 @@ const ProductPage = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_URL}/api/reviews/upload-photo`, {
+      const response = await fetch(`/api/reviews/upload-photo`, {
         method: 'POST',
         body: formData
       });
@@ -214,7 +213,7 @@ const ProductPage = () => {
     if (!product) return;
     setLoadingReviews(true);
     try {
-      const response = await fetch(`${API_URL}/api/reviews/by-product/${encodeURIComponent(product.shortName)}`);
+      const response = await fetch(`/api/reviews/by-product/${encodeURIComponent(product.shortName)}`);
       if (response.ok) {
         const data = await response.json();
         setProductReviews(data);
@@ -242,7 +241,7 @@ const ProductPage = () => {
     setSubmittingReview(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/reviews/submit`, {
+      const response = await fetch(`/api/reviews/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

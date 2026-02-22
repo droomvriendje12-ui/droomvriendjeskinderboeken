@@ -21,7 +21,6 @@ import {
   X
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const MerchantFeedPage = () => {
   const [feedData, setFeedData] = useState(null);
@@ -41,7 +40,7 @@ const MerchantFeedPage = () => {
   const fetchFeedData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/feed/products`);
+      const response = await fetch(`/api/feed/products`);
       const data = await response.json();
       setFeedData(data);
     } catch (error) {
@@ -59,7 +58,7 @@ const MerchantFeedPage = () => {
   };
 
   const openFeed = () => {
-    window.open(`${API_URL}/api/feed/google-shopping.xml`, '_blank');
+    window.open(`/api/feed/google-shopping.xml`, '_blank');
   };
 
   const handleDeleteProduct = async (productId, productTitle) => {
@@ -89,7 +88,7 @@ const MerchantFeedPage = () => {
       // Extract ID from link (e.g., "/product/1" -> 1)
       const numericId = product.link.split('/').pop();
       
-      const response = await fetch(`${API_URL}/api/products/${numericId}`, {
+      const response = await fetch(`/api/products/${numericId}`, {
         method: 'DELETE'
       });
       
@@ -130,7 +129,7 @@ const MerchantFeedPage = () => {
     setUploadMessage('');
     
     try {
-      const response = await fetch(`${API_URL}/api/feed/upload-to-merchant-center`, {
+      const response = await fetch(`/api/feed/upload-to-merchant-center`, {
         method: 'POST',
       });
       const data = await response.json();

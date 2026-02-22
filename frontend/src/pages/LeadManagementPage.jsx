@@ -35,7 +35,6 @@ import {
   Zap
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const LeadManagementPage = () => {
   // State management
@@ -138,7 +137,7 @@ const LeadManagementPage = () => {
   
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/leads/stats`);
+      const response = await fetch(`/api/marketing/leads/stats`);
       const data = await response.json();
       setStats(data);
     } catch (error) {
@@ -181,7 +180,7 @@ const LeadManagementPage = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${API_URL}/api/marketing/leads/upload-csv`, {
+      const response = await fetch(`/api/marketing/leads/upload-csv`, {
         method: 'POST',
         body: formData
       });
@@ -209,7 +208,7 @@ const LeadManagementPage = () => {
     if (!window.confirm('Weet je zeker dat je deze lead wilt verwijderen?')) return;
     
     try {
-      const response = await fetch(`${API_URL}/api/marketing/leads/${leadId}`, {
+      const response = await fetch(`/api/marketing/leads/${leadId}`, {
         method: 'DELETE'
       });
       
@@ -230,7 +229,7 @@ const LeadManagementPage = () => {
     try {
       await Promise.all(
         selectedLeads.map(id =>
-          fetch(`${API_URL}/api/marketing/leads/${id}`, { method: 'DELETE' })
+          fetch(`/api/marketing/leads/${id}`, { method: 'DELETE' })
         )
       );
       
@@ -246,7 +245,7 @@ const LeadManagementPage = () => {
   // Update handler
   const handleUpdateLead = async (leadData) => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/leads/${editingLead.id}`, {
+      const response = await fetch(`/api/marketing/leads/${editingLead.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leadData)

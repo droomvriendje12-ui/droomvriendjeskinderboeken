@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const MarketingDashboardPage = () => {
   const [loading, setLoading] = useState(false);

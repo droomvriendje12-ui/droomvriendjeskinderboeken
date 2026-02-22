@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { products } from '../mockData';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const DroomvriendjesReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
@@ -31,7 +30,7 @@ const DroomvriendjesReviewsPage = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/reviews`);
+      const response = await fetch(`/api/reviews`);
       if (response.ok) {
         const data = await response.json();
         setReviews(data);

@@ -8,7 +8,6 @@ import { useToast } from '../hooks/use-toast';
 import { trackContactFormSubmit } from '../utils/analytics';
 import Layout from '../components/Layout';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ContactPage = () => {
   const { toast } = useToast();
@@ -26,7 +25,7 @@ const ContactPage = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${API_URL}/api/contact`, {
+      const response = await fetch(`/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

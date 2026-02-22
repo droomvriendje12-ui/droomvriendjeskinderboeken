@@ -10,7 +10,6 @@ import {
   FileText, UserPlus, Calendar
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const MarketingCommandCenter = () => {
   const { admin, logout } = useAdminAuth();
@@ -76,7 +75,7 @@ const MarketingCommandCenter = () => {
     setSendingCampaign(true);
     
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns`, {
+      const response = await fetch(`/api/marketing/campaigns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,7 +106,7 @@ const MarketingCommandCenter = () => {
   
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns?status=active&limit=10`);
+      const response = await fetch(`/api/marketing/campaigns?status=active&limit=10`);
       const data = await response.json();
       setCampaigns(data.campaigns || []);
     } catch (error) {
@@ -117,7 +116,7 @@ const MarketingCommandCenter = () => {
   
   const fetchCampaignsSummary = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns/stats/summary`);
+      const response = await fetch(`/api/marketing/campaigns/stats/summary`);
       const data = await response.json();
       setCampaignsSummary(data);
     } catch (error) {
@@ -127,7 +126,7 @@ const MarketingCommandCenter = () => {
   
   const pauseCampaign = async (campaignId, campaignName) => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}/pause`, {
+      const response = await fetch(`/api/marketing/campaigns/${campaignId}/pause`, {
         method: 'POST'
       });
       
@@ -142,7 +141,7 @@ const MarketingCommandCenter = () => {
   
   const resumeCampaign = async (campaignId, campaignName) => {
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}/resume`, {
+      const response = await fetch(`/api/marketing/campaigns/${campaignId}/resume`, {
         method: 'POST'
       });
       
@@ -159,7 +158,7 @@ const MarketingCommandCenter = () => {
     if (!window.confirm(`Weet je zeker dat je campagne "${campaignName}" wilt verwijderen?`)) return;
     
     try {
-      const response = await fetch(`${API_URL}/api/marketing/campaigns/${campaignId}`, {
+      const response = await fetch(`/api/marketing/campaigns/${campaignId}`, {
         method: 'DELETE'
       });
       
@@ -280,15 +279,15 @@ const MarketingCommandCenter = () => {
       const headers = { 'Authorization': `Bearer ${token}` };
       
       const [statsRes, channelRes, productsRes, hourlyRes, insightsRes, whatsappRes, smsRes, influencerRes, affiliateRes] = await Promise.all([
-        fetch(`${API_URL}/api/marketing/stats`, { headers }),
-        fetch(`${API_URL}/api/marketing/channel-performance`, { headers }),
-        fetch(`${API_URL}/api/marketing/top-products`, { headers }),
-        fetch(`${API_URL}/api/marketing/hourly-revenue`, { headers }),
-        fetch(`${API_URL}/api/marketing/ai-insights`, { headers }),
-        fetch(`${API_URL}/api/marketing/whatsapp/stats`, { headers }),
-        fetch(`${API_URL}/api/marketing/sms/stats`, { headers }),
-        fetch(`${API_URL}/api/marketing/influencers`, { headers }),
-        fetch(`${API_URL}/api/marketing/affiliates`, { headers })
+        fetch(`/api/marketing/stats`, { headers }),
+        fetch(`/api/marketing/channel-performance`, { headers }),
+        fetch(`/api/marketing/top-products`, { headers }),
+        fetch(`/api/marketing/hourly-revenue`, { headers }),
+        fetch(`/api/marketing/ai-insights`, { headers }),
+        fetch(`/api/marketing/whatsapp/stats`, { headers }),
+        fetch(`/api/marketing/sms/stats`, { headers }),
+        fetch(`/api/marketing/influencers`, { headers }),
+        fetch(`/api/marketing/affiliates`, { headers })
       ]);
       
       if (statsRes.ok) setStats(await statsRes.json());
@@ -370,7 +369,7 @@ const MarketingCommandCenter = () => {
     setChatLoading(true);
     
     try {
-      const response = await fetch(`${API_URL}/api/marketing/chat`, {
+      const response = await fetch(`/api/marketing/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage, session_id: sessionId })
@@ -417,7 +416,7 @@ const MarketingCommandCenter = () => {
   const fetchLeadsStats = useCallback(async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`${API_URL}/api/marketing/leads/stats`, {
+      const response = await fetch(`/api/marketing/leads/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -474,7 +473,7 @@ const MarketingCommandCenter = () => {
       formData.append('file', file);
       
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`${API_URL}/api/marketing/leads/upload-csv`, {
+      const response = await fetch(`/api/marketing/leads/upload-csv`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData

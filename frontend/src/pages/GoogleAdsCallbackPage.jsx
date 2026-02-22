@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Loader2, CheckCircle, XCircle, ArrowLeft, ExternalLink } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const GoogleAdsCallbackPage = () => {
   const [searchParams] = useSearchParams();
@@ -38,7 +37,7 @@ const GoogleAdsCallbackPage = () => {
 
       try {
         // Exchange code for tokens
-        const response = await fetch(`${API_URL}/api/google-ads/oauth-callback`, {
+        const response = await fetch(`/api/google-ads/oauth-callback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

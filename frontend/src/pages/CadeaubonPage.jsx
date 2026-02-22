@@ -7,7 +7,6 @@ import { Textarea } from '../components/ui/textarea';
 import { Gift, Heart, Star, Loader2, CreditCard } from 'lucide-react';
 import Layout from '../components/Layout';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const CadeaubonPage = () => {
   const [selectedAmount, setSelectedAmount] = useState(50);
@@ -42,7 +41,7 @@ const CadeaubonPage = () => {
 
     try {
       // Use the dedicated gift card purchase endpoint
-      const response = await fetch(`${API_URL}/api/gift-card/purchase`, {
+      const response = await fetch(`/api/gift-card/purchase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

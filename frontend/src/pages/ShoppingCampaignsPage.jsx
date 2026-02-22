@@ -20,7 +20,6 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const ShoppingCampaignsPage = () => {
   const [status, setStatus] = useState(null);
@@ -40,7 +39,7 @@ const ShoppingCampaignsPage = () => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/google-ads/status`);
+      const response = await fetch(`/api/google-ads/status`);
       const data = await response.json();
       setStatus(data);
     } catch (error) {
@@ -51,7 +50,7 @@ const ShoppingCampaignsPage = () => {
   const fetchCampaigns = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/google-ads/campaigns`);
+      const response = await fetch(`/api/google-ads/campaigns`);
       const data = await response.json();
       setCampaigns(data.campaigns || []);
     } catch (error) {
@@ -64,7 +63,7 @@ const ShoppingCampaignsPage = () => {
     e.preventDefault();
     setCreating(true);
     try {
-      const response = await fetch(`${API_URL}/api/google-ads/campaigns/create`, {
+      const response = await fetch(`/api/google-ads/campaigns/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -87,7 +86,7 @@ const ShoppingCampaignsPage = () => {
 
   const startOAuth = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/google-ads/oauth-url`);
+      const response = await fetch(`/api/google-ads/oauth-url`);
       const data = await response.json();
       if (data.auth_url) {
         window.location.href = data.auth_url;

@@ -6,7 +6,6 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Star, Truck, RotateCcw, ShieldCheck, Gift, Sparkles } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 // Channel specific configurations
 const channelConfig = {
@@ -71,7 +70,7 @@ const OfflineLandingPage = () => {
   useEffect(() => {
     const trackVisit = async () => {
       try {
-        await fetch(`${API_URL}/api/tracking/qr-scan`, {
+        await fetch(`/api/tracking/qr-scan`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

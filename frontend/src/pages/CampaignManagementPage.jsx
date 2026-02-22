@@ -13,7 +13,6 @@ import {
   BarChart3, Upload, Loader2, AlertCircle, CheckCircle
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const CampaignManagementPage = () => {
   const { toast } = useToast();
@@ -82,7 +81,7 @@ const CampaignManagementPage = () => {
     try {
       const campaignIds = selectedCampaigns.length > 0 ? selectedCampaigns : null;
       
-      const response = await fetch(`${API_URL}/api/google-ads/campaigns/create-predefined`, {
+      const response = await fetch(`/api/google-ads/campaigns/create-predefined`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ campaign_ids: campaignIds })

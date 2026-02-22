@@ -6,7 +6,6 @@ import { Card, CardContent } from '../components/ui/card';
 import { trackPurchase } from '../utils/analytics';
 import { Helmet } from 'react-helmet-async';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const PaymentResultPage = () => {
   const { orderId } = useParams();
@@ -51,7 +50,7 @@ const PaymentResultPage = () => {
   useEffect(() => {
     const checkPaymentStatus = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/orders/${orderId}`);
+        const response = await fetch(`/api/orders/${orderId}`);
         if (!response.ok) {
           throw new Error('Order not found');
         }

@@ -5,7 +5,6 @@ import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2
 import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from '../utils/analytics';
 import { products } from '../mockData';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -58,7 +57,7 @@ const CheckoutPage = () => {
     if (!email || cart.length === 0) return;
     
     try {
-      await fetch(`${API_URL}/api/email/track-checkout`, {
+      await fetch(`/api/email/track-checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +122,7 @@ const CheckoutPage = () => {
       trackAddShippingInfo(cart, 'standard_shipping');
       
       // Notify backend of checkout start
-      await fetch(`${API_URL}/api/checkout-started`, {
+      await fetch(`/api/checkout-started`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -140,7 +139,7 @@ const CheckoutPage = () => {
       const couponDiscount = appliedCoupon ? appliedCoupon.discount_amount : 0;
       const finalTotal = Math.max(0, subtotal - autoDiscount - couponDiscount);
       
-      const orderResponse = await fetch(`${API_URL}/api/orders`, {
+      const orderResponse = await fetch(`/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +172,7 @@ const CheckoutPage = () => {
       const orderData = await orderResponse.json();
 
       // Create payment via backend (SECURE - no API key in frontend!)
-      const paymentResponse = await fetch(`${API_URL}/api/payments/create`, {
+      const paymentResponse = await fetch(`/api/payments/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
