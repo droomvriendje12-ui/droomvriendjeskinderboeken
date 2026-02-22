@@ -4,15 +4,25 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const LOCAL_API_URL = '';
 
-// Helper function to fetch with fallback
+// Helper function to fetch with fallback and timeout
 const fetchWithFallback = async (endpoint, options = {}) => {
-  // Try external API first
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+  
+  // Try external API first with timeout
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, options);
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     if (response.ok) return response;
   } catch (err) {
-    console.log('External API failed, trying local...');
+    clearTimeout(timeoutId);
+    console.log('External API failed, trying local...', err.message);
   }
+  
   // Fallback to local API (via proxy)
   return fetch(`${LOCAL_API_URL}${endpoint}`, options);
 };
