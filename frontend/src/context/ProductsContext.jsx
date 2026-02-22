@@ -36,11 +36,10 @@ export const ProductsProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch single product by ID using relative URL
+  // Fetch single product by ID
   const fetchProductById = useCallback(async (id) => {
     try {
-      const response = await fetch(`/api/products/${id}`);
-      
+      const response = await fetch(`${API_URL}/api/products/${id}`);
       if (!response.ok) {
         throw new Error('Product not found');
       }
