@@ -141,9 +141,10 @@ function App() {
               <Route path="/admin/login" element={<AdminLoginPage />} />
               
               {/* Admin Command Center 2026 - Main Dashboard */}
-              <Route path="/admin" element={<ProtectedAdminRoute><AdminCommandCenter /></ProtectedAdminRoute>} />
-              <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminCommandCenter /></ProtectedAdminRoute>} />
-              <Route path="/admin/command-center" element={<ProtectedAdminRoute><AdminCommandCenter /></ProtectedAdminRoute>} />
+              <Route path="/admin" element={<ProtectedAdminRoute><AdminCommandCenterNew /></ProtectedAdminRoute>} />
+              <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminCommandCenterNew /></ProtectedAdminRoute>} />
+              <Route path="/admin/command-center" element={<ProtectedAdminRoute><AdminCommandCenterNew /></ProtectedAdminRoute>} />
+              <Route path="/admin/command-center-old" element={<ProtectedAdminRoute><AdminCommandCenter /></ProtectedAdminRoute>} />
               
               {/* Protected Admin Routes */}
               <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrdersPage /></ProtectedAdminRoute>} />
