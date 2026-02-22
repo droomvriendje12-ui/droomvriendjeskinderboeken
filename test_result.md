@@ -199,6 +199,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ CSV IMPORT FUNCTIONALITY WORKING: POST /api/marketing/leads/upload-csv (multipart file upload with proper format validation), GET /api/marketing/leads/stats (total leads, by_source, by_gender statistics), GET /api/marketing/leads (pagination with skip/limit, filtering by source/gender). Successfully tested with 8-lead CSV file. Duplicate detection working (8/8 duplicates found on re-upload). Gender distribution: 4M/4F. Age categorization: 5 age_35_50, 2 age_51_65. Fixed ObjectId serialization issue for JSON responses. All 3 CSV endpoints fully functional."
+      - working: true
+        agent: "testing"
+        comment: "✅ PRIORITY MARKETING ENDPOINTS VERIFIED: GET /marketing/stats (Revenue: €184.32, Conversions: 2, Visitors: 123), GET /marketing/leads/stats (Total: 37,372 leads as expected ~37K, 100 sources), GET /marketing/channel-performance (4 channels: Email, WhatsApp, Social Media, SMS with €5,244.41 total revenue). All priority marketing endpoints functioning correctly with expected data volumes."
 
 frontend:
   - task: "Marketing Command Center Frontend Page"
