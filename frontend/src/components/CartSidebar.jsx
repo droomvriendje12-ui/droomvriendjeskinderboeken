@@ -7,7 +7,6 @@ import { ShoppingCart, X, Plus, Minus, Truck, Loader2, Mail, Tag, Ticket, Check,
 import { trackBeginCheckout, trackCheckoutClicked } from '../utils/analytics';
 import { products } from '../mockData';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const CartSidebar = () => {
   const navigate = useNavigate();
@@ -68,7 +67,7 @@ const CartSidebar = () => {
     setCodeSuccess('');
     
     try {
-      const response = await fetch(`${API_URL}/api/discount/validate`, {
+      const response = await fetch(`/api/discount/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,7 +135,7 @@ const CartSidebar = () => {
         quantity: item.quantity
       }));
       
-      await fetch(`${API_URL}/api/checkout-started`, {
+      await fetch(`/api/checkout-started`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
