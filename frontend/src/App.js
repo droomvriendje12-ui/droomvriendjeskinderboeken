@@ -49,6 +49,7 @@ import AdminProductsPage from "./pages/AdminProductsPage";
 import AdminProductsPageV2 from "./pages/AdminProductsPageV2";
 import AdminAdvancedProductEditor from "./pages/AdminAdvancedProductEditor";
 import AdminCommandCenter from "./pages/AdminCommandCenter";
+import AdminCommandCenterNew from "./pages/AdminCommandCenterNew";
 import MarketingDashboardPage from "./pages/MarketingDashboardPage";
 import MarketingCommandCenter from "./pages/MarketingCommandCenter";
 import LeadManagementPage from "./pages/LeadManagementPage";
