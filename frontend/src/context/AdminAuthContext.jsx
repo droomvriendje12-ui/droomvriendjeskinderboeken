@@ -42,44 +42,24 @@ export const AdminAuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
-    return new Promise((resolve) => {
-      // Use XMLHttpRequest for more reliable POST via proxy
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/admin/login', true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.timeout = 10000; // 10 second timeout
+    try {
+      // Use GET-based dev-login for CRA proxy compatibility
+      const response = await fetch(`/api/admin/dev-login?u=${encodeURIComponent(username)}&p=${encodeURIComponent(password)}`);
       
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            localStorage.setItem('admin_token', data.token);
-            setAdmin(data.admin);
-            setIsAuthenticated(true);
-            resolve({ success: true });
-          } catch (e) {
-            resolve({ success: false, error: 'Ongeldige response' });
-          }
-        } else {
-          try {
-            const error = JSON.parse(xhr.responseText);
-            resolve({ success: false, error: error.detail || 'Login mislukt' });
-          } catch (e) {
-            resolve({ success: false, error: 'Login mislukt' });
-          }
-        }
-      };
-      
-      xhr.onerror = function() {
-        resolve({ success: false, error: 'Verbinding mislukt' });
-      };
-      
-      xhr.ontimeout = function() {
-        resolve({ success: false, error: 'Verbinding timeout' });
-      };
-      
-      xhr.send(JSON.stringify({ username, password }));
-    });
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('admin_token', data.token);
+        setAdmin(data.admin);
+        setIsAuthenticated(true);
+        return { success: true };
+      } else {
+        const error = await response.json();
+        return { success: false, error: error.detail || 'Login mislukt' };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Verbinding mislukt' };
+    }
   };
 
   const logout = () => {
