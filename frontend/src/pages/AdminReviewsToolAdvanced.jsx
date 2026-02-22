@@ -69,7 +69,7 @@ const AdminReviewsToolAdvanced = () => {
   const fetchReviews = async () => {
     setLoadingReviews(true);
     try {
-      const response = await fetch(`${API_URL}/api/reviews/admin`);
+      const response = await fetch(`/api/reviews/admin`);
       if (response.ok) {
         const data = await response.json();
         setReviews(data);
@@ -83,7 +83,7 @@ const AdminReviewsToolAdvanced = () => {
   // Fetch review stats
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/reviews/stats`);
+      const response = await fetch(`/api/reviews/stats`);
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -125,7 +125,7 @@ const AdminReviewsToolAdvanced = () => {
       formData.append('product_id', selectedProduct.id);
       formData.append('product_name', selectedProduct.shortName);
 
-      const response = await fetch(`${API_URL}/api/reviews/import-csv`, {
+      const response = await fetch(`/api/reviews/import-csv`, {
         method: 'POST',
         body: formData
       });
@@ -161,7 +161,7 @@ const AdminReviewsToolAdvanced = () => {
     if (!window.confirm('Weet je zeker dat je deze review wilt verwijderen?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+      const response = await fetch(`/api/reviews/${reviewId}`, {
         method: 'DELETE'
       });
 
@@ -179,7 +179,7 @@ const AdminReviewsToolAdvanced = () => {
   // Handle toggle visibility
   const handleToggleVisibility = async (reviewId, currentVisible) => {
     try {
-      const response = await fetch(`${API_URL}/api/reviews/${reviewId}/visibility?visible=${!currentVisible}`, {
+      const response = await fetch(`/api/reviews/${reviewId}/visibility?visible=${!currentVisible}`, {
         method: 'PATCH'
       });
 
@@ -209,7 +209,7 @@ const AdminReviewsToolAdvanced = () => {
   // Handle save edit
   const handleSaveEdit = async (reviewId) => {
     try {
-      const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+      const response = await fetch(`/api/reviews/${reviewId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editFormData)
@@ -237,7 +237,7 @@ const AdminReviewsToolAdvanced = () => {
     if (!window.confirm(`Weet je zeker dat je ${selectedReviews.length} reviews wilt verwijderen?`)) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/reviews/bulk-delete`, {
+      const response = await fetch(`/api/reviews/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ review_ids: selectedReviews })

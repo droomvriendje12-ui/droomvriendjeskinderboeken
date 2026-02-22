@@ -43,7 +43,7 @@ const AdminOrdersPage = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/admin/orders`);
+      const response = await fetch(`/api/admin/orders`);
       if (response.ok) {
         const data = await response.json();
         setOrders(data.orders || []);
@@ -56,7 +56,7 @@ const AdminOrdersPage = () => {
 
   const fetchShippingMethods = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/sendcloud/shipping-methods`);
+      const response = await fetch(`/api/sendcloud/shipping-methods`);
       if (response.ok) {
         const data = await response.json();
         const nlMethods = (data.shipping_methods || []).filter(m => 
@@ -80,7 +80,7 @@ const AdminOrdersPage = () => {
 
     setSaving(true);
     try {
-      const response = await fetch(`${API_URL}/api/sendcloud/create-parcel`, {
+      const response = await fetch(`/api/sendcloud/create-parcel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -118,7 +118,7 @@ const AdminOrdersPage = () => {
 
     setSaving(true);
     try {
-      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}/tracking`, {
+      const response = await fetch(`/api/admin/orders/${orderId}/tracking`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

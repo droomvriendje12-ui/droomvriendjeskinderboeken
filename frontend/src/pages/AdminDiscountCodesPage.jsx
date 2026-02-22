@@ -45,7 +45,7 @@ const AdminDiscountCodesPage = () => {
   const fetchDiscountCodes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/discount-codes`);
+      const response = await fetch(`/api/discount-codes`);
       if (!response.ok) throw new Error('Failed to fetch discount codes');
       const data = await response.json();
       setDiscountCodes(data);
@@ -76,8 +76,8 @@ const AdminDiscountCodesPage = () => {
       };
 
       const url = editingCode 
-        ? `${API_URL}/api/discount-codes/${editingCode.id}`
-        : `${API_URL}/api/discount-codes`;
+        ? `/api/discount-codes/${editingCode.id}`
+        : `/api/discount-codes`;
       
       const method = editingCode ? 'PUT' : 'POST';
       
@@ -104,7 +104,7 @@ const AdminDiscountCodesPage = () => {
     if (!window.confirm('Weet je zeker dat je deze kortingscode wilt verwijderen?')) return;
     
     try {
-      const response = await fetch(`${API_URL}/api/discount-codes/${codeId}`, {
+      const response = await fetch(`/api/discount-codes/${codeId}`, {
         method: 'DELETE'
       });
       
@@ -153,7 +153,7 @@ const AdminDiscountCodesPage = () => {
   // Toggle active status
   const toggleActive = async (code) => {
     try {
-      const response = await fetch(`${API_URL}/api/discount-codes/${code.id}`, {
+      const response = await fetch(`/api/discount-codes/${code.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: !code.active })

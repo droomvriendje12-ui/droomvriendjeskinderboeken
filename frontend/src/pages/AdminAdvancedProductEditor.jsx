@@ -89,7 +89,7 @@ const AdminAdvancedProductEditor = () => {
         setLoading(true);
         
         // Fetch product data
-        const productResponse = await fetch(`${API_URL}/api/products/${productId}/advanced`);
+        const productResponse = await fetch(`/api/products/${productId}/advanced`);
         if (productResponse.ok) {
           const data = await productResponse.json();
           setProduct(data);
@@ -152,7 +152,7 @@ const AdminAdvancedProductEditor = () => {
         }
         
         // Fetch image override info
-        const imageInfoResponse = await fetch(`${API_URL}/api/products/${productId}/image-info`);
+        const imageInfoResponse = await fetch(`/api/products/${productId}/image-info`);
         if (imageInfoResponse.ok) {
           const info = await imageInfoResponse.json();
           setImageInfo(info);
@@ -193,7 +193,7 @@ const AdminAdvancedProductEditor = () => {
       formData.append('product_id', productId);
       formData.append('image_type', imageType);
       
-      const response = await fetch(`${API_URL}/api/uploads/image`, {
+      const response = await fetch(`/api/uploads/image`, {
         method: 'POST',
         body: formData
       });
@@ -261,7 +261,7 @@ const AdminAdvancedProductEditor = () => {
   // Save specific image field to product
   const saveSpecificImage = async (field, url) => {
     try {
-      const response = await fetch(`${API_URL}/api/products/${productId}/advanced`, {
+      const response = await fetch(`/api/products/${productId}/advanced`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: url })
@@ -307,7 +307,7 @@ const AdminAdvancedProductEditor = () => {
         body.gallery_overrides = galleryOverridesList;
       }
       
-      const response = await fetch(`${API_URL}/api/products/${productId}/image-override`, {
+      const response = await fetch(`/api/products/${productId}/image-override`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -315,7 +315,7 @@ const AdminAdvancedProductEditor = () => {
       
       if (response.ok) {
         // Refresh image info
-        const infoResponse = await fetch(`${API_URL}/api/products/${productId}/image-info`);
+        const infoResponse = await fetch(`/api/products/${productId}/image-info`);
         if (infoResponse.ok) {
           const info = await infoResponse.json();
           setImageInfo(info);
@@ -343,13 +343,13 @@ const AdminAdvancedProductEditor = () => {
   // Clear all overrides
   const clearAllOverrides = async () => {
     try {
-      await fetch(`${API_URL}/api/products/${productId}/image-override`, {
+      await fetch(`/api/products/${productId}/image-override`, {
         method: 'DELETE'
       });
       setMainImageOverride('');
       setGalleryOverrides([]);
       // Refresh image info
-      const infoResponse = await fetch(`${API_URL}/api/products/${productId}/image-info`);
+      const infoResponse = await fetch(`/api/products/${productId}/image-info`);
       if (infoResponse.ok) {
         const info = await infoResponse.json();
         setImageInfo(info);
@@ -364,7 +364,7 @@ const AdminAdvancedProductEditor = () => {
     setSaving(true);
     try {
       // Save to advanced endpoint
-      const advancedResponse = await fetch(`${API_URL}/api/products/${productId}/advanced`, {
+      const advancedResponse = await fetch(`/api/products/${productId}/advanced`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -380,7 +380,7 @@ const AdminAdvancedProductEditor = () => {
       });
       
       // NEW: Also update core product fields
-      const coreResponse = await fetch(`${API_URL}/api/products/${productId}`, {
+      const coreResponse = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -402,7 +402,7 @@ const AdminAdvancedProductEditor = () => {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
         // Refresh product data
-        const productResponse = await fetch(`${API_URL}/api/products/${productId}/advanced`);
+        const productResponse = await fetch(`/api/products/${productId}/advanced`);
         if (productResponse.ok) {
           const data = await productResponse.json();
           setProduct(data);

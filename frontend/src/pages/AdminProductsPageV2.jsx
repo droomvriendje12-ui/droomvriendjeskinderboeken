@@ -65,7 +65,7 @@ const AdminProductsPageV2 = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/products`);
+      const response = await fetch(`/api/products`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       setProducts(data);
@@ -105,8 +105,8 @@ const AdminProductsPageV2 = () => {
       };
 
       const url = editingProduct 
-        ? `${API_URL}/api/products/${editingProduct.id}`
-        : `${API_URL}/api/products`;
+        ? `/api/products/${editingProduct.id}`
+        : `/api/products`;
       
       const method = editingProduct ? 'PUT' : 'POST';
       
@@ -133,7 +133,7 @@ const AdminProductsPageV2 = () => {
     if (!window.confirm('Weet je zeker dat je dit product wilt verwijderen?')) return;
     
     try {
-      const response = await fetch(`${API_URL}/api/products/${productId}`, {
+      const response = await fetch(`/api/products/${productId}`, {
         method: 'DELETE'
       });
       
@@ -188,7 +188,7 @@ const AdminProductsPageV2 = () => {
   // Toggle stock status
   const toggleStock = async (product) => {
     try {
-      const response = await fetch(`${API_URL}/api/products/${product.id}`, {
+      const response = await fetch(`/api/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inStock: !product.inStock })
@@ -210,7 +210,7 @@ const AdminProductsPageV2 = () => {
     try {
       await Promise.all(
         selectedProducts.map(id => 
-          fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' })
+          fetch(`/api/products/${id}`, { method: 'DELETE' })
         )
       );
       await fetchProducts();

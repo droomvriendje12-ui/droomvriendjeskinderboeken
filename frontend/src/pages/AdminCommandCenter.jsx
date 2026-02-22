@@ -54,7 +54,7 @@ const AdminCommandCenter = () => {
     
     try {
       // Fetch dashboard stats
-      const statsRes = await fetch(`${API_URL}/api/admin/dashboard?days=${selectedDays}`, {
+      const statsRes = await fetch(`/api/admin/dashboard?days=${selectedDays}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (statsRes.ok) {
@@ -63,14 +63,14 @@ const AdminCommandCenter = () => {
       }
 
       // Fetch products
-      const productsRes = await fetch(`${API_URL}/api/products`);
+      const productsRes = await fetch(`/api/products`);
       if (productsRes.ok) {
         const data = await productsRes.json();
         setProducts(data);
       }
 
       // Fetch reviews for admin
-      const reviewsRes = await fetch(`${API_URL}/api/reviews/admin`, {
+      const reviewsRes = await fetch(`/api/reviews/admin`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (reviewsRes.ok) {
@@ -79,7 +79,7 @@ const AdminCommandCenter = () => {
       }
 
       // Fetch orders
-      const ordersRes = await fetch(`${API_URL}/api/admin/orders`, {
+      const ordersRes = await fetch(`/api/admin/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (ordersRes.ok) {
@@ -97,7 +97,7 @@ const AdminCommandCenter = () => {
   const handleApproveReview = async (reviewId) => {
     const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`${API_URL}/api/reviews/${reviewId}/visibility`, {
+      const res = await fetch(`/api/reviews/${reviewId}/visibility`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -117,7 +117,7 @@ const AdminCommandCenter = () => {
     if (!window.confirm('Weet je zeker dat je deze review wilt verwijderen?')) return;
     const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+      const res = await fetch(`/api/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -244,7 +244,7 @@ const AdminCommandCenter = () => {
       formData.append('file', file);
       formData.append('image_type', imageType);
       
-      const res = await fetch(`${API_URL}/api/products/${editingProduct.id}/upload-image`, {
+      const res = await fetch(`/api/products/${editingProduct.id}/upload-image`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
@@ -284,7 +284,7 @@ const AdminCommandCenter = () => {
     
     const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`${API_URL}/api/products/${editingProduct.id}/gallery/${index}`, {
+      const res = await fetch(`/api/products/${editingProduct.id}/gallery/${index}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -311,7 +311,7 @@ const AdminCommandCenter = () => {
       
       if (isCreatingNew) {
         // Create new product
-        res = await fetch(`${API_URL}/api/products/create`, {
+        res = await fetch(`/api/products/create`, {
           method: 'POST',
           headers: { 
             'Authorization': `Bearer ${token}`,
@@ -321,7 +321,7 @@ const AdminCommandCenter = () => {
         });
       } else {
         // Update existing product
-        res = await fetch(`${API_URL}/api/products/${editingProduct.id}/full`, {
+        res = await fetch(`/api/products/${editingProduct.id}/full`, {
           method: 'PUT',
           headers: { 
             'Authorization': `Bearer ${token}`,

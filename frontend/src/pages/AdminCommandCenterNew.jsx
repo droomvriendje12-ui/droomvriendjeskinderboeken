@@ -44,14 +44,14 @@ const AdminCommandCenterNew = () => {
     
     try {
       // Fetch products
-      const productsRes = await fetch(`${API_URL}/api/products`);
+      const productsRes = await fetch(`/api/products`);
       if (productsRes.ok) {
         const productsData = await productsRes.json();
         setProducts(productsData);
       }
 
       // Fetch orders & stats
-      const dashboardRes = await fetch(`${API_URL}/api/admin/dashboard?days=1`, {
+      const dashboardRes = await fetch(`/api/admin/dashboard?days=1`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (dashboardRes.ok) {
