@@ -29,7 +29,6 @@ import {
   Sparkles
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const AdminProductsPageV2 = () => {
   const [products, setProducts] = useState([]);

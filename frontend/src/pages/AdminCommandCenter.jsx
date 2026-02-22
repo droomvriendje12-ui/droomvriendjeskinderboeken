@@ -11,7 +11,6 @@ import {
   X, Save, Upload, Grip, Camera, ImagePlus, Layers
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const AdminCommandCenter = () => {
   const { admin, logout } = useAdminAuth();

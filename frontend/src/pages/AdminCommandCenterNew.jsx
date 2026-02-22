@@ -8,7 +8,6 @@ import {
   Download, Activity, Package, Settings, Zap, Target, Clock
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const AdminCommandCenterNew = () => {
   const { admin, logout } = useAdminAuth();

@@ -5,7 +5,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, Package, Truck, Mail, Check, X, Search, RefreshCw, Printer, ExternalLink } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Manual carrier configurations (fallback)
 const MANUAL_CARRIERS = {

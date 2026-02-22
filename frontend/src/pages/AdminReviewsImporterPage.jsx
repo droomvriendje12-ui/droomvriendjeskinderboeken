@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { products } from '../mockData';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const AdminReviewsImporterPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
