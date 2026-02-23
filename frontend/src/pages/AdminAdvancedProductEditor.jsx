@@ -153,7 +153,17 @@ const AdminAdvancedProductEditor = () => {
             reviews: data.reviews || 0,
             sku: data.sku || data.itemId || '',
             ageRange: data.ageRange || 'Vanaf 0 maanden',
-            warranty: data.warranty || '14 dagen geld-terug-garantie'
+            warranty: data.warranty || '14 dagen geld-terug-garantie',
+            // NEW: Technical specs
+            specs: data.specs || {
+              projection: '',
+              audio: '',
+              power: '',
+              timer: '',
+              tipText: ''
+            },
+            // NEW: Quick features (icons on product page)
+            quickFeatures: data.quickFeatures || []
           });
           
           // Load specific image fields
