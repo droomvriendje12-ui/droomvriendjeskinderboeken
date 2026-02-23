@@ -162,6 +162,7 @@ api_router = APIRouter(prefix="/api")
 # Import and setup modular routes
 from routes import products as products_route
 from routes import products_supabase as products_supabase_route
+from routes import orders_supabase as orders_supabase_route
 from routes import discount_codes as discount_codes_route
 from routes import reviews as reviews_route
 from routes import uploads as uploads_route
@@ -173,6 +174,11 @@ if USE_SUPABASE and supabase_client:
     logger.info("🚀 Using SUPABASE for products")
     products_supabase_route.set_supabase_client(supabase_client)
     api_router.include_router(products_supabase_route.router)
+    
+    # Also use Supabase for orders
+    logger.info("🚀 Using SUPABASE for orders")
+    orders_supabase_route.set_supabase_client(supabase_client)
+    api_router.include_router(orders_supabase_route.router)
 else:
     logger.info("🚀 Using MONGODB for products")
     products_route.set_database(db)
