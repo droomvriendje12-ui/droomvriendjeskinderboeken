@@ -72,6 +72,11 @@
 
 ## Current Blockers
 
+### ✅ Database - OPGELOST
+- Oude producten met imgur.com URLs zijn verwijderd
+- Database hersteld vanuit gebruikers dump bestand
+- 10 producten met correcte UUIDs in database
+
 ### 🟠 P1 - Google Ads OAuth Configuratie
 - **Status:** BLOCKED (user action required)
 - **Issue:** User moet redirect URIs toevoegen in Google Cloud Console
@@ -79,12 +84,6 @@
   - `https://droomvriendjes.nl/admin/google-ads/callback`
   - `https://remove-old-products.preview.emergentagent.com/admin/google-ads/callback`
 - **Actie:** User moet dit configureren in Google Cloud Console
-
-### 🔴 P0 - Email Campagne SMTP Limiet
-- **Status:** BLOCKED
-- **Issue:** TransIP SMTP dagelijkse verzendlimiet bereikt
-- **Oplossing:** 24 uur wachten of Brevo/SendGrid integreren
-- **Nog te versturen:** ~42.000 emails
 
 ### 🔴 P0 - Deployment Vereist
 - **Status:** PENDING USER ACTION
