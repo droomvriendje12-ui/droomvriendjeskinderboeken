@@ -419,7 +419,10 @@ const AdminAdvancedProductEditor = () => {
           reviews: parseInt(editData.reviews),
           sku: editData.sku,
           ageRange: editData.ageRange,
-          warranty: editData.warranty
+          warranty: editData.warranty,
+          // NEW: Save technical specs
+          specs: editData.specs,
+          quickFeatures: editData.quickFeatures
         })
       });
       
