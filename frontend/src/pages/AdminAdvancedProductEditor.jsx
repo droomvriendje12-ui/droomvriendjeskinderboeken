@@ -72,7 +72,17 @@ const AdminAdvancedProductEditor = () => {
     reviews: 0,
     sku: '',
     ageRange: '',
-    warranty: ''
+    warranty: '',
+    // NEW: Technical specs
+    specs: {
+      projection: '',
+      audio: '',
+      power: '',
+      timer: '',
+      tipText: ''
+    },
+    // NEW: Quick features (icons on product page)
+    quickFeatures: []
   });
 
   // File input refs
