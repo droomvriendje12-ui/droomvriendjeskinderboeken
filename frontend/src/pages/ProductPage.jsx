@@ -47,7 +47,8 @@ const ProductPage = () => {
   const [scrollLeft, setScrollLeft] = useState(0);
   
   const product = useMemo(() => {
-    return products.find(p => p.id === parseInt(id));
+    // Support both UUID strings and numeric IDs
+    return products.find(p => String(p.id) === String(id));
   }, [id, products]);
 
   // Determine product series for dynamic specs
