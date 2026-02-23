@@ -99,6 +99,22 @@ def format_product_response(product: dict) -> dict:
         except:
             custom_sections = []
     
+    # Parse specs JSON
+    specs = product.get("specs", "{}")
+    if isinstance(specs, str):
+        try:
+            specs = json.loads(specs)
+        except:
+            specs = {}
+    
+    # Parse quickFeatures JSON
+    quick_features = product.get("quick_features", "[]")
+    if isinstance(quick_features, str):
+        try:
+            quick_features = json.loads(quick_features)
+        except:
+            quick_features = []
+    
     return {
         "id": product.get("id"),
         "name": product.get("name"),
@@ -115,6 +131,8 @@ def format_product_response(product: dict) -> dict:
         "benefits": benefits,
         "gallery": gallery,
         "customSections": custom_sections,
+        "specs": specs,
+        "quickFeatures": quick_features,
         "rating": product.get("rating", 0),
         "reviews": product.get("review_count", 0),
         "badge": product.get("badge"),
