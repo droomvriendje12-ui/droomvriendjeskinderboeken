@@ -246,6 +246,7 @@ async def update_product(product_id: str, updates: dict):
             "macroImage": "macro_image",
             "dimensionsImage": "dimensions_image",
             "shortDescription": "short_description",
+            "customSections": "custom_sections",
             "inStock": "in_stock",
             "ageRange": "age_range",
             "itemCategory": "item_category",
