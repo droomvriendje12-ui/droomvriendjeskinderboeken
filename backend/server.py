@@ -40,7 +40,7 @@ if env_path.exists():
 else:
     logger.warning(f"No .env file found at {env_path}, using system environment variables only")
 
-# MongoDB connection - Support both local and Atlas MongoDB
+# MongoDB connection - Support both local and Atlas MongoDB (LEGACY - kept for backwards compatibility)
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'droomvriendje')
 
@@ -63,6 +63,27 @@ except ImportError:
 except Exception as e:
     logger.error(f"MongoDB connection error: {e}")
     raise
+
+# ============== SUPABASE CONNECTION ==============
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://qoykbhocordugtbvpvsl.supabase.co")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+
+# Use Supabase as primary database (set to True to enable)
+USE_SUPABASE = os.environ.get("USE_SUPABASE", "true").lower() == "true"
+
+supabase_client: SupabaseClient = None
+if SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY:
+    try:
+        api_key = SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY
+        supabase_client = create_client(SUPABASE_URL, api_key)
+        logger.info(f"✅ Supabase connected to: {SUPABASE_URL}")
+    except Exception as e:
+        logger.error(f"❌ Supabase connection error: {e}")
+        USE_SUPABASE = False
+else:
+    logger.warning("⚠️ Supabase keys not configured, using MongoDB")
+    USE_SUPABASE = False
 
 # Mollie configuration - read fresh from environment each time
 # This ensures Kubernetes environment variables are always used
