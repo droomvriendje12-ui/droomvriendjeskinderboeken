@@ -658,7 +658,8 @@ const AdminAdvancedProductEditor = () => {
                   { id: 'sections', label: 'Secties', icon: Layers },
                   { id: 'content', label: 'Tekst Content', icon: FileText },
                   { id: 'features', label: 'Eigenschappen', icon: List },
-                  { id: 'benefits', label: 'Voordelen', icon: Star }
+                  { id: 'benefits', label: 'Voordelen', icon: Star },
+                  { id: 'specs', label: 'Technische Specs', icon: Settings }
                 ].map((tab) => (
                   <button
                     key={tab.id}
