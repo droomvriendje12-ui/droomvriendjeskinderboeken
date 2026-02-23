@@ -602,66 +602,14 @@ const ProductPage = () => {
                 </p>
               </div>
 
-              {/* Key Features - Quick Scan - Dynamic based on product series */}
+              {/* Key Features - Quick Scan - Dynamic from database or fallback */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                {productSeries === 'ai' ? (
-                  <>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🤖</span>
-                      <span className="text-sm font-medium text-gray-700">AI Huilsensor</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🔌</span>
-                      <span className="text-sm font-medium text-gray-700">USB-C Oplaadbaar</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🎵</span>
-                      <span className="text-sm font-medium text-gray-700">10 Melodieën + 5 White Noise</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">✩</span>
-                      <span className="text-sm font-medium text-gray-700">3-in-1 Projectie</span>
-                    </div>
-                  </>
-                ) : productSeries === 'nodding' ? (
-                  <>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🎶</span>
-                      <span className="text-sm font-medium text-gray-700">60 Melodieën</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🤍</span>
-                      <span className="text-sm font-medium text-gray-700">6 White Noise opties</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">💡</span>
-                      <span className="text-sm font-medium text-gray-700">7 Lichtmodi</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🔋</span>
-                      <span className="text-sm font-medium text-gray-700">3x AA Batterijen</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">✩</span>
-                      <span className="text-sm font-medium text-gray-700">Sterrenhemel projectie</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🎵</span>
-                      <span className="text-sm font-medium text-gray-700">Rustgevende melodieën</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">⏰</span>
-                      <span className="text-sm font-medium text-gray-700">Automatische timer</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
-                      <span className="text-xl">🔋</span>
-                      <span className="text-sm font-medium text-gray-700">3x AA Batterijen</span>
-                    </div>
-                  </>
-                )}
+                {quickFeatures.map((qf, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-white border border-[#e8e0d8] rounded-xl p-3">
+                    <span className="text-xl">{qf.icon}</span>
+                    <span className="text-sm font-medium text-gray-700">{qf.label}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Benefits */}
