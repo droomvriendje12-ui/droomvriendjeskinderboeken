@@ -254,6 +254,7 @@ async def update_product(product_id: str, updates: dict):
             "itemVariant": "item_variant",
             "itemId": "item_id",
             "reviewCount": "review_count",
+            "quickFeatures": "quick_features",
         }
         
         # Convert updates to snake_case
@@ -264,8 +265,8 @@ async def update_product(product_id: str, updates: dict):
             
             db_key = field_mapping.get(key, key)
             
-            # Convert lists to JSON
-            if isinstance(value, list):
+            # Convert lists and dicts to JSON
+            if isinstance(value, (list, dict)):
                 db_updates[db_key] = json.dumps(value)
             else:
                 db_updates[db_key] = value
