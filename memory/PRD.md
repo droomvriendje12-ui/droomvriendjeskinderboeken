@@ -65,7 +65,7 @@
 - **Issue:** User moet redirect URIs toevoegen in Google Cloud Console
 - **Benodigde URIs:**
   - `https://droomvriendjes.nl/admin/google-ads/callback`
-  - `https://verify-all-7.preview.emergentagent.com/admin/google-ads/callback`
+  - `https://remove-old-products.preview.emergentagent.com/admin/google-ads/callback`
 - **Actie:** User moet dit configureren in Google Cloud Console
 
 ### 🔴 P0 - Email Campagne SMTP Limiet
