@@ -161,22 +161,31 @@ api_router = APIRouter(prefix="/api")
 
 # Import and setup modular routes
 from routes import products as products_route
+from routes import products_supabase as products_supabase_route
 from routes import discount_codes as discount_codes_route
 from routes import reviews as reviews_route
 from routes import uploads as uploads_route
 from routes import marketing as marketing_route
 from routes import database_info as database_info_route
 
-# Set database for routes
-products_route.set_database(db)
+# Configure routes based on database choice
+if USE_SUPABASE and supabase_client:
+    logger.info("🚀 Using SUPABASE for products")
+    products_supabase_route.set_supabase_client(supabase_client)
+    api_router.include_router(products_supabase_route.router)
+else:
+    logger.info("🚀 Using MONGODB for products")
+    products_route.set_database(db)
+    api_router.include_router(products_route.router)
+
+# Set database for other routes (still using MongoDB for non-migrated routes)
 discount_codes_route.set_database(db)
 reviews_route.set_database(db)
 uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)
 
-# Include modular routers
-api_router.include_router(products_route.router)
+# Include other routers
 api_router.include_router(discount_codes_route.router)
 api_router.include_router(reviews_route.router)
 api_router.include_router(uploads_route.router)
