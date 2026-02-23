@@ -207,12 +207,45 @@ MERCHANT_CENTER_ID = os.environ.get('GOOGLE_MERCHANT_CENTER_ID', '5713316340')
 
 async def get_products_for_feed():
     """
-    Fetch all products from MongoDB and format them for Google Shopping feed
-    Returns products in the same format as the old PRODUCTS_DATA
+    Fetch all products from database and format them for Google Shopping feed
+    Supports both Supabase and MongoDB
     """
     try:
-        # Fetch all products from MongoDB
-        products = await db.products.find({}, {"_id": 0}).to_list(length=100)
+        products = []
+        
+        if USE_SUPABASE and supabase_client:
+            # Fetch from Supabase
+            result = supabase_client.table("products").select("*").execute()
+            raw_products = result.data or []
+            
+            # Convert snake_case to camelCase for compatibility
+            for p in raw_products:
+                # Parse JSON fields
+                gallery = p.get('gallery', '[]')
+                if isinstance(gallery, str):
+                    try:
+                        gallery = json.loads(gallery)
+                    except:
+                        gallery = []
+                
+                products.append({
+                    'id': p.get('id'),
+                    'name': p.get('name'),
+                    'sku': p.get('sku'),
+                    'itemId': p.get('item_id'),
+                    'price': p.get('price'),
+                    'originalPrice': p.get('original_price'),
+                    'image': p.get('image'),
+                    'gallery': gallery,
+                    'description': p.get('description'),
+                    'inStock': p.get('in_stock', True),
+                    'itemCategory': p.get('item_category', 'Knuffels'),
+                    'itemCategory2': p.get('item_category2', 'Slaapknuffels'),
+                    'itemCategory3': p.get('item_category3', 'Baby'),
+                })
+        else:
+            # Fetch from MongoDB
+            products = await db.products.find({}, {"_id": 0}).to_list(length=100)
         
         # Format products for Google Shopping feed
         formatted_products = []
