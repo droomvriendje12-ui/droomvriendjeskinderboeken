@@ -1504,6 +1504,159 @@ const AdminAdvancedProductEditor = () => {
                 </div>
               </div>
             )}
+
+            {/* Specs Tab */}
+            {activeTab === 'specs' && (
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-[#8B7355]" />
+                    Technische Specificaties
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Deze gegevens worden weergegeven in het "Technische Specificaties" blok op de productpagina
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Projectie / Licht
+                    </label>
+                    <Input
+                      value={editData.specs?.projection || ''}
+                      onChange={(e) => setEditData(prev => ({
+                        ...prev,
+                        specs: { ...prev.specs, projection: e.target.value }
+                      }))}
+                      placeholder="Bijv. 3-in-1 (Sterren, Oceaan, Lamp)"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Audio Content
+                    </label>
+                    <Input
+                      value={editData.specs?.audio || ''}
+                      onChange={(e) => setEditData(prev => ({
+                        ...prev,
+                        specs: { ...prev.specs, audio: e.target.value }
+                      }))}
+                      placeholder="Bijv. 10 Slaapliedjes + 5 White Noise"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Voeding
+                    </label>
+                    <Input
+                      value={editData.specs?.power || ''}
+                      onChange={(e) => setEditData(prev => ({
+                        ...prev,
+                        specs: { ...prev.specs, power: e.target.value }
+                      }))}
+                      placeholder="Bijv. USB-C Oplaadbaar (Kabel incl.)"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Timer
+                    </label>
+                    <Input
+                      value={editData.specs?.timer || ''}
+                      onChange={(e) => setEditData(prev => ({
+                        ...prev,
+                        specs: { ...prev.specs, timer: e.target.value }
+                      }))}
+                      placeholder="Bijv. 30 minuten Auto-uit"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tip Tekst
+                    </label>
+                    <textarea
+                      value={editData.specs?.tipText || ''}
+                      onChange={(e) => setEditData(prev => ({
+                        ...prev,
+                        specs: { ...prev.specs, tipText: e.target.value }
+                      }))}
+                      placeholder="Bijv. Oplaadbare batterijen zijn niet nodig, omdat deze Droomvriend volledig oplaadbaar is via USB-C..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B7355] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Features Section */}
+                <div className="mt-8 pt-6 border-t">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-md font-semibold text-gray-900">Quick Features (Iconen)</h3>
+                      <p className="text-sm text-gray-500">De kleine iconen die bovenaan de productpagina staan (bijv. AI Huilsensor, USB-C Oplaadbaar)</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setEditData(prev => ({
+                        ...prev,
+                        quickFeatures: [...(prev.quickFeatures || []), { icon: '🔌', label: '' }]
+                      }))}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Toevoegen
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {(editData.quickFeatures || []).map((qf, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                        <Input
+                          value={qf.icon || ''}
+                          onChange={(e) => {
+                            const newQF = [...editData.quickFeatures];
+                            newQF[index] = { ...newQF[index], icon: e.target.value };
+                            setEditData(prev => ({ ...prev, quickFeatures: newQF }));
+                          }}
+                          placeholder="🤖"
+                          className="w-20"
+                        />
+                        <Input
+                          value={qf.label || ''}
+                          onChange={(e) => {
+                            const newQF = [...editData.quickFeatures];
+                            newQF[index] = { ...newQF[index], label: e.target.value };
+                            setEditData(prev => ({ ...prev, quickFeatures: newQF }));
+                          }}
+                          placeholder="Bijv. AI Huilsensor"
+                          className="flex-1"
+                        />
+                        <button 
+                          onClick={() => {
+                            const newQF = editData.quickFeatures.filter((_, i) => i !== index);
+                            setEditData(prev => ({ ...prev, quickFeatures: newQF }));
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {(!editData.quickFeatures || editData.quickFeatures.length === 0) && (
+                      <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
+                        <Sparkles className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">Geen quick features ingesteld</p>
+                        <p className="text-xs text-gray-400 mt-1">Voeg iconen toe zoals 🤖 AI Huilsensor, 🔌 USB-C Oplaadbaar</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
