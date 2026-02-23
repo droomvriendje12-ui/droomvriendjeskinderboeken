@@ -1338,40 +1338,42 @@ def send_gift_card_confirmation_email(gift_card: dict):
         return False
 
 
-# ============== ORDER & PAYMENT ENDPOINTS ==============
+# ============== ORDER & PAYMENT ENDPOINTS (MongoDB - only if not using Supabase) ==============
+# Note: When USE_SUPABASE=true, these endpoints are overridden by orders_supabase.py
 
-@api_router.post("/orders")
-async def create_order(order: OrderCreate):
-    """Create a new order"""
-    order_dict = {
-        "customer_email": order.customer_email,
-        "customer_name": order.customer_name,
-        "customer_phone": order.customer_phone or "",
-        "customer_address": order.customer_address,
-        "customer_city": order.customer_city,
-        "customer_zipcode": order.customer_zipcode,
-        "customer_comment": order.customer_comment or "",
-        "items": [item.model_dump() for item in order.items],
-        "subtotal": order.subtotal or order.total_amount,
-        "discount": order.discount or 0,
-        "total_amount": order.total_amount,
-        "currency": "EUR",
-        "status": "pending",
-        "mollie_payment_id": None,
-        "payment_method": None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    result = await db.orders.insert_one(order_dict)
-    order_id = str(result.inserted_id)
-    
-    # Send order notification to owner
-    order_dict['_id'] = order_id
-    send_order_notification_email(order_dict, 'order_placed')
-    
-    logger.info(f"Order created: {order_id}")
-    return {"order_id": order_id, "status": "pending"}
+if not USE_SUPABASE:
+    @api_router.post("/orders")
+    async def create_order_mongo(order: OrderCreate):
+        """Create a new order (MongoDB)"""
+        order_dict = {
+            "customer_email": order.customer_email,
+            "customer_name": order.customer_name,
+            "customer_phone": order.customer_phone or "",
+            "customer_address": order.customer_address,
+            "customer_city": order.customer_city,
+            "customer_zipcode": order.customer_zipcode,
+            "customer_comment": order.customer_comment or "",
+            "items": [item.model_dump() for item in order.items],
+            "subtotal": order.subtotal or order.total_amount,
+            "discount": order.discount or 0,
+            "total_amount": order.total_amount,
+            "currency": "EUR",
+            "status": "pending",
+            "mollie_payment_id": None,
+            "payment_method": None,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        result = await db.orders.insert_one(order_dict)
+        order_id = str(result.inserted_id)
+        
+        # Send order notification to owner
+        order_dict['_id'] = order_id
+        send_order_notification_email(order_dict, 'order_placed')
+        
+        logger.info(f"Order created: {order_id}")
+        return {"order_id": order_id, "status": "pending"}
 
 
 @api_router.post("/payments/create")
