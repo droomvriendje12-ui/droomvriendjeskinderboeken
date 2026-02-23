@@ -3,16 +3,27 @@
 ## Latest Update: 23 February 2026
 
 ### Completed This Session (23 Feb):
-- ✅ **DATABASE VOLLEDIG HERSTELD** - Dump bestand geïmporteerd
-  - 27 collecties succesvol geïmporteerd
-  - 10 producten met correcte UUID IDs
-  - Alle oude producten met imgur.com URLs verwijderd
-  - Alle oude producten met numerieke IDs (1-11) verwijderd
-  - 78 orders, 46 reviews, 37.372 marketing leads behouden
-- ✅ **ADMIN DATABASE INFO PAGINA** - `/admin/database-integrations`
-  - Backend endpoint: `GET /api/database-info`
-  - Collectie overzicht met document counts
-  - Database statistieken
+- ✅ **SUPABASE DATABASE MIGRATIE COMPLEET**
+  - SQL schema gemaakt met 27 tabellen, RLS policies en triggers
+  - Data migratie script uitgevoerd: **208 records gemigreerd**
+    - 10 producten
+    - 78 orders  
+    - 46 reviews
+    - 38 payments
+    - 21 customers
+    - 11 discount codes
+    - 4 gift cards
+  - Backend omgeschakeld naar Supabase als primaire database
+  - Nieuwe route: `/app/backend/routes/products_supabase.py`
+  
+- ✅ **DATABASE DUMP HERSTELD** (eerder in sessie)
+  - 27 collecties geïmporteerd in MongoDB
+  - Oude producten met imgur.com URLs verwijderd
+
+### Database Configuratie
+- **Primary:** Supabase PostgreSQL (`USE_SUPABASE=true`)
+- **Fallback:** MongoDB Atlas (nog beschikbaar)
+- **Supabase URL:** https://qoykbhocordugtbvpvsl.supabase.co
 
 ### Completed Previous Session (1 Feb):
 - ✅ **REVIEWS CSV IMPORTER TOOL** - Admin functie om reviews te importeren
