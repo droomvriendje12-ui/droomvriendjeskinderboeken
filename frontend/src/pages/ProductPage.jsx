@@ -82,8 +82,21 @@ const ProductPage = () => {
     return 'basic';
   }, [product]);
 
-  // Dynamic specifications based on product series
+  // Dynamic specifications - use database specs if available, otherwise fallback to hardcoded
   const productSpecs = useMemo(() => {
+    // First check if product has specs from database
+    if (product?.specs && Object.keys(product.specs).length > 0) {
+      const dbSpecs = product.specs;
+      return {
+        projection: dbSpecs.projection || '',
+        audio: dbSpecs.audio || '',
+        power: dbSpecs.power || '',
+        timer: dbSpecs.timer || '',
+        tipText: dbSpecs.tipText || ''
+      };
+    }
+    
+    // Fallback to hardcoded specs based on product series
     if (productSeries === 'ai') {
       return {
         projection: '3-in-1 (Sterren, Oceaan, Lamp)',
@@ -110,7 +123,37 @@ const ProductPage = () => {
       timer: '30 minuten Auto-uit',
       tipText: 'De batterijen gaan lang mee dankzij de auto-uit timer van 30 minuten. Ideaal voor een rustige nacht zonder zorgen over energieverbruik.'
     };
-  }, [productSeries]);
+  }, [product, productSeries]);
+
+  // Quick features from database or fallback
+  const quickFeatures = useMemo(() => {
+    if (product?.quickFeatures && product.quickFeatures.length > 0) {
+      return product.quickFeatures;
+    }
+    // Fallback based on product series
+    if (productSeries === 'ai') {
+      return [
+        { icon: '🤖', label: 'AI Huilsensor' },
+        { icon: '🔌', label: 'USB-C Oplaadbaar' },
+        { icon: '🎵', label: '10 Melodieën + 5 White Noise' },
+        { icon: '✩', label: '3-in-1 Projectie' }
+      ];
+    }
+    if (productSeries === 'nodding') {
+      return [
+        { icon: '😴', label: 'Nodding Off Functie' },
+        { icon: '🔆', label: '7 Lichtmodi' },
+        { icon: '🎵', label: '60 Slaapliedjes' },
+        { icon: '⏰', label: 'Automatische timer' }
+      ];
+    }
+    return [
+      { icon: '⭐', label: 'Sterrenprojectie' },
+      { icon: '🎵', label: '10 Melodieën' },
+      { icon: '🔇', label: 'White Noise' },
+      { icon: '⏰', label: 'Auto-uit Timer' }
+    ];
+  }, [product, productSeries]);
 
   // Create gallery array - main image + unique gallery images (no duplicates)
   // Support both string URLs and objects with {url, alt}
