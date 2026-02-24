@@ -163,6 +163,8 @@ api_router = APIRouter(prefix="/api")
 from routes import products as products_route
 from routes import products_supabase as products_supabase_route
 from routes import orders_supabase as orders_supabase_route
+from routes import reviews_supabase as reviews_supabase_route
+from routes import email_templates as email_templates_route
 from routes import discount_codes as discount_codes_route
 from routes import reviews as reviews_route
 from routes import uploads as uploads_route
@@ -179,21 +181,32 @@ if USE_SUPABASE and supabase_client:
     logger.info("🚀 Using SUPABASE for orders")
     orders_supabase_route.set_supabase_client(supabase_client)
     api_router.include_router(orders_supabase_route.router)
+    
+    # Also use Supabase for reviews
+    logger.info("🚀 Using SUPABASE for reviews")
+    reviews_supabase_route.set_supabase_client(supabase_client)
+    api_router.include_router(reviews_supabase_route.router)
+    
+    # Email templates (Supabase only)
+    logger.info("🚀 Using SUPABASE for email templates")
+    email_templates_route.set_supabase_client(supabase_client)
+    api_router.include_router(email_templates_route.router)
 else:
     logger.info("🚀 Using MONGODB for products")
     products_route.set_database(db)
     api_router.include_router(products_route.router)
+    # Reviews via MongoDB
+    reviews_route.set_database(db)
+    api_router.include_router(reviews_route.router)
 
 # Set database for other routes (still using MongoDB for non-migrated routes)
 discount_codes_route.set_database(db)
-reviews_route.set_database(db)
 uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)
 
 # Include other routers
 api_router.include_router(discount_codes_route.router)
-api_router.include_router(reviews_route.router)
 api_router.include_router(uploads_route.router)
 
 # Include marketing router (already has /api prefix in route)
