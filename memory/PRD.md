@@ -93,7 +93,7 @@
 - **Issue:** User moet redirect URIs toevoegen in Google Cloud Console
 - **Benodigde URIs:**
   - `https://droomvriendjes.nl/admin/google-ads/callback`
-  - `https://remove-old-products.preview.emergentagent.com/admin/google-ads/callback`
+  - `https://mongo-to-postgres-6.preview.emergentagent.com/admin/google-ads/callback`
 - **Actie:** User moet dit configureren in Google Cloud Console
 
 ### 🔴 P0 - Deployment Vereist
