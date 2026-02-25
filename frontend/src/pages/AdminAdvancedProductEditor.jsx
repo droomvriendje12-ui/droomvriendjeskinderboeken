@@ -86,6 +86,13 @@ const AdminAdvancedProductEditor = () => {
     quickFeatures: []
   });
 
+  // Drag & drop photo upload state
+  const [isDragging, setIsDragging] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadProgress, setPhotoUploadProgress] = useState('');
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
+  const photoInputRef = useRef(null);
+
   // File input refs
   const mainImageInputRef = useRef(null);
   const macroImageInputRef = useRef(null);
