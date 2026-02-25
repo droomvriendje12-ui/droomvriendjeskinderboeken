@@ -97,7 +97,7 @@ const AdminReviewsImporterPage = () => {
   const handleToggleVisibility = async (reviewId, currentVisible) => {
     try {
       const response = await fetch(`/api/reviews/${reviewId}/visibility?visible=${!currentVisible}`, {
-        method: 'PATCH'
+        method: 'PUT'
       });
 
       if (response.ok) {
