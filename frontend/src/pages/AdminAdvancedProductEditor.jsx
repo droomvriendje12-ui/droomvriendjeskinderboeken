@@ -396,6 +396,108 @@ const AdminAdvancedProductEditor = () => {
     }
   };
 
+  // ============== PHOTO UPLOAD HANDLERS ==============
+  const handlePhotoDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) await uploadPhotos(files);
+  };
+
+  const handlePhotoSelect = async (e) => {
+    const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) await uploadPhotos(files);
+    e.target.value = '';
+  };
+
+  const uploadPhotos = async (files) => {
+    if (galleryPhotos.length + files.length > 10) {
+      alert(`Maximaal 10 foto's. Je hebt er al ${galleryPhotos.length}.`);
+      return;
+    }
+    setPhotoUploading(true);
+    setPhotoUploadProgress(`${files.length} foto('s) uploaden...`);
+    
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    
+    try {
+      const response = await fetch(`/api/products/${productId}/photos`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Upload mislukt');
+      }
+      const result = await response.json();
+      setPhotoUploadProgress(`${result.uploaded_count} foto('s) geüpload!`);
+      
+      // Refresh product data to get updated gallery
+      const productResponse = await fetch(`/api/products/${productId}/advanced`);
+      if (productResponse.ok) {
+        const data = await productResponse.json();
+        setGalleryPhotos(data.gallery || []);
+        setProduct(data);
+        setEditData(prev => ({
+          ...prev,
+          images: (data.gallery || []).map((img, i) => ({
+            url: typeof img === 'string' ? img : img.url,
+            alt: typeof img === 'string' ? '' : (img.alt || ''),
+            visible: typeof img === 'string' ? true : (img.visible !== false),
+            order: i
+          }))
+        }));
+      }
+      setTimeout(() => setPhotoUploadProgress(''), 3000);
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      setPhotoUploadProgress(`Fout: ${error.message}`);
+      setTimeout(() => setPhotoUploadProgress(''), 4000);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const deletePhoto = async (index) => {
+    try {
+      const response = await fetch(`/api/products/${productId}/photos/${index}`, { method: 'DELETE' });
+      if (response.ok) {
+        const newPhotos = [...galleryPhotos];
+        newPhotos.splice(index, 1);
+        setGalleryPhotos(newPhotos);
+        setPhotoUploadProgress('Foto verwijderd');
+        setTimeout(() => setPhotoUploadProgress(''), 2000);
+      }
+    } catch (error) {
+      console.error('Delete photo error:', error);
+    }
+  };
+
+  const movePhoto = async (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= galleryPhotos.length) return;
+    const newPhotos = [...galleryPhotos];
+    const [moved] = newPhotos.splice(fromIndex, 1);
+    newPhotos.splice(toIndex, 0, moved);
+    setGalleryPhotos(newPhotos);
+    
+    // Save new order
+    try {
+      await fetch(`/api/products/${productId}/photos/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ indices: newPhotos.map((_, i) => {
+          const originalIndex = galleryPhotos.indexOf(newPhotos[i]);
+          return originalIndex >= 0 ? originalIndex : i;
+        })})
+      });
+    } catch (error) {
+      console.error('Reorder error:', error);
+    }
+  };
+
+
+
   // Save all changes (existing functionality)
   const handleSave = async () => {
     setSaving(true);
