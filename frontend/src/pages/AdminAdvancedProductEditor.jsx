@@ -790,6 +790,7 @@ const AdminAdvancedProductEditor = () => {
               <nav className="space-y-1">
                 {[
                   { id: 'details', label: 'Product Details', icon: Edit2, priority: true },
+                  { id: 'photos', label: "Foto's Uploaden", icon: Upload, priority: true },
                   { id: 'media', label: 'Media Beheer', icon: Camera, badge: imageInfo?.has_overrides ? '●' : null },
                   { id: 'images', label: 'Afbeeldingen', icon: ImageIcon },
                   { id: 'sections', label: 'Secties', icon: Layers },
