@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Mail, Plus, Edit2, Trash2, Eye, Copy, Save, X, 
-  ChevronLeft, Code, Link, Variable, Send, CheckCircle
+  ChevronLeft, Code, Link, Variable, Send, CheckCircle,
+  Upload, FileArchive, Image, FolderOpen
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
