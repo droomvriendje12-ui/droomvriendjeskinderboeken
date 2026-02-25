@@ -396,13 +396,13 @@ async def delete_image_override(product_id: str):
 SUPABASE_BUCKET = "product-images"
 
 def get_product_folder(product_name: str) -> str:
-    """Generate safe folder name from product name"""
+    """Generate safe folder name from product name (ASCII only)"""
     safe_name = product_name.lower().strip()
     safe_name = safe_name.replace(" ", "-").replace("–", "-")
-    safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
+    safe_name = "".join(c for c in safe_name if (c.isascii() and c.isalnum()) or c == "-")
     while "--" in safe_name:
         safe_name = safe_name.replace("--", "-")
-    return safe_name
+    return safe_name.strip("-")
 
 
 def get_supabase_public_url(path: str) -> str:
