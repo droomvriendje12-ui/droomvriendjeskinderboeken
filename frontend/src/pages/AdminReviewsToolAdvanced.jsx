@@ -459,7 +459,7 @@ Kyra van Montfoort,2,Wazige projector,De knuffel zelf is prima maar de projector
                     <select
                       value={selectedProduct?.id || ''}
                       onChange={(e) => {
-                        const product = products.find(p => p.id === parseInt(e.target.value));
+                        const product = products.find(p => p.id === e.target.value);
                         setSelectedProduct(product);
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B7355] focus:border-transparent"
