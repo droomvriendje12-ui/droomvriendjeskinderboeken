@@ -21,7 +21,7 @@ import {
   User,
   FileText
 } from 'lucide-react';
-import { products } from '../mockData';
+import { products as mockProducts } from '../mockData';
 
 
 const AdminReviewsImporterPage = () => {
@@ -36,6 +36,28 @@ const AdminReviewsImporterPage = () => {
   const [filterProduct, setFilterProduct] = useState('');
   const [filterSource, setFilterSource] = useState('');
   const [filterVisibility, setFilterVisibility] = useState('');
+
+  // Products from Supabase
+  const [products, setProducts] = useState([]);
+
+  // Fetch products from Supabase
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.map(p => ({
+          id: p.id,
+          shortName: p.short_name || p.shortName || p.name,
+          name: p.name,
+          image: p.image,
+          price: p.price
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
   // Fetch reviews from database (including hidden for admin)
   const fetchReviews = async () => {
