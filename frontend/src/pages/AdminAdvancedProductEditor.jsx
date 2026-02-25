@@ -177,6 +177,10 @@ const AdminAdvancedProductEditor = () => {
           // Load specific image fields
           setMacroImage(data.macroImage || '');
           setDimensionsImage(data.dimensionsImage || '');
+          
+          // Load gallery photos for Photos tab
+          const galleryData = data.gallery || [];
+          setGalleryPhotos(galleryData);
         }
         
         // Fetch image override info
