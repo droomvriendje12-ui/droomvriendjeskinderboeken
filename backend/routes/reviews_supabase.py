@@ -104,6 +104,12 @@ async def get_all_reviews_admin():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/admin")
+async def get_all_reviews_admin_alias():
+    """Alias for /all - compatibility with frontend"""
+    return await get_all_reviews_admin()
+
+
 @router.get("/product/{product_id}")
 async def get_product_reviews(product_id: str):
     """Get reviews for a specific product"""
@@ -216,23 +222,57 @@ async def toggle_review_visibility(review_id: str):
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        # Get current state
         result = supabase.table("reviews").select("visible").eq("id", review_id).limit(1).execute()
-        
         if not result.data:
             raise HTTPException(status_code=404, detail="Review not found")
         
         current_visible = result.data[0].get("visible", True)
-        
-        # Toggle
         result = supabase.table("reviews").update({"visible": not current_visible}).eq("id", review_id).execute()
-        
         return {"visible": not current_visible}
-        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error toggling review visibility: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/{review_id}/visibility")
+async def set_review_visibility(review_id: str, visible: bool = True):
+    """Set review visibility explicitly"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        result = supabase.table("reviews").update({"visible": visible}).eq("id", review_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Review not found")
+        return {"visible": visible}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error setting review visibility: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/bulk-delete")
+async def bulk_delete_reviews(data: dict):
+    """Delete multiple reviews at once"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    review_ids = data.get("ids", [])
+    if not review_ids:
+        raise HTTPException(status_code=400, detail="No review IDs provided")
+    
+    deleted = 0
+    try:
+        for rid in review_ids:
+            result = supabase.table("reviews").delete().eq("id", rid).execute()
+            if result.data:
+                deleted += 1
+        return {"deleted": deleted, "total": len(review_ids)}
+    except Exception as e:
+        logger.error(f"Error bulk deleting reviews: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
