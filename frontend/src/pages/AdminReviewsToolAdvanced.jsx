@@ -115,6 +115,7 @@ const AdminReviewsToolAdvanced = () => {
   };
 
   useEffect(() => {
+    fetchProducts();
     fetchReviews();
     fetchStats();
   }, []);
