@@ -136,6 +136,29 @@ async def get_available_variables():
     }
 
 
+@router.get("/assets")
+async def list_email_assets():
+    """List all available email assets"""
+    assets_dir = "/app/frontend/public/email-assets"
+    assets = []
+    
+    try:
+        for root, dirs, files in os.walk(assets_dir):
+            for file in files:
+                if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                    rel_path = os.path.relpath(os.path.join(root, file), assets_dir)
+                    assets.append({
+                        'filename': file,
+                        'path': f'/email-assets/{rel_path}',
+                        'folder': os.path.basename(root) if root != assets_dir else 'root'
+                    })
+        
+        return {"assets": assets}
+    except Exception as e:
+        logger.error(f"Error listing assets: {e}")
+        return {"assets": []}
+
+
 @router.get("/{template_id}")
 async def get_template(template_id: str):
     """Get a single template by ID"""
