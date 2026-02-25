@@ -360,6 +360,40 @@ const EmailTemplatesAdmin = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Assets Panel */}
+        {showAssets && (
+          <div className="mb-6 bg-white rounded-xl shadow-sm border p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <FolderOpen className="w-5 h-5 text-[#8B7355]" />
+                Email Assets ({assets.length} bestanden)
+              </h3>
+              <button onClick={() => setShowAssets(false)} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {assets.length === 0 ? (
+              <p className="text-gray-500 text-sm">Nog geen assets geüpload. Upload een ZIP bestand om te beginnen.</p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {assets.map((asset, idx) => (
+                  <div key={idx} className="border rounded-lg p-2 text-center">
+                    <img 
+                      src={asset.path} 
+                      alt={asset.filename} 
+                      className="w-full h-20 object-cover rounded mb-1"
+                    />
+                    <p className="text-xs text-gray-600 truncate">{asset.filename}</p>
+                    <code className="text-xs bg-gray-100 px-1 rounded block truncate mt-1">
+                      {asset.path}
+                    </code>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {isEditing ? (
           /* Editor View */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
