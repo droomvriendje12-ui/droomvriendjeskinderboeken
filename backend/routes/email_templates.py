@@ -2,7 +2,7 @@
 Email Templates API Routes - Supabase PostgreSQL based
 Custom email marketing templates with variables and cart links
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -10,6 +10,10 @@ import logging
 import uuid
 import json
 import re
+import os
+import zipfile
+import io
+import shutil
 
 logger = logging.getLogger(__name__)
 
