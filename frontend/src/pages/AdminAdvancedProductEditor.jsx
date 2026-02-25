@@ -29,7 +29,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Edit2,
-  Sparkles
+  Sparkles,
+  Euro
 } from 'lucide-react';
 
 
