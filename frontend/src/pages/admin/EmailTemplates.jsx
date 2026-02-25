@@ -21,6 +21,11 @@ const EmailTemplatesAdmin = () => {
   const [availableVariables, setAvailableVariables] = useState({});
   const [cartLinkTemplates, setCartLinkTemplates] = useState({});
   const [saveStatus, setSaveStatus] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
+  const [assets, setAssets] = useState([]);
+  const [showAssets, setShowAssets] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Form state for editing
   const [formData, setFormData] = useState({
