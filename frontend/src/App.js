@@ -64,6 +64,7 @@ import BabySlaaptNietPage from "./pages/BabySlaaptNietPage";
 import AdminReviewsImporterPage from "./pages/AdminReviewsImporterPage";
 import AdminReviewsToolAdvanced from "./pages/AdminReviewsToolAdvanced";
 import AdminDatabasePage from "./pages/AdminDatabasePage";
+import EmailTemplatesAdmin from "./pages/admin/EmailTemplates";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
 import PresentationPage from "./pages/PresentationPage";
 import { Toaster } from "./components/ui/toaster";
