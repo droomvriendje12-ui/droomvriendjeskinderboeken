@@ -372,3 +372,166 @@ async def get_templates_by_category(category: str):
     except Exception as e:
         logger.error(f"Error fetching templates by category: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/upload-zip")
+async def upload_template_zip(
+    file: UploadFile = File(...),
+    name: str = Form(None),
+    category: str = Form("marketing")
+):
+    """
+    Upload a ZIP file containing an email template and assets.
+    ZIP should contain:
+    - One HTML file (the template)
+    - Image files (jpg, png, etc.) - will be saved to /email-assets/
+    """
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Alleen ZIP bestanden zijn toegestaan")
+    
+    try:
+        contents = await file.read()
+        
+        # Create unique folder name
+        folder_id = uuid.uuid4().hex[:8]
+        assets_dir = f"/app/frontend/public/email-assets/{folder_id}"
+        os.makedirs(assets_dir, exist_ok=True)
+        
+        html_content = None
+        html_filename = None
+        saved_images = []
+        
+        # Extract ZIP contents
+        with zipfile.ZipFile(io.BytesIO(contents)) as zip_file:
+            for zip_info in zip_file.infolist():
+                if zip_info.is_dir():
+                    continue
+                
+                filename = os.path.basename(zip_info.filename)
+                if not filename:
+                    continue
+                
+                file_lower = filename.lower()
+                
+                # Handle HTML files
+                if file_lower.endswith('.html') or file_lower.endswith('.htm'):
+                    html_content = zip_file.read(zip_info.filename).decode('utf-8', errors='ignore')
+                    html_filename = filename
+                
+                # Handle image files
+                elif file_lower.endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                    # Save image to assets folder
+                    image_path = os.path.join(assets_dir, filename)
+                    with open(image_path, 'wb') as f:
+                        f.write(zip_file.read(zip_info.filename))
+                    
+                    # Update image paths in HTML to use new location
+                    saved_images.append({
+                        'original': filename,
+                        'new_path': f'/email-assets/{folder_id}/{filename}'
+                    })
+        
+        if not html_content:
+            # Cleanup
+            shutil.rmtree(assets_dir, ignore_errors=True)
+            raise HTTPException(status_code=400, detail="Geen HTML bestand gevonden in de ZIP")
+        
+        # Update image paths in HTML
+        for img in saved_images:
+            # Replace various image path patterns
+            patterns = [
+                img['original'],
+                f"./{img['original']}",
+                f"/{img['original']}",
+            ]
+            for pattern in patterns:
+                html_content = html_content.replace(f'src="{pattern}"', f'src="{img["new_path"]}"')
+                html_content = html_content.replace(f"src='{pattern}'", f"src='{img['new_path']}'")
+        
+        # Extract variables from HTML
+        detected_variables = extract_variables(html_content)
+        
+        # Generate template name
+        template_name = name or html_filename.replace('.html', '').replace('_', ' ').title()
+        
+        # Extract subject from HTML title if present
+        subject_match = re.search(r'<title>(.*?)</title>', html_content, re.IGNORECASE)
+        subject = subject_match.group(1) if subject_match else f"Email van {template_name}"
+        
+        # Create template in database
+        template_data = {
+            "id": str(uuid.uuid4()),
+            "name": template_name,
+            "subject": subject,
+            "content": html_content,
+            "description": f"Geïmporteerd uit {file.filename}",
+            "category": category,
+            "variables": json.dumps(detected_variables),
+            "cart_link": "https://droomvriendjes.nl/checkout",
+            "active": True,
+        }
+        
+        result = supabase.table("email_templates").insert(template_data).execute()
+        
+        if result.data and len(result.data) > 0:
+            return {
+                "success": True,
+                "template": format_template_response(result.data[0]),
+                "images_saved": len(saved_images),
+                "images": [img['new_path'] for img in saved_images],
+                "folder": folder_id
+            }
+        
+        raise HTTPException(status_code=500, detail="Failed to create template")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading ZIP template: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/assets")
+async def list_email_assets():
+    """List all available email assets"""
+    assets_dir = "/app/frontend/public/email-assets"
+    assets = []
+    
+    try:
+        for root, dirs, files in os.walk(assets_dir):
+            for file in files:
+                if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                    rel_path = os.path.relpath(os.path.join(root, file), assets_dir)
+                    assets.append({
+                        'filename': file,
+                        'path': f'/email-assets/{rel_path}',
+                        'folder': os.path.basename(root) if root != assets_dir else 'root'
+                    })
+        
+        return {"assets": assets}
+    except Exception as e:
+        logger.error(f"Error listing assets: {e}")
+        return {"assets": []}
+
+
+@router.delete("/assets/{folder}")
+async def delete_asset_folder(folder: str):
+    """Delete an asset folder"""
+    if folder in ['', '.', '..', 'root']:
+        raise HTTPException(status_code=400, detail="Invalid folder name")
+    
+    folder_path = f"/app/frontend/public/email-assets/{folder}"
+    
+    if not os.path.exists(folder_path):
+        raise HTTPException(status_code=404, detail="Folder not found")
+    
+    try:
+        shutil.rmtree(folder_path)
+        return {"success": True, "message": f"Folder {folder} deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting folder: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
