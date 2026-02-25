@@ -166,6 +166,7 @@ function App() {
               <Route path="/admin/product-reviews-importer" element={<ProtectedAdminRoute><AdminReviewsImporterPage /></ProtectedAdminRoute>} />
               <Route path="/admin/reviews-tool" element={<ProtectedAdminRoute><AdminReviewsToolAdvanced /></ProtectedAdminRoute>} />
               <Route path="/admin/database" element={<ProtectedAdminRoute><AdminDatabasePage /></ProtectedAdminRoute>} />
+              <Route path="/admin/email-templates" element={<ProtectedAdminRoute><EmailTemplatesAdmin /></ProtectedAdminRoute>} />
             </Routes>
             <Toaster />
           </AdminAuthProvider>
