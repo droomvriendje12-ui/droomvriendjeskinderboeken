@@ -97,6 +97,7 @@ const AdminCommandCenterNew = () => {
     { id: 'products', icon: Package, label: 'Producten', link: '/admin/products' },
     { id: 'orders', icon: ShoppingCart, label: 'Orders', link: '/admin/orders' },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
+    { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
     { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
