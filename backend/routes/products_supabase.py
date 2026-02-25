@@ -620,3 +620,186 @@ async def reorder_product_photos(product_id: str, order: dict):
     supabase.table("products").update({"gallery": json.dumps(reordered)}).eq("id", product_id).execute()
     
     return {"success": True, "gallery": reordered}
+
+
+# ============== PHOTO MIGRATION (Local → Supabase Storage) ==============
+
+import mimetypes
+
+@router.post("/migrate-photos/start")
+async def migrate_photos_to_supabase():
+    """Migrate all local product photos to Supabase Storage and update DB references"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    local_dir = "/app/frontend/public/products"
+    if not os.path.exists(local_dir):
+        return {"success": False, "error": "Geen lokale productfoto's gevonden"}
+    
+    # Get all products
+    result = supabase.table("products").select("*").execute()
+    products = result.data or []
+    
+    migrated = 0
+    skipped = 0
+    errors = []
+    product_updates = []
+    
+    for product in products:
+        product_id = product["id"]
+        product_name = product.get("short_name") or product.get("name") or f"product-{product_id[:8]}"
+        folder = get_product_folder(product_name)
+        
+        updates = {}
+        
+        # Migrate main image
+        image_path = product.get("image", "")
+        if image_path and image_path.startswith("/products/") and "supabase" not in image_path:
+            local_path = f"/app/frontend/public{image_path}"
+            if os.path.exists(local_path):
+                new_url = await _upload_local_file(local_path, folder, "main")
+                if new_url:
+                    updates["image"] = new_url
+                    migrated += 1
+                else:
+                    skipped += 1
+            else:
+                skipped += 1
+        
+        # Migrate macro image
+        macro_path = product.get("macro_image", "")
+        if macro_path and macro_path.startswith("/products/") and "supabase" not in macro_path:
+            local_path = f"/app/frontend/public{macro_path}"
+            if os.path.exists(local_path):
+                new_url = await _upload_local_file(local_path, folder, "macro")
+                if new_url:
+                    updates["macro_image"] = new_url
+                    migrated += 1
+        
+        # Migrate dimensions image
+        dims_path = product.get("dimensions_image", "")
+        if dims_path and dims_path.startswith("/products/") and "supabase" not in dims_path:
+            local_path = f"/app/frontend/public{dims_path}"
+            if os.path.exists(local_path):
+                new_url = await _upload_local_file(local_path, folder, "dimensions")
+                if new_url:
+                    updates["dimensions_image"] = new_url
+                    migrated += 1
+        
+        # Migrate gallery images
+        gallery = product.get("gallery", "[]")
+        if isinstance(gallery, str):
+            try:
+                gallery = json.loads(gallery)
+            except:
+                gallery = []
+        
+        new_gallery = []
+        for i, item in enumerate(gallery):
+            img_url = item if isinstance(item, str) else item.get("url", "")
+            alt = "" if isinstance(item, str) else item.get("alt", "")
+            visible = True if isinstance(item, str) else item.get("visible", True)
+            
+            if img_url.startswith("/products/") and "supabase" not in img_url:
+                local_path = f"/app/frontend/public{img_url}"
+                if os.path.exists(local_path):
+                    new_url = await _upload_local_file(local_path, folder, f"gallery-{i}")
+                    if new_url:
+                        new_gallery.append({"url": new_url, "alt": alt, "visible": visible, "order": i})
+                        migrated += 1
+                        continue
+            
+            # Keep existing (already Supabase or external URL)
+            if isinstance(item, dict):
+                new_gallery.append(item)
+            else:
+                new_gallery.append({"url": img_url, "alt": alt, "visible": visible, "order": i})
+        
+        if new_gallery and new_gallery != gallery:
+            updates["gallery"] = json.dumps(new_gallery)
+        
+        # Apply updates
+        if updates:
+            try:
+                supabase.table("products").update(updates).eq("id", product_id).execute()
+                product_updates.append({"product": product_name, "fields_updated": list(updates.keys())})
+            except Exception as e:
+                errors.append(f"Product {product_name}: {str(e)[:100]}")
+    
+    return {
+        "success": True,
+        "migrated_files": migrated,
+        "skipped": skipped,
+        "products_updated": len(product_updates),
+        "updates": product_updates,
+        "errors": errors
+    }
+
+
+async def _upload_local_file(local_path: str, folder: str, name: str) -> str:
+    """Upload a local file to Supabase Storage and return URL"""
+    try:
+        with open(local_path, "rb") as f:
+            contents = f.read()
+        
+        ext = os.path.splitext(local_path)[1].lower() or ".png"
+        content_type = mimetypes.guess_type(local_path)[0] or "image/png"
+        storage_path = f"{folder}/{name}{ext}"
+        
+        supabase.storage.from_(SUPABASE_BUCKET).upload(
+            storage_path, contents,
+            file_options={"content-type": content_type, "upsert": "true"}
+        )
+        
+        return get_supabase_public_url(storage_path)
+    except Exception as e:
+        logger.error(f"Error uploading {local_path}: {e}")
+        return None
+
+
+@router.get("/migrate-photos/status")
+async def get_migration_status():
+    """Check how many images are already on Supabase vs local"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    result = supabase.table("products").select("*").execute()
+    products = result.data or []
+    
+    local_count = 0
+    supabase_count = 0
+    total_images = 0
+    
+    for product in products:
+        for field in ["image", "macro_image", "dimensions_image"]:
+            val = product.get(field, "")
+            if val:
+                total_images += 1
+                if "supabase" in val:
+                    supabase_count += 1
+                elif val.startswith("/products/"):
+                    local_count += 1
+        
+        gallery = product.get("gallery", "[]")
+        if isinstance(gallery, str):
+            try:
+                gallery = json.loads(gallery)
+            except:
+                gallery = []
+        
+        for item in gallery:
+            url = item if isinstance(item, str) else item.get("url", "")
+            if url:
+                total_images += 1
+                if "supabase" in url:
+                    supabase_count += 1
+                elif url.startswith("/products/"):
+                    local_count += 1
+    
+    return {
+        "total_images": total_images,
+        "local": local_count,
+        "supabase": supabase_count,
+        "other": total_images - local_count - supabase_count,
+        "migration_complete": local_count == 0
+    }
