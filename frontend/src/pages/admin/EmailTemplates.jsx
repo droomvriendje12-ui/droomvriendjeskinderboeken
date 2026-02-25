@@ -314,11 +314,48 @@ const EmailTemplatesAdmin = () => {
                 <p className="text-sm text-gray-500">Maak en beheer email marketing templates</p>
               </div>
             </div>
-            <Button onClick={handleCreateNew} className="bg-[#8B7355] hover:bg-[#6d5a45]">
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Template
-            </Button>
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".zip"
+                onChange={handleZipUpload}
+                className="hidden"
+                id="zip-upload"
+              />
+              <Button 
+                variant="outline" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <span className="animate-spin mr-2">⏳</span>
+                ) : (
+                  <FileArchive className="w-4 h-4 mr-2" />
+                )}
+                ZIP Uploaden
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAssets(!showAssets)}
+              >
+                <Image className="w-4 h-4 mr-2" />
+                Assets ({assets.length})
+              </Button>
+              <Button onClick={handleCreateNew} className="bg-[#8B7355] hover:bg-[#6d5a45]">
+                <Plus className="w-4 h-4 mr-2" />
+                Nieuwe Template
+              </Button>
+            </div>
           </div>
+          
+          {/* Upload Result Message */}
+          {uploadResult && (
+            <div className={`mt-3 p-3 rounded-lg ${uploadResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              {uploadResult.success ? '✅' : '❌'} {uploadResult.message}
+              <button onClick={() => setUploadResult(null)} className="ml-2 hover:underline">Sluiten</button>
+            </div>
+          )}
         </div>
       </div>
 
