@@ -41,6 +41,7 @@ const EmailTemplatesAdmin = () => {
   useEffect(() => {
     fetchTemplates();
     fetchVariables();
+    fetchAssets();
   }, []);
 
   const fetchTemplates = async () => {
@@ -67,6 +68,55 @@ const EmailTemplatesAdmin = () => {
       }
     } catch (error) {
       console.error('Error fetching variables:', error);
+    }
+  };
+
+  const fetchAssets = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/email-templates/assets`);
+      if (response.ok) {
+        const data = await response.json();
+        setAssets(data.assets || []);
+      }
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+    }
+  };
+
+  const handleZipUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'marketing');
+
+      const response = await fetch(`${API_URL}/api/email-templates/upload-zip`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setUploadResult({ success: true, message: `Template "${result.template.name}" aangemaakt met ${result.images_saved} afbeeldingen!` });
+        await fetchTemplates();
+        await fetchAssets();
+      } else {
+        setUploadResult({ success: false, message: result.detail || 'Upload mislukt' });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadResult({ success: false, message: 'Upload mislukt: ' + error.message });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
