@@ -518,29 +518,6 @@ async def upload_template_zip(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/assets")
-async def list_email_assets():
-    """List all available email assets"""
-    assets_dir = "/app/frontend/public/email-assets"
-    assets = []
-    
-    try:
-        for root, dirs, files in os.walk(assets_dir):
-            for file in files:
-                if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-                    rel_path = os.path.relpath(os.path.join(root, file), assets_dir)
-                    assets.append({
-                        'filename': file,
-                        'path': f'/email-assets/{rel_path}',
-                        'folder': os.path.basename(root) if root != assets_dir else 'root'
-                    })
-        
-        return {"assets": assets}
-    except Exception as e:
-        logger.error(f"Error listing assets: {e}")
-        return {"assets": []}
-
-
 @router.delete("/assets/{folder}")
 async def delete_asset_folder(folder: str):
     """Delete an asset folder"""
