@@ -322,7 +322,78 @@ async def get_product_advanced(product_id: str):
     return await get_product(product_id)
 
 
-# ============== PRODUCT IMAGE UPLOAD ==============
+# ============== PRODUCT IMAGE INFO & OVERRIDES ==============
+
+@router.get("/{product_id}/image-info")
+async def get_product_image_info(product_id: str):
+    """Get image info for the product editor"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        result = supabase.table("products").select("*").eq("id", product_id).limit(1).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Product niet gevonden")
+        
+        product = result.data[0]
+        gallery = product.get("gallery", "[]")
+        if isinstance(gallery, str):
+            try:
+                gallery = json.loads(gallery)
+            except:
+                gallery = []
+        
+        return {
+            "default": {
+                "image": product.get("image"),
+                "gallery": gallery
+            },
+            "active": {
+                "image": product.get("image"),
+                "gallery": gallery
+            },
+            "overrides": {
+                "image": None,
+                "gallery": []
+            },
+            "has_overrides": False
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting image info for {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{product_id}/set-image-override")
+async def set_image_override(product_id: str, image: str = None, gallery: str = None):
+    """Set image override (uses GET for CRA proxy compatibility)"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        updates = {}
+        if image is not None and image.strip():
+            updates["image"] = image.strip()
+        
+        if updates:
+            supabase.table("products").update(updates).eq("id", product_id).execute()
+        
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Error setting image override for {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{product_id}/image-override")
+async def delete_image_override(product_id: str):
+    """Clear image overrides"""
+    return {"success": True, "message": "Overrides cleared"}
+
+
+# ============== PRODUCT IMAGE UPLOAD (Supabase Storage) ==============
+
+SUPABASE_BUCKET = "product-images"
 
 def get_product_folder(product_name: str) -> str:
     """Generate safe folder name from product name"""
@@ -334,17 +405,22 @@ def get_product_folder(product_name: str) -> str:
     return safe_name
 
 
+def get_supabase_public_url(path: str) -> str:
+    """Get the public URL for a file in Supabase Storage"""
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    return f"{supabase_url}/storage/v1/object/public/{SUPABASE_BUCKET}/{path}"
+
+
 @router.post("/{product_id}/upload-image")
 async def upload_product_image(
     product_id: str,
     file: UploadFile = File(...),
-    image_type: str = Form("main")
+    image_type: str = Form("gallery")
 ):
-    """Upload a product image"""
+    """Upload a product image to Supabase Storage"""
     if supabase is None:
         raise HTTPException(status_code=500, detail="Database not configured")
     
-    # Validate file type
     allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Alleen JPEG, PNG, WebP en GIF zijn toegestaan")
@@ -354,7 +430,6 @@ async def upload_product_image(
     if len(contents) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Bestand is te groot (max 10MB)")
     
-    # Get product
     result = supabase.table("products").select("*").eq("id", product_id).limit(1).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Product niet gevonden")
@@ -362,45 +437,186 @@ async def upload_product_image(
     product = result.data[0]
     
     try:
-        product_folder = get_product_folder(product.get("short_name") or f"product-{product_id}")
-        upload_dir = f"/app/frontend/public/products/{product_folder}"
-        os.makedirs(upload_dir, exist_ok=True)
-        
+        product_folder = get_product_folder(product.get("short_name") or f"product-{product_id[:8]}")
         file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
         
         if image_type == "main":
-            filename = f"{product_folder}-main.{file_ext}"
+            filename = f"main.{file_ext}"
+        elif image_type == "macro":
+            filename = f"macro.{file_ext}"
         elif image_type == "dimensions":
-            filename = f"{product_folder}-dimensions.{file_ext}"
-        elif image_type == "features":
-            filename = f"{product_folder}-features.{file_ext}"
+            filename = f"dimensions.{file_ext}"
         else:
-            filename = f"{product_folder}-gallery-{uuid.uuid4().hex[:8]}.{file_ext}"
+            filename = f"gallery-{uuid.uuid4().hex[:8]}.{file_ext}"
         
-        file_path = os.path.join(upload_dir, filename)
-        with open(file_path, "wb") as f:
-            f.write(contents)
+        storage_path = f"{product_folder}/{filename}"
         
-        image_url = f"/products/{product_folder}/{filename}"
+        # Upload to Supabase Storage (upsert to overwrite existing)
+        content_type = file.content_type or "image/jpeg"
+        supabase.storage.from_(SUPABASE_BUCKET).upload(
+            storage_path, contents,
+            file_options={"content-type": content_type, "upsert": "true"}
+        )
         
-        # Update database
+        image_url = get_supabase_public_url(storage_path)
+        
+        # Update database based on type
         if image_type == "main":
             supabase.table("products").update({"image": image_url}).eq("id", product_id).execute()
+        elif image_type == "macro":
+            supabase.table("products").update({"macro_image": image_url}).eq("id", product_id).execute()
         elif image_type == "dimensions":
             supabase.table("products").update({"dimensions_image": image_url}).eq("id", product_id).execute()
-        elif image_type == "features":
-            supabase.table("products").update({"macro_image": image_url}).eq("id", product_id).execute()
-        else:
-            # Append to gallery
-            gallery = product.get("gallery", "[]")
-            if isinstance(gallery, str):
-                gallery = json.loads(gallery)
-            gallery.append(image_url)
-            supabase.table("products").update({"gallery": json.dumps(gallery)}).eq("id", product_id).execute()
         
-        logger.info(f"Product image uploaded for {product_id}: {image_url}")
-        return {"success": True, "image_url": image_url, "type": image_type}
+        logger.info(f"Image uploaded to Supabase Storage: {storage_path}")
+        return {"success": True, "url": image_url, "type": image_type}
         
     except Exception as e:
         logger.error(f"Error uploading image for product {product_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{product_id}/photos")
+async def upload_product_photos(
+    product_id: str,
+    files: List[UploadFile] = File(...)
+):
+    """Upload multiple product photos to Supabase Storage and add to gallery"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    result = supabase.table("products").select("*").eq("id", product_id).limit(1).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    product = result.data[0]
+    
+    # Parse current gallery
+    gallery = product.get("gallery", "[]")
+    if isinstance(gallery, str):
+        try:
+            gallery = json.loads(gallery)
+        except:
+            gallery = []
+    
+    # Check max 10 photos limit
+    current_count = len(gallery)
+    if current_count + len(files) > 10:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximaal 10 foto's per product. Je hebt er al {current_count}, en probeert er {len(files)} toe te voegen."
+        )
+    
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    product_folder = get_product_folder(product.get("short_name") or f"product-{product_id[:8]}")
+    uploaded = []
+    
+    for file in files:
+        if file.content_type not in allowed_types:
+            continue
+        
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:
+            continue
+        
+        file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        filename = f"gallery-{uuid.uuid4().hex[:8]}.{file_ext}"
+        storage_path = f"{product_folder}/{filename}"
+        
+        try:
+            content_type = file.content_type or "image/jpeg"
+            supabase.storage.from_(SUPABASE_BUCKET).upload(
+                storage_path, contents,
+                file_options={"content-type": content_type, "upsert": "true"}
+            )
+            
+            image_url = get_supabase_public_url(storage_path)
+            
+            gallery.append({
+                "url": image_url,
+                "alt": f"{product.get('short_name', product.get('name', ''))} - Foto {current_count + len(uploaded) + 1}",
+                "visible": True,
+                "order": current_count + len(uploaded)
+            })
+            uploaded.append(image_url)
+            
+        except Exception as e:
+            logger.error(f"Error uploading file {file.filename}: {e}")
+    
+    # Update gallery in database
+    if uploaded:
+        supabase.table("products").update({"gallery": json.dumps(gallery)}).eq("id", product_id).execute()
+    
+    logger.info(f"Uploaded {len(uploaded)} photos for product {product_id}")
+    return {
+        "success": True,
+        "uploaded_count": len(uploaded),
+        "urls": uploaded,
+        "total_photos": len(gallery)
+    }
+
+
+@router.delete("/{product_id}/photos/{photo_index}")
+async def delete_product_photo(product_id: str, photo_index: int):
+    """Delete a product photo from gallery by index"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    result = supabase.table("products").select("*").eq("id", product_id).limit(1).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    product = result.data[0]
+    gallery = product.get("gallery", "[]")
+    if isinstance(gallery, str):
+        try:
+            gallery = json.loads(gallery)
+        except:
+            gallery = []
+    
+    if photo_index < 0 or photo_index >= len(gallery):
+        raise HTTPException(status_code=400, detail="Ongeldige foto index")
+    
+    removed = gallery.pop(photo_index)
+    
+    # Re-index orders
+    for i, item in enumerate(gallery):
+        if isinstance(item, dict):
+            item["order"] = i
+    
+    supabase.table("products").update({"gallery": json.dumps(gallery)}).eq("id", product_id).execute()
+    
+    logger.info(f"Deleted photo {photo_index} from product {product_id}")
+    return {"success": True, "remaining_photos": len(gallery)}
+
+
+@router.put("/{product_id}/photos/reorder")
+async def reorder_product_photos(product_id: str, order: dict):
+    """Reorder product gallery photos"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    result = supabase.table("products").select("*").eq("id", product_id).limit(1).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    product = result.data[0]
+    gallery = product.get("gallery", "[]")
+    if isinstance(gallery, str):
+        try:
+            gallery = json.loads(gallery)
+        except:
+            gallery = []
+    
+    new_order = order.get("indices", [])
+    if len(new_order) != len(gallery):
+        raise HTTPException(status_code=400, detail="Ongeldige volgorde")
+    
+    reordered = [gallery[i] for i in new_order if i < len(gallery)]
+    for i, item in enumerate(reordered):
+        if isinstance(item, dict):
+            item["order"] = i
+    
+    supabase.table("products").update({"gallery": json.dumps(reordered)}).eq("id", product_id).execute()
+    
+    return {"success": True, "gallery": reordered}
