@@ -315,7 +315,7 @@ const AdminReviewsImporterPage = () => {
                 <select
                   value={selectedProduct?.id || ''}
                   onChange={(e) => {
-                    const product = products.find(p => p.id === parseInt(e.target.value));
+                    const product = products.find(p => p.id === e.target.value);
                     setSelectedProduct(product);
                   }}
                   className="w-full border rounded-lg px-3 py-2 text-sm"
