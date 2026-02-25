@@ -232,7 +232,7 @@ const AdminReviewsToolAdvanced = () => {
   const handleSaveEdit = async (reviewId) => {
     try {
       const response = await fetch(`/api/reviews/${reviewId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editFormData)
       });
