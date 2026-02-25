@@ -194,8 +194,11 @@ const AdminReviewsImporterPage = () => {
     if (!window.confirm(`Weet je zeker dat je ALLE ${reviews.length} reviews wilt verwijderen? Dit kan niet ongedaan worden gemaakt!`)) return;
 
     try {
-      const response = await fetch(`/api/reviews`, {
-        method: 'DELETE'
+      const ids = reviews.map(r => r.id);
+      const response = await fetch(`/api/reviews/bulk-delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
       });
 
       if (response.ok) {
