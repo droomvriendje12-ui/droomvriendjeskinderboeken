@@ -88,6 +88,7 @@ const AdminReviewsImporterPage = () => {
   };
 
   useEffect(() => {
+    fetchProducts();
     fetchReviews();
     fetchStats();
   }, []);
