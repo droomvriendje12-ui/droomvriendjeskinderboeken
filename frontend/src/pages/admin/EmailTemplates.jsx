@@ -5,8 +5,8 @@ import {
   ChevronLeft, Code, Link, Variable, Send, CheckCircle,
   Upload, FileArchive, Image, FolderOpen
 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
