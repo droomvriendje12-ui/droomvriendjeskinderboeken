@@ -484,6 +484,16 @@ const AdminDashboardPage = () => {
             </Card>
           </Link>
           
+          <Link to="/admin/email-templates" data-testid="email-templates-link">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-indigo-200">
+              <CardContent className="p-6 text-center">
+                <Mail className="w-10 h-10 mx-auto text-indigo-600 mb-3" />
+                <h3 className="font-semibold text-gray-900">Email Templates</h3>
+                <p className="text-sm text-gray-500">Beheer templates</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
           <Link to="/admin/shopping-campaigns" data-testid="ads-link">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-green-200">
               <CardContent className="p-6 text-center">
