@@ -262,7 +262,7 @@ const AdminReviewsToolAdvanced = () => {
       const response = await fetch(`/api/reviews/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ review_ids: selectedReviews })
+        body: JSON.stringify({ ids: selectedReviews })
       });
 
       if (response.ok) {
