@@ -30,7 +30,7 @@ import {
   Inbox,
   Check
 } from 'lucide-react';
-import { products } from '../mockData';
+import { products as mockProducts } from '../mockData';
 
 
 const AdminReviewsToolAdvanced = () => {
@@ -61,8 +61,30 @@ const AdminReviewsToolAdvanced = () => {
   const [editFormData, setEditFormData] = useState({});
   
   // UI state
-  const [activeTab, setActiveTab] = useState('manage'); // 'import' or 'manage'
+  const [activeTab, setActiveTab] = useState('manage');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Products from Supabase
+  const [products, setProducts] = useState([]);
+
+  // Fetch products from Supabase
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.map(p => ({
+          id: p.id,
+          shortName: p.short_name || p.shortName || p.name,
+          name: p.name,
+          image: p.image,
+          price: p.price
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
 
   // Fetch reviews from database
   const fetchReviews = async () => {
