@@ -1101,6 +1101,171 @@ const AdminAdvancedProductEditor = () => {
               </div>
             )}
 
+
+            {/* PHOTOS UPLOAD Tab - Drag & Drop */}
+            {activeTab === 'photos' && (
+              <div className="space-y-6" data-testid="photos-upload-tab">
+                {/* Upload Area */}
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Upload className="w-5 h-5 text-[#8B7355]" />
+                        Product Foto's
+                      </h2>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Sleep foto's hierheen of klik om te uploaden. Max 10 foto's per product.
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium px-3 py-1 rounded-full bg-[#fdf8f3] text-[#8B7355]">
+                      {galleryPhotos.length}/10 foto's
+                    </span>
+                  </div>
+
+                  {/* Drag & Drop Zone */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handlePhotoDrop}
+                    onClick={() => !photoUploading && photoInputRef.current?.click()}
+                    className={`relative border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200 ${
+                      isDragging
+                        ? 'border-[#8B7355] bg-[#fdf8f3] scale-[1.01]'
+                        : 'border-gray-300 hover:border-[#8B7355] hover:bg-[#fdf8f3]/50'
+                    } ${photoUploading ? 'opacity-60 pointer-events-none' : ''}`}
+                    data-testid="photo-drop-zone"
+                  >
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handlePhotoSelect}
+                      className="hidden"
+                    />
+                    {photoUploading ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <RefreshCw className="w-10 h-10 text-[#8B7355] animate-spin" />
+                        <p className="text-[#8B7355] font-medium">{photoUploadProgress}</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
+                          isDragging ? 'bg-[#8B7355] text-white' : 'bg-gray-100 text-gray-400'
+                        }`}>
+                          <Upload className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {isDragging ? 'Laat los om te uploaden' : 'Sleep foto\'s hierheen'}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            of <span className="text-[#8B7355] font-medium underline">klik hier</span> om bestanden te kiezen
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-400">JPEG, PNG, WebP of GIF - max 10MB per bestand</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload status */}
+                  {photoUploadProgress && !photoUploading && (
+                    <div className={`mt-3 p-3 rounded-lg text-sm flex items-center gap-2 ${
+                      photoUploadProgress.includes('Fout') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                    }`}>
+                      {photoUploadProgress.includes('Fout') ? (
+                        <AlertCircle className="w-4 h-4" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      {photoUploadProgress}
+                    </div>
+                  )}
+                </div>
+
+                {/* Photo Grid */}
+                {galleryPhotos.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">
+                      Huidige foto's ({galleryPhotos.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {galleryPhotos.map((photo, index) => {
+                        const photoUrl = typeof photo === 'string' ? photo : photo?.url;
+                        const photoAlt = typeof photo === 'string' ? '' : (photo?.alt || '');
+                        return (
+                          <div
+                            key={index}
+                            className="group relative border-2 border-gray-200 rounded-xl overflow-hidden hover:border-[#8B7355] transition-colors"
+                            data-testid={`photo-item-${index}`}
+                          >
+                            {/* Photo number badge */}
+                            <div className="absolute top-2 left-2 z-10 w-7 h-7 bg-black/60 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">{index + 1}</span>
+                            </div>
+                            
+                            {/* Move/Delete controls */}
+                            <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); movePhoto(index, index - 1); }}
+                                disabled={index === 0}
+                                className="w-7 h-7 bg-white/90 rounded-lg flex items-center justify-center hover:bg-white shadow-sm disabled:opacity-30"
+                                title="Omhoog"
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); movePhoto(index, index + 1); }}
+                                disabled={index === galleryPhotos.length - 1}
+                                className="w-7 h-7 bg-white/90 rounded-lg flex items-center justify-center hover:bg-white shadow-sm disabled:opacity-30"
+                                title="Omlaag"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deletePhoto(index); }}
+                                className="w-7 h-7 bg-red-500/90 rounded-lg flex items-center justify-center hover:bg-red-600 shadow-sm text-white"
+                                title="Verwijderen"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            
+                            {/* Photo */}
+                            <div className="aspect-square bg-[#fdf8f3]">
+                              <img
+                                src={photoUrl}
+                                alt={photoAlt || `Product foto ${index + 1}`}
+                                className="w-full h-full object-contain"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            </div>
+                            
+                            {/* Photo info */}
+                            <div className="p-2 bg-gray-50 text-xs text-gray-500 truncate">
+                              {photoUrl?.includes('supabase') ? 'Supabase Storage' : 'Lokaal'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty state */}
+                {galleryPhotos.length === 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
+                    <Camera className="w-16 h-16 mx-auto text-gray-200 mb-4" />
+                    <h3 className="font-medium text-gray-600 mb-2">Nog geen foto's</h3>
+                    <p className="text-sm text-gray-400">
+                      Upload foto's via het sleepveld hierboven
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+
             {/* NEW: Media Management Tab */}
             {activeTab === 'media' && (
               <div className="space-y-6">
