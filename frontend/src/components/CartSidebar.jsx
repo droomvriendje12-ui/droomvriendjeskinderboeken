@@ -388,28 +388,6 @@ const CartSidebar = () => {
                 </div>
               )}
               
-              {/* Email input for checkout */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  E-mailadres voor bestelling *
-                </label>
-                <Input
-                  type="email"
-                  placeholder="je@email.nl"
-                  value={checkoutEmail}
-                  onChange={(e) => {
-                    setCheckoutEmail(e.target.value);
-                    setEmailError('');
-                  }}
-                  className={emailError ? 'border-red-500' : ''}
-                  data-testid="checkout-email-input"
-                />
-                {emailError && (
-                  <p className="text-red-500 text-sm">{emailError}</p>
-                )}
-              </div>
-              
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg"
                 onClick={handleCheckout}
