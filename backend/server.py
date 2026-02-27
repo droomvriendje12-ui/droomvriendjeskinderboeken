@@ -986,7 +986,7 @@ async def checkout_started(checkout: CheckoutStartedCreate):
         
         # Store checkout event in database
         checkout_dict = {
-            "customer_email": checkout.customer_email,
+            "customer_email": checkout.customer_email or "unknown@checkout.nl",
             "cart_items": [item.model_dump() for item in checkout.cart_items],
             "total_amount": checkout.total_amount,
             "session_id": session_id,
@@ -995,10 +995,13 @@ async def checkout_started(checkout: CheckoutStartedCreate):
         }
         
         await db.checkout_events.insert_one(checkout_dict)
-        logger.info(f"Checkout started: {checkout.customer_email} - Session: {session_id}")
+        customer_log = checkout.customer_email or f"Session:{session_id}"
+        logger.info(f"Checkout started: {customer_log}")
         
-        # Send email notification to owner
-        email_sent = send_checkout_started_email(checkout_dict)
+        # Send email notification to owner (only if we have meaningful cart data)
+        email_sent = False
+        if checkout.cart_items:
+            email_sent = send_checkout_started_email(checkout_dict)
         
         return {
             "status": "success",
