@@ -382,3 +382,55 @@ async def get_review_stats():
     except Exception as e:
         logger.error(f"Error getting review stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/assign-product")
+async def assign_reviews_to_product(data: dict):
+    """Assign reviews to a specific product by setting product_id"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    review_ids = data.get("review_ids", [])
+    product_id = data.get("product_id")
+    product_name = data.get("product_name", "")
+    
+    if not review_ids or not product_id:
+        raise HTTPException(status_code=400, detail="review_ids en product_id zijn verplicht")
+    
+    # Verify product exists
+    product_result = supabase.table("products").select("id, short_name, name").eq("id", product_id).limit(1).execute()
+    if not product_result.data:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    
+    product = product_result.data[0]
+    p_name = product_name or product.get("short_name") or product.get("name", "")
+    
+    updated = 0
+    for rid in review_ids:
+        try:
+            result = supabase.table("reviews").update({
+                "product_id": product_id,
+                "product_name": p_name
+            }).eq("id", rid).execute()
+            if result.data:
+                updated += 1
+        except Exception as e:
+            logger.error(f"Error assigning review {rid}: {e}")
+    
+    return {"updated": updated, "total": len(review_ids), "product_name": p_name}
+
+
+@router.get("/unassigned")
+async def get_unassigned_reviews():
+    """Get reviews that don't have a product_id assigned"""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        result = supabase.table("reviews").select("*").is_("product_id", "null").order("created_at", desc=True).execute()
+        reviews = [format_review_response(r) for r in result.data]
+        return {"reviews": reviews, "count": len(reviews)}
+    except Exception as e:
+        logger.error(f"Error fetching unassigned reviews: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
