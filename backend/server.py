@@ -2009,9 +2009,9 @@ async def get_admin_orders(
         if USE_SUPABASE and supabase_client:
             query = supabase_client.table("orders").select(
                 "id, order_number, customer_email, customer_name, customer_phone, "
-                "total_amount, status, tracking_code, carrier, label_url, "
+                "total_amount, status, tracking_number, tracking_url, "
                 "shipping_address, shipping_city, shipping_zipcode, "
-                "created_at, shipped_at, notes"
+                "created_at, shipped_at, customer_notes, admin_notes"
             ).order("created_at", desc=True)
             
             if status and status != 'all':
