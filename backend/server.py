@@ -860,7 +860,7 @@ class CartItem(BaseModel):
     quantity: int
 
 class CheckoutStartedCreate(BaseModel):
-    customer_email: str
+    customer_email: Optional[str] = None  # Made optional - email removed from cart sidebar
     cart_items: List[CartItem]
     total_amount: float
     session_id: Optional[str] = None
