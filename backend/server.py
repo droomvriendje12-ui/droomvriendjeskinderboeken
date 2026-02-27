@@ -1998,41 +1998,170 @@ class TrackingUpdate(BaseModel):
 
 
 @api_router.get("/admin/orders")
-async def get_admin_orders():
-    """Get all orders for admin panel"""
+async def get_admin_orders(
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = 1,
+    limit: int = 50
+):
+    """Get all orders for admin panel - Supabase optimized"""
     try:
-        # Use projection to fetch only needed fields for better performance
-        orders_projection = {
-            "_id": 1,
-            "customer_email": 1,
-            "customer_name": 1,
-            "total_amount": 1,
-            "status": 1,
-            "tracking_code": 1,
-            "carrier": 1,
-            "created_at": 1,
-            "items": 1
-        }
-        orders = await db.orders.find({}, orders_projection).sort("created_at", -1).to_list(500)
-        
-        result = []
-        for order in orders:
-            result.append({
-                "order_id": str(order["_id"]),
-                "customer_email": order.get("customer_email", ""),
-                "customer_name": order.get("customer_name", ""),
-                "total_amount": order.get("total_amount", 0),
-                "status": order.get("status", "pending"),
-                "tracking_code": order.get("tracking_code"),
-                "carrier": order.get("carrier"),
-                "created_at": order.get("created_at", ""),
-                "items": order.get("items", [])
-            })
-        
-        return {"orders": result, "count": len(result)}
+        if USE_SUPABASE and supabase_client:
+            query = supabase_client.table("orders").select(
+                "id, order_number, customer_email, customer_name, customer_phone, "
+                "total_amount, status, tracking_code, carrier, label_url, "
+                "shipping_address, shipping_city, shipping_zipcode, "
+                "created_at, shipped_at, notes"
+            ).order("created_at", desc=True)
+            
+            if status and status != 'all':
+                query = query.eq("status", status)
+            
+            if search:
+                query = query.or_(
+                    f"customer_email.ilike.%{search}%,"
+                    f"customer_name.ilike.%{search}%,"
+                    f"order_number.ilike.%{search}%"
+                )
+            
+            # Pagination
+            offset = (page - 1) * limit
+            query = query.range(offset, offset + limit - 1)
+            
+            result = query.execute()
+            orders = result.data or []
+            
+            # Get total count
+            count_query = supabase_client.table("orders").select("id", count="exact")
+            if status and status != 'all':
+                count_query = count_query.eq("status", status)
+            count_result = count_query.execute()
+            total_count = count_result.count if hasattr(count_result, 'count') and count_result.count else len(orders)
+            
+            # Status counts for filters
+            all_statuses = supabase_client.table("orders").select("status").execute()
+            status_counts = {}
+            for o in (all_statuses.data or []):
+                s = o.get('status', 'pending')
+                status_counts[s] = status_counts.get(s, 0) + 1
+            
+            formatted = [{
+                "order_id": o.get("id", ""),
+                "order_number": o.get("order_number", ""),
+                "customer_email": o.get("customer_email", ""),
+                "customer_name": o.get("customer_name", ""),
+                "customer_phone": o.get("customer_phone", ""),
+                "total_amount": o.get("total_amount", 0),
+                "status": o.get("status", "pending"),
+                "tracking_code": o.get("tracking_code"),
+                "carrier": o.get("carrier"),
+                "label_url": o.get("label_url"),
+                "shipping_address": o.get("shipping_address", ""),
+                "shipping_city": o.get("shipping_city", ""),
+                "shipping_zipcode": o.get("shipping_zipcode", ""),
+                "created_at": o.get("created_at", ""),
+                "shipped_at": o.get("shipped_at"),
+                "notes": o.get("notes", "")
+            } for o in orders]
+            
+            return {
+                "orders": formatted,
+                "count": len(formatted),
+                "total": total_count,
+                "page": page,
+                "limit": limit,
+                "status_counts": status_counts
+            }
+        else:
+            return {"orders": [], "count": 0, "total": 0, "page": 1, "limit": limit, "status_counts": {}}
         
     except Exception as e:
         logger.error(f"Get admin orders error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/admin/orders/{order_id}")
+async def get_admin_order_detail(order_id: str):
+    """Get detailed order info including items"""
+    try:
+        if USE_SUPABASE and supabase_client:
+            order_result = supabase_client.table("orders").select("*").eq("id", order_id).limit(1).execute()
+            if not order_result.data:
+                raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
+            
+            order = order_result.data[0]
+            items_result = supabase_client.table("order_items").select("*").eq("order_id", order_id).execute()
+            items = items_result.data or []
+            
+            return {
+                "order": {
+                    "order_id": order.get("id", ""),
+                    "order_number": order.get("order_number", ""),
+                    "customer_email": order.get("customer_email", ""),
+                    "customer_name": order.get("customer_name", ""),
+                    "customer_phone": order.get("customer_phone", ""),
+                    "total_amount": order.get("total_amount", 0),
+                    "status": order.get("status", "pending"),
+                    "tracking_code": order.get("tracking_code"),
+                    "carrier": order.get("carrier"),
+                    "label_url": order.get("label_url"),
+                    "shipping_address": order.get("shipping_address", ""),
+                    "shipping_city": order.get("shipping_city", ""),
+                    "shipping_zipcode": order.get("shipping_zipcode", ""),
+                    "payment_id": order.get("payment_id"),
+                    "payment_method": order.get("payment_method"),
+                    "created_at": order.get("created_at", ""),
+                    "shipped_at": order.get("shipped_at"),
+                    "notes": order.get("notes", ""),
+                    "coupon_code": order.get("coupon_code"),
+                    "discount_amount": order.get("discount_amount", 0)
+                },
+                "items": [{
+                    "product_name": i.get("product_name", ""),
+                    "product_sku": i.get("product_sku", ""),
+                    "quantity": i.get("quantity", 1),
+                    "unit_price": i.get("unit_price", 0),
+                    "total_price": i.get("quantity", 1) * i.get("unit_price", 0)
+                } for i in items]
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Database not configured")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get order detail error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/admin/orders/{order_id}/status")
+async def update_order_status(order_id: str, data: dict):
+    """Update order status"""
+    new_status = data.get("status")
+    valid_statuses = ["pending", "paid", "shipped", "delivered", "cancelled"]
+    if new_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Ongeldige status. Kies uit: {', '.join(valid_statuses)}")
+    
+    try:
+        if USE_SUPABASE and supabase_client:
+            updates = {
+                "status": new_status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            if new_status == "shipped":
+                updates["shipped_at"] = datetime.now(timezone.utc).isoformat()
+            
+            result = supabase_client.table("orders").update(updates).eq("id", order_id).execute()
+            if not result.data:
+                raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
+            
+            logger.info(f"Order {order_id} status updated to {new_status}")
+            return {"success": True, "status": new_status}
+        else:
+            raise HTTPException(status_code=500, detail="Database not configured")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update order status error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
