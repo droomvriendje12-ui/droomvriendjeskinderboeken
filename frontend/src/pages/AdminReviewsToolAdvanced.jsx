@@ -117,7 +117,7 @@ const AdminReviewsPage = () => {
     return true;
   });
 
-  const avgRating = stats?.average_rating || 0;
+  const avgRating = stats?.average || stats?.average_rating || 0;
 
   return (
     <div className="min-h-screen bg-gray-50" data-testid="admin-reviews-page">
@@ -165,7 +165,7 @@ const AdminReviewsPage = () => {
                       <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <div className="text-2xl font-bold">{stats.rating_distribution?.[String(rating)] || 0}</div>
+                  <div className="text-2xl font-bold">{stats.distribution?.[String(rating)] || stats.rating_distribution?.[String(rating)] || 0}</div>
                   <div className="text-xs text-gray-500">reviews</div>
                 </CardContent>
               </Card>
