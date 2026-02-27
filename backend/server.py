@@ -2210,7 +2210,7 @@ def send_tracking_email(order: dict, tracking_code: str, carrier: str):
     try:
         customer_email = order.get("customer_email")
         customer_name = order.get("customer_name", "Klant")
-        order_id = str(order.get("_id", ""))[-8:].upper()
+        order_id = (order.get("order_number") or order.get("id", ""))[-8:].upper()
         
         carrier_info = CARRIERS.get(carrier, CARRIERS["postnl"])
         tracking_url = carrier_info["tracking_url"].replace("{code}", tracking_code)
