@@ -85,7 +85,7 @@ Found and updated references to old preview domain:
 #### Changes:
 **Before:**
 ```
-https://mongo-to-postgres-6.preview.emergentagent.com
+https://gift-card-migration.preview.emergentagent.com
 ```
 
 **After:**
