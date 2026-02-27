@@ -2167,37 +2167,36 @@ async def update_order_status(order_id: str, data: dict):
 
 @api_router.post("/admin/orders/{order_id}/tracking")
 async def update_order_tracking(order_id: str, tracking: TrackingUpdate):
-    """Add or update tracking code for an order"""
+    """Add or update tracking code for an order - Supabase"""
     try:
-        order = await db.orders.find_one({"_id": ObjectId(order_id)})
-        if not order:
-            raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
-        
-        # Update order with tracking info
-        await db.orders.update_one(
-            {"_id": ObjectId(order_id)},
-            {"$set": {
+        if USE_SUPABASE and supabase_client:
+            order_result = supabase_client.table("orders").select("*").eq("id", order_id).limit(1).execute()
+            if not order_result.data:
+                raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
+            
+            order = order_result.data[0]
+            
+            supabase_client.table("orders").update({
                 "tracking_code": tracking.tracking_code,
                 "carrier": tracking.carrier,
                 "status": "shipped",
                 "shipped_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
-        )
-        
-        logger.info(f"Tracking added to order {order_id}: {tracking.carrier} - {tracking.tracking_code}")
-        
-        # Send tracking email to customer
-        if tracking.send_email:
-            email_sent = send_tracking_email(order, tracking.tracking_code, tracking.carrier)
-        else:
+            }).eq("id", order_id).execute()
+            
+            logger.info(f"Tracking added to order {order_id}: {tracking.carrier} - {tracking.tracking_code}")
+            
             email_sent = False
-        
-        return {
-            "success": True,
-            "message": "Tracking code toegevoegd",
-            "email_sent": email_sent
-        }
+            if tracking.send_email:
+                email_sent = send_tracking_email(order, tracking.tracking_code, tracking.carrier)
+            
+            return {
+                "success": True,
+                "message": "Tracking code toegevoegd",
+                "email_sent": email_sent
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Database not configured")
         
     except HTTPException:
         raise
