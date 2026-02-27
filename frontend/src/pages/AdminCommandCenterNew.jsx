@@ -134,6 +134,14 @@ const AdminCommandCenterNew = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
+              if (item.divider) {
+                return (
+                  <div key={item.id} className="pt-4 pb-1 px-4 first:pt-0">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">{item.label}</span>
+                  </div>
+                );
+              }
+              
               const Icon = item.icon;
               const isActive = activeSection === item.id;
               
