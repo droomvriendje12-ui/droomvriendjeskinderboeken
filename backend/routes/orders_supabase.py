@@ -401,6 +401,21 @@ async def mollie_webhook(request: Request):
         
         logger.info(f"Payment {payment_id} status updated to: {new_status}")
         
+        # Send emails on payment status change
+        try:
+            order_result = supabase.table("orders").select("*").eq("id", order_id).limit(1).execute()
+            items_result = supabase.table("order_items").select("*").eq("order_id", order_id).execute()
+            if order_result.data:
+                order = order_result.data[0]
+                items = items_result.data or []
+                if new_status == 'paid':
+                    _send_order_confirmation(order, items)
+                    _send_order_notification(order, items, 'payment_success')
+                elif new_status == 'cancelled':
+                    _send_order_notification(order, items, 'payment_failed')
+        except Exception as email_err:
+            logger.error(f"Failed to send payment emails: {email_err}")
+        
         return {"status": "ok"}
         
     except Exception as e:
