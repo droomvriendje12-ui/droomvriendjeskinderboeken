@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { ShoppingCart, X, Plus, Minus, Truck, Loader2, Mail, Tag, Ticket, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Truck, Loader2, Tag, Ticket, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { trackBeginCheckout, trackCheckoutClicked } from '../utils/analytics';
 import { products } from '../mockData';
 
@@ -11,9 +11,7 @@ import { products } from '../mockData';
 const CartSidebar = () => {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, getSubtotal, getDiscount, getTotal, getItemCount, isCartOpen, setIsCartOpen, appliedCoupon, setAppliedCoupon, addToCart } = useCart();
-  const [checkoutEmail, setCheckoutEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState('');
   const crossSellRef = useRef(null);
   const [addedProducts, setAddedProducts] = useState({});
   
