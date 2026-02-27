@@ -49,12 +49,45 @@ const CartSidebar = () => {
     }
   };
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const handleApplyDiscount = async () => {
+  const handleCheckout = async () => {
+    setIsSubmitting(true);
+    
+    // GA4: Track begin_checkout (CONVERSION EVENT)
+    trackBeginCheckout(cart, '');
+    trackCheckoutClicked(cart, '');
+    
+    try {
+      // Send checkout started notification
+      const cartItems = cart.map(item => ({
+        name: item.shortName || item.name,
+        price: item.price,
+        quantity: item.quantity
+      }));
+      
+      await fetch(`/api/checkout-started`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cart_items: cartItems,
+          total_amount: getFinalTotal(),
+          session_id: localStorage.getItem('droomvriendjes_session') || null
+        }),
+      });
+      
+      // Navigate to checkout
+      setIsCartOpen(false);
+      navigate('/checkout');
+      
+    } catch (error) {
+      console.error('Checkout started error:', error);
+      setIsCartOpen(false);
+      navigate('/checkout');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }; = async () => {
     if (!discountCode.trim()) {
       setCodeError('Voer een kortingscode in');
       return;
