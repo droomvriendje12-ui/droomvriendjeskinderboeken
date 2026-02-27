@@ -90,18 +90,20 @@ const AdminCommandCenterNew = () => {
     }).format(date);
   };
 
-  // Sidebar navigation
+  // Sidebar navigation - logically grouped
   const navItems = [
+    { id: 'divider-shop', label: 'Shop', divider: true },
     { id: 'live', icon: LayoutDashboard, label: 'Live Dashboard' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'orders', icon: ShoppingCart, label: 'Bestellingen', link: '/admin/orders' },
     { id: 'products', icon: Package, label: 'Producten', link: '/admin/products' },
-    { id: 'orders', icon: ShoppingCart, label: 'Orders', link: '/admin/orders' },
+    { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
+    { id: 'divider-marketing', label: 'Marketing', divider: true },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
-    { id: 'whatsapp', icon: MessageCircle, label: 'WhatsApp' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
-    { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
-    { id: 'database', icon: Settings, label: 'Database & Integraties', link: '/admin/database' },
+    { id: 'divider-system', label: 'Systeem', divider: true },
+    { id: 'database', icon: Settings, label: 'Database', link: '/admin/database' },
   ];
 
   return (
