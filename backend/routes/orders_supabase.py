@@ -232,6 +232,13 @@ async def create_order(order: OrderCreate):
             supabase.table("order_items").insert(item_data).execute()
         
         logger.info(f"Order created in Supabase: {order_id}")
+        
+        # Send notification email to owner
+        try:
+            _send_order_notification(order_data, [{"product_name": i.product_name, "quantity": i.quantity, "unit_price": i.price} for i in order.items], 'order_placed')
+        except Exception as email_err:
+            logger.error(f"Failed to send order notification: {email_err}")
+        
         return {"order_id": order_id, "status": "pending"}
         
     except HTTPException:
