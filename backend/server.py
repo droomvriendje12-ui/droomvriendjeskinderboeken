@@ -2053,15 +2053,15 @@ async def get_admin_orders(
                 "customer_phone": o.get("customer_phone", ""),
                 "total_amount": o.get("total_amount", 0),
                 "status": o.get("status", "pending"),
-                "tracking_code": o.get("tracking_code"),
-                "carrier": o.get("carrier"),
-                "label_url": o.get("label_url"),
+                "tracking_code": o.get("tracking_number"),
+                "carrier": None,
+                "label_url": o.get("tracking_url"),
                 "shipping_address": o.get("shipping_address", ""),
                 "shipping_city": o.get("shipping_city", ""),
                 "shipping_zipcode": o.get("shipping_zipcode", ""),
                 "created_at": o.get("created_at", ""),
                 "shipped_at": o.get("shipped_at"),
-                "notes": o.get("notes", "")
+                "notes": o.get("customer_notes", "") or o.get("admin_notes", "")
             } for o in orders]
             
             return {
