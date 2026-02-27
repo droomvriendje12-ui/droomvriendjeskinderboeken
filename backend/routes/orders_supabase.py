@@ -8,6 +8,10 @@ from pydantic import BaseModel
 import logging
 import uuid
 import os
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from mollie.api.client import Client as MollieClient
 
 logger = logging.getLogger(__name__)
@@ -16,6 +20,112 @@ router = APIRouter(tags=["orders"])
 
 # Supabase client - will be set by main app
 supabase = None
+
+# SMTP config
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
+SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.nl')
+OWNER_EMAIL = "info@droomvriendjes.nl"
+
+
+def _send_email(to_email: str, subject: str, html_content: str, text_content: str):
+    """Send email via TransIP SMTP"""
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f'Droomvriendjes <{SMTP_FROM}>'
+        msg['To'] = to_email
+        msg.attach(MIMEText(text_content, 'plain'))
+        msg.attach(MIMEText(html_content, 'html'))
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_FROM, to_email, msg.as_string())
+        logger.info(f"Email sent to {to_email}: {subject}")
+        return True
+    except Exception as e:
+        logger.error(f"Email failed to {to_email}: {e}")
+        return False
+
+
+def _send_order_confirmation(order_data: dict, items: list):
+    """Send order confirmation to customer after successful payment"""
+    customer_email = order_data.get('customer_email')
+    if not customer_email:
+        return False
+    customer_name = order_data.get('customer_name', 'Klant')
+    order_number = order_data.get('order_number', order_data.get('id', '')[:8].upper())
+    total_amount = order_data.get('total_amount', 0)
+
+    items_html = ""
+    for item in items:
+        items_html += f"""
+        <tr>
+            <td style="padding:10px;border-bottom:1px solid #eee;">{item.get('product_name','Product')}</td>
+            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;">{item.get('quantity',1)}x</td>
+            <td style="padding:10px;border-bottom:1px solid #eee;text-align:right;">EUR {item.get('unit_price', item.get('price',0)):.2f}</td>
+        </tr>"""
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+    <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9f9f9;">
+    <div style="background:#fff;border-radius:10px;padding:30px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <div style="text-align:center;margin-bottom:30px;">
+            <h1 style="color:#8B7355;margin:0;">Droomvriendjes</h1>
+        </div>
+        <h2 style="color:#333;">Bedankt voor je bestelling, {customer_name}!</h2>
+        <p style="color:#666;line-height:1.6;">Je bestelling is succesvol ontvangen en wordt zo snel mogelijk verwerkt.</p>
+        <div style="background:#fdf8f3;border-radius:8px;padding:15px;margin:20px 0;">
+            <p style="margin:0;color:#8B7355;"><strong>Bestelnummer:</strong> {order_number}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+            <thead><tr style="background:#8B7355;color:white;">
+                <th style="padding:10px;text-align:left;">Product</th>
+                <th style="padding:10px;text-align:center;">Aantal</th>
+                <th style="padding:10px;text-align:right;">Prijs</th>
+            </tr></thead>
+            <tbody>{items_html}</tbody>
+            <tfoot><tr>
+                <td colspan="2" style="padding:15px;font-weight:bold;font-size:18px;">Totaal</td>
+                <td style="padding:15px;font-weight:bold;font-size:18px;text-align:right;color:#8B7355;">EUR {total_amount:.2f}</td>
+            </tr></tfoot>
+        </table>
+        <div style="background:#e8f5e9;border-radius:8px;padding:15px;margin:20px 0;">
+            <p style="margin:0;color:#2e7d32;">Gratis verzending - Voor 23:00 besteld, morgen in huis!</p>
+        </div>
+        <div style="border-top:1px solid #eee;margin-top:30px;padding-top:20px;text-align:center;color:#999;">
+            <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.nl" style="color:#8B7355;">info@droomvriendjes.nl</a></p>
+        </div>
+    </div></body></html>"""
+
+    text = f"Bedankt voor je bestelling, {customer_name}! Bestelnummer: {order_number}. Totaal: EUR {total_amount:.2f}"
+    return _send_email(customer_email, f"Bedankt voor je bestelling! #{order_number}", html, text)
+
+
+def _send_order_notification(order_data: dict, items: list, event_type: str):
+    """Send order notification to shop owner"""
+    order_number = order_data.get('order_number', order_data.get('id', '')[:8].upper())
+    customer_email = order_data.get('customer_email', '')
+    customer_name = order_data.get('customer_name', '')
+    total = order_data.get('total_amount', 0)
+
+    titles = {
+        'order_placed': ('Nieuwe Bestelling', '#3b82f6'),
+        'payment_success': ('Betaling Geslaagd', '#10b981'),
+        'payment_failed': ('Betaling Mislukt', '#ef4444'),
+    }
+    title, color = titles.get(event_type, titles['order_placed'])
+
+    html = f"""<html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+    <div style="background:{color};padding:15px;border-radius:8px 8px 0 0;"><h2 style="color:white;margin:0;">{title}</h2></div>
+    <div style="padding:20px;border:1px solid #eee;">
+        <p><strong>Order:</strong> {order_number}</p>
+        <p><strong>Klant:</strong> {customer_name} ({customer_email})</p>
+        <p><strong>Totaal:</strong> EUR {total:.2f}</p>
+    </div></body></html>"""
+    text = f"{title}: {order_number} - {customer_name} - EUR {total:.2f}"
+    return _send_email(OWNER_EMAIL, f"{title} - #{order_number}", html, text)
 
 def set_supabase_client(client):
     """Set the Supabase client"""
