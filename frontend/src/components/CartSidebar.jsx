@@ -87,7 +87,9 @@ const CartSidebar = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }; = async () => {
+  };
+
+  const handleApplyDiscount = async () => {
     if (!discountCode.trim()) {
       setCodeError('Voer een kortingscode in');
       return;
