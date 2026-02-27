@@ -252,12 +252,12 @@ const ProductPage = () => {
     }
   };
 
-  // Fetch reviews from database
+  // Fetch reviews from database by product_id
   const fetchReviews = async () => {
     if (!product) return;
     setLoadingReviews(true);
     try {
-      const response = await fetch(`/api/reviews/by-product/${encodeURIComponent(product.shortName)}`);
+      const response = await fetch(`/api/reviews/product/${product.id}`);
       if (response.ok) {
         const data = await response.json();
         setProductReviews(data);
