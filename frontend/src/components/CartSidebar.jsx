@@ -142,63 +142,6 @@ const CartSidebar = () => {
     localStorage.removeItem('droomvriendjes_coupon');
   };
 
-  const handleCheckout = async () => {
-    // Validate email
-    if (!checkoutEmail.trim()) {
-      setEmailError('Vul je e-mailadres in');
-      return;
-    }
-    if (!validateEmail(checkoutEmail)) {
-      setEmailError('Ongeldig e-mailadres');
-      return;
-    }
-    
-    setEmailError('');
-    setIsSubmitting(true);
-    
-    // GA4: Track begin_checkout (CONVERSION EVENT)
-    trackBeginCheckout(cart, checkoutEmail);
-    trackCheckoutClicked(cart, checkoutEmail);
-    
-    try {
-      // Send checkout started notification
-      const cartItems = cart.map(item => ({
-        name: item.shortName || item.name,
-        price: item.price,
-        quantity: item.quantity
-      }));
-      
-      await fetch(`/api/checkout-started`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customer_email: checkoutEmail,
-          cart_items: cartItems,
-          total_amount: getFinalTotal(),
-          session_id: localStorage.getItem('droomvriendjes_session') || null
-        }),
-      });
-      
-      // Store email for checkout page
-      localStorage.setItem('droomvriendjes_checkout_email', checkoutEmail);
-      
-      // Navigate to checkout
-      setIsCartOpen(false);
-      navigate('/checkout');
-      
-    } catch (error) {
-      console.error('Checkout started error:', error);
-      // Still proceed to checkout even if notification fails
-      localStorage.setItem('droomvriendjes_checkout_email', checkoutEmail);
-      setIsCartOpen(false);
-      navigate('/checkout');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Calculate final total with coupon
   const getFinalTotal = () => {
     let total = getTotal(); // Already includes 2e knuffel 50% korting
