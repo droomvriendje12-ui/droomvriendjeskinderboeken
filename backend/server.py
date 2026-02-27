@@ -2177,8 +2177,7 @@ async def update_order_tracking(order_id: str, tracking: TrackingUpdate):
             order = order_result.data[0]
             
             supabase_client.table("orders").update({
-                "tracking_code": tracking.tracking_code,
-                "carrier": tracking.carrier,
+                "tracking_number": tracking.tracking_code,
                 "status": "shipped",
                 "shipped_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
