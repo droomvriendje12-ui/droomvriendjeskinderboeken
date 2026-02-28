@@ -96,7 +96,8 @@ const AdminCommandCenterNew = () => {
   // Fetch data
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
+    // Poll every 10 seconds as fallback for when realtime isn't enabled
+    const interval = setInterval(fetchDashboardData, 10000);
     return () => clearInterval(interval);
   }, []);
 
