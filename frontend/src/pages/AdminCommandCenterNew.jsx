@@ -266,10 +266,30 @@ const AdminCommandCenterNew = () => {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <h1 className="text-3xl font-black text-white tracking-tight">Droomvriendjes</h1>
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                      <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">Live</span>
+                    <div className={`flex items-center gap-1.5 px-3 py-1 border rounded-full transition-all ${
+                      realtimeConnected 
+                        ? 'bg-emerald-500/15 border-emerald-500/30' 
+                        : 'bg-amber-500/15 border-amber-500/30'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                        realtimeConnected ? 'bg-emerald-400' : 'bg-amber-400'
+                      }`}></span>
+                      {realtimeConnected ? (
+                        <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                          <Wifi className="w-3 h-3" /> Live
+                        </span>
+                      ) : (
+                        <span className="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                          <WifiOff className="w-3 h-3" /> Verbinden...
+                        </span>
+                      )}
                     </div>
+                    {newOrderFlash && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full animate-pulse">
+                        <Bell className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400 text-xs font-bold">Nieuwe bestelling!</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-white/40 text-sm">{formatDate(currentTime)}</p>
                 </div>
