@@ -192,6 +192,11 @@ if USE_SUPABASE and supabase_client:
     logger.info("🚀 Using SUPABASE for email templates")
     email_templates_route.set_supabase_client(supabase_client)
     api_router.include_router(email_templates_route.router)
+    
+    # Gift cards (Supabase)
+    logger.info("🚀 Using SUPABASE for gift cards")
+    gift_cards_supabase_route.set_supabase_client(supabase_client)
+    api_router.include_router(gift_cards_supabase_route.router)
 else:
     logger.info("🚀 Using MONGODB for products")
     products_route.set_database(db)
