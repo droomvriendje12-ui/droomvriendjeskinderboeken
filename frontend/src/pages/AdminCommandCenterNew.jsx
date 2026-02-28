@@ -25,11 +25,72 @@ const AdminCommandCenterNew = () => {
   const [products, setProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [liveEvents, setLiveEvents] = useState([]);
+  const [newOrderFlash, setNewOrderFlash] = useState(false);
 
   // Update clock
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Supabase Realtime subscription for orders
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-orders-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          const { eventType, new: newRow, old: oldRow } = payload;
+
+          if (eventType === 'INSERT') {
+            const event = {
+              id: Date.now(),
+              type: 'new_order',
+              icon: '💳',
+              color: 'emerald',
+              text: `Nieuwe bestelling: EUR ${(newRow.total_amount || 0).toFixed(2)}`,
+              detail: newRow.customer_name || newRow.customer_email?.split('@')[0] || 'Klant',
+              time: new Date()
+            };
+            setLiveEvents(prev => [event, ...prev].slice(0, 20));
+            setNewOrderFlash(true);
+            setTimeout(() => setNewOrderFlash(false), 3000);
+            // Refresh dashboard data
+            fetchDashboardData();
+          } else if (eventType === 'UPDATE' && newRow.status !== oldRow?.status) {
+            const statusLabels = {
+              paid: 'Betaald', shipped: 'Verzonden', delivered: 'Afgeleverd', cancelled: 'Geannuleerd'
+            };
+            const statusIcons = {
+              paid: '💰', shipped: '🚚', delivered: '✅', cancelled: '❌'
+            };
+            const statusColors = {
+              paid: 'emerald', shipped: 'blue', delivered: 'violet', cancelled: 'red'
+            };
+            const event = {
+              id: Date.now(),
+              type: 'status_change',
+              icon: statusIcons[newRow.status] || '📦',
+              color: statusColors[newRow.status] || 'blue',
+              text: `Status: ${statusLabels[newRow.status] || newRow.status}`,
+              detail: `#${(newRow.order_number || newRow.id || '').slice(-8).toUpperCase()}`,
+              time: new Date()
+            };
+            setLiveEvents(prev => [event, ...prev].slice(0, 20));
+            fetchDashboardData();
+          }
+        }
+      )
+      .subscribe((status) => {
+        setRealtimeConnected(status === 'SUBSCRIBED');
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Fetch data
