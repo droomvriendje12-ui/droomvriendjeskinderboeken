@@ -1,48 +1,99 @@
-# Droomvriendjes - Product Requirements Document
+# Droomvriendjes E-commerce Platform - PRD
 
-## Latest Update: 27 February 2026
+## Originele Probleemstelling
+E-commerce platform voor Droomvriendjes (slaapknuffels). Volledig gemigreerd van MongoDB naar Supabase (PostgreSQL).
 
-### Completed This Session (27 Feb) - Reviews Systeem:
+## Architectuur
+- **Frontend:** React, React Router, Tailwind CSS, Shadcn UI
+- **Backend:** FastAPI, Pydantic
+- **Database:** Supabase (PostgreSQL), JSONB columns
+- **Bestandsopslag:** Supabase Storage (productafbeeldingen)
+- **Email:** TransIP SMTP
+- **Betalingen:** Mollie API
 
-- **50 Product-Specifieke Reviews Gegenereerd**
-  - 5 reviews per product x 10 producten met realistische Nederlandse namen/teksten
-  - 172 oude ontkoppelde reviews verwijderd
-  - Totaal: 53 reviews (50 nieuw + 3 eerder gekoppeld aan Schaapje)
+## Code Structuur
+```
+/app/backend/
+├── server.py
+├── routes/
+│   ├── admin_supabase.py
+│   ├── email_templates.py
+│   ├── gift_cards_supabase.py     ← NIEUW (28 feb 2026)
+│   ├── orders_supabase.py
+│   ├── products_supabase.py
+│   └── reviews_supabase.py
+├── utils/
+│   └── supabase_db.py
+└── tests/
+    └── test_gift_cards_supabase.py
 
-- **Product Pagina Reviews Filter**
-  - ProductPage.jsx gebruikt nu `/api/reviews/product/{product_id}` 
-  - Elke productpagina toont alleen eigen reviews
-  - Getest: Schaapje 8 reviews, Eenhoorn 5 reviews (geen overlap)
+/app/frontend/src/
+├── App.js
+├── pages/
+│   ├── CadeaubonPage.jsx
+│   ├── ProductPage.jsx
+│   └── admin/
+│       ├── AdminDashboardSupabase.jsx
+│       ├── AdminOrdersPage.jsx
+│       ├── AdminReviewsPage.jsx
+│       ├── ProductEditor.jsx
+│       └── EmailTemplates.jsx
+└── components/
+    ├── admin/AdminSidebar.jsx
+    └── CartSidebar.jsx
+```
 
-- **Admin Reviews Dashboard**
-  - Zoekfunctie (naam, tekst, product)
-  - Product filter dropdown
-  - Rating filter (1-5 sterren)
-  - Stats kaarten met rating distributie
-  - "Review Toevoegen" formulier (product, naam, rating sterren, tekst, geverifieerd)
-  - Verwijderen en zichtbaarheid togglen per review
+## Wat is Geïmplementeerd
 
-### Eerder Voltooid (27 Feb):
-- Orders Management Page (status filters, zoeken, detail panel, tracking, paginering)
-- Sidebar navigatie herindeling (SHOP, MARKETING, SYSTEEM)
-- Email input verwijderd uit cart, SMTP bevestigingsmails, Dashboard → Supabase
+### Voltooide Features
+- [x] MongoDB → Supabase volledige migratie
+- [x] Productbeheer (CRUD, specs, afbeeldingen)
+- [x] Bestelflow met Mollie betalingen
+- [x] Admin dashboard met statistieken
+- [x] Admin bestellingenbeheer (status, tracking)
+- [x] Review systeem (CRUD, toewijzing aan producten)
+- [x] Email templates beheer
+- [x] Drag-and-drop foto upload (Supabase Storage)
+- [x] TransIP SMTP orderbevestigingsemails
+- [x] **Cadeaubon pagina gemigreerd naar Supabase** (28 feb 2026)
+  - Gift card aankoop via Mollie
+  - Gift card validatie
+  - Kortingscode integratie met cadeaubonnen
+  - Email notificaties (ontvanger + verzender)
 
-### Eerder Voltooid (25 Feb):
-- Database migratie MongoDB → Supabase
-- Drag-and-drop foto upload (Supabase Storage)
-- Email Templates + 122 foto's gemigreerd
+### Afgeronde Bugfixes
+- [x] Admin product editor blank page fix
+- [x] Reviews foreign key constraint
+- [x] 175 orphan reviews opgeruimd
+- [x] Email Templates link in admin sidebar
+- [x] Cadeaubon pagina MongoDB → Supabase migratie (28 feb 2026)
 
-### Remaining Tasks:
-- **P2: E-commerce flow verbeteringen** (later)
-- **P3: Supabase Realtime voor live updates** (later)
-- **FK Constraint:** `/app/reviews_fk_constraint.sql` uitvoeren in Supabase SQL Editor
+## Openstaande Taken
 
-### Testing Status (alle 100%):
-- Iteration 7-8: Product editor, photo upload, email templates, reviews migration
-- Iteration 9: Cart email, SMTP, Dashboard Supabase
-- Iteration 10: Admin orders management, sidebar navigation
-- Iteration 11: Reviews system overhaul (17/17 backend, all frontend)
+### P1 - Aankomend
+- [ ] Automatische review-verzoek email bij status "geleverd"
 
-### Credentials
-- Admin: username=admin, password=Droomvriendjes2024!
-- SMTP: smtp.transip.email:465, info@droomvriendjes.nl
+### P2 - Toekomstig
+- [ ] E-commerce flow verbeteringen (checkout, productpagina's)
+- [ ] Admin interface verfijning (styling, navigatie, performance)
+
+### P3 - Backlog
+- [ ] Supabase Realtime voor live order updates
+
+## Key API Endpoints
+- `POST /api/gift-card/purchase` - Cadeaubon aankoop + Mollie betaling
+- `POST /api/gift-card/validate` - Cadeaubon validatie
+- `POST /api/webhook/gift-card` - Mollie webhook
+- `POST /api/discount/validate` - Kortingscode + cadeaubon validatie
+- `GET /api/admin/dashboard-stats` - Admin dashboard statistieken
+- `GET/PUT /api/admin/orders` - Bestellingen beheer
+
+## Database Schema (Supabase)
+- **gift_cards:** id, code, amount, remaining_amount, sender_name/email, recipient_name/email, message, status, mollie_payment_id, expires_at, used_at, created_at
+- **products:** id, name, specs (JSONB), images, price, etc.
+- **orders:** id, status, tracking_number, tracking_url, customer details, items
+- **reviews:** id, product_id (FK→products), rating, text, author, etc.
+
+## Credentials
+- **Admin:** admin@droomvriendjes.nl / Droomvriendjes!2024
+- **Test cadeaubon:** DV-TEST0001 (active, amount: €0.01)
