@@ -415,23 +415,41 @@ const AdminCommandCenterNew = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest">Live Feed</h3>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                      <span className="text-emerald-400 text-xs font-semibold">Live</span>
+                      <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${realtimeConnected ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                      <span className={`text-xs font-semibold ${realtimeConnected ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {realtimeConnected ? 'Live' : 'Verbinden...'}
+                      </span>
                     </div>
                   </div>
-                  <div className="space-y-2.5 overflow-y-auto flex-1" style={{maxHeight: '240px'}}>
-                    {recentOrders.slice(0, 5).map((order, index) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl animate-fadeIn">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-lg">💳</div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-white">Betaling ontvangen: {formatCurrency(order.total_amount || 0)}</p>
-                          <p className="text-xs text-white/50">{order.customer_email?.split('@')[0] || 'Klant'}</p>
+                  <div className="space-y-2.5 overflow-y-auto flex-1" style={{maxHeight: '240px'}} data-testid="live-feed">
+                    {liveEvents.length > 0 ? (
+                      liveEvents.map((event) => (
+                        <div key={event.id} className={`flex items-start gap-3 p-3 bg-white/[0.02] border border-${event.color}-500/20 rounded-xl animate-fadeIn`}>
+                          <div className={`w-10 h-10 bg-gradient-to-br from-${event.color}-500 to-${event.color}-600 rounded-lg flex items-center justify-center text-lg`}>
+                            {event.icon}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-white">{event.text}</p>
+                            <p className="text-xs text-white/50">{event.detail}</p>
+                          </div>
+                          <span className="text-xs text-white/30 whitespace-nowrap">
+                            {event.time.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
-                      </div>
-                    ))}
-                    {recentOrders.length === 0 && (
+                      ))
+                    ) : recentOrders.length > 0 ? (
+                      recentOrders.slice(0, 5).map((order, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl animate-fadeIn">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-lg">💳</div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-white">Betaling ontvangen: {formatCurrency(order.total_amount || 0)}</p>
+                            <p className="text-xs text-white/50">{order.customer_email?.split('@')[0] || 'Klant'}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
                       <div className="flex items-center justify-center h-32 text-white/40 text-sm">
-                        Geen recente activiteit
+                        Wachten op live activiteit...
                       </div>
                     )}
                   </div>
