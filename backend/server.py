@@ -2064,6 +2064,113 @@ def send_tracking_email(order: dict, tracking_code: str, carrier: str):
         return False
 
 
+def send_review_request_email(order: dict, items: list):
+    """Send review request email to customer after order is delivered"""
+    try:
+        customer_email = order.get("customer_email")
+        customer_name = order.get("customer_name", "Klant")
+        order_number = (order.get("order_number") or order.get("id", ""))[-8:].upper()
+
+        if not customer_email:
+            logger.warning(f"No customer email for order {order_number}, skipping review request")
+            return False
+
+        product_names = [item.get("product_name", "Product") for item in items]
+        products_text = ", ".join(product_names) if product_names else "je producten"
+
+        items_html = ""
+        for item in items:
+            items_html += f"""
+            <div style="display: flex; align-items: center; padding: 12px; background: #fdf8f3; border-radius: 8px; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #333;">{item.get('product_name', 'Product')}</div>
+                    <div style="font-size: 12px; color: #999;">{item.get('quantity', 1)}x</div>
+                </div>
+            </div>"""
+
+        frontend_url = get_frontend_url()
+        review_url = f"{frontend_url}/reviews"
+
+        subject = f"Hoe bevalt je Droomvriendjes bestelling? #{order_number}"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+            <div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #8B7355; margin: 0;">Hoe bevalt je bestelling?</h1>
+                    <p style="color: #666; font-size: 16px; margin-top: 8px;">We horen graag wat je ervan vindt!</p>
+                </div>
+
+                <p style="color: #333; line-height: 1.6;">Beste {customer_name},</p>
+
+                <p style="color: #666; line-height: 1.6;">
+                    Je bestelling <strong>#{order_number}</strong> is afgeleverd! We hopen dat je blij bent met {products_text}.
+                </p>
+
+                <p style="color: #666; line-height: 1.6;">
+                    Zou je een paar minuten willen nemen om een review te schrijven? Jouw feedback helpt andere ouders bij hun keuze en helpt ons om nog betere producten te maken.
+                </p>
+
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #8B7355; margin-bottom: 12px;">Je bestelde producten:</h3>
+                    {items_html}
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{review_url}"
+                       style="display: inline-block; background: #8B7355; color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                        Schrijf een Review
+                    </a>
+                </div>
+
+                <div style="background: #fdf8f3; padding: 20px; border-radius: 10px; margin: 25px 0; text-align: center;">
+                    <p style="margin: 0; color: #8B7355; font-weight: 600;">Als dank krijg je 10% korting op je volgende bestelling!</p>
+                    <p style="margin: 8px 0 0 0; color: #999; font-size: 13px;">Je ontvangt de kortingscode nadat je review is geplaatst.</p>
+                </div>
+
+                <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 14px;">
+                    <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.nl" style="color: #8B7355;">info@droomvriendjes.nl</a></p>
+                    <p style="margin-top: 15px;">
+                        Droomvriendjes<br>
+                        <span style="font-size: 12px;">Slaapknuffels voor een betere nachtrust</span>
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"""
+HOE BEVALT JE BESTELLING?
+
+Beste {customer_name},
+
+Je bestelling #{order_number} is afgeleverd! We hopen dat je blij bent met {products_text}.
+
+Zou je een review willen schrijven? Jouw feedback helpt andere ouders bij hun keuze.
+
+Schrijf een review: {review_url}
+
+Als dank krijg je 10% korting op je volgende bestelling!
+
+Vragen? Mail naar info@droomvriendjes.nl
+
+Droomvriendjes
+        """
+
+        result = send_email(customer_email, subject, html_content, text_content)
+        if result:
+            logger.info(f"Review request email sent for order {order_number} to {customer_email}")
+        return result
+
+    except Exception as e:
+        logger.error(f"Failed to send review request email: {str(e)}")
+        return False
+
+
 # ============== SENDCLOUD API INTEGRATION ==============
 
 def get_sendcloud_auth():
