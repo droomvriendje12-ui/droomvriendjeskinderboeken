@@ -1030,12 +1030,10 @@ async def validate_discount_code(data: DiscountCodeValidate):
         code = data.code.strip().upper()
         logger.info(f"Validating discount code: {code}")
         
-        # Check if it's a gift card code (starts with DV-)
-        if code.startswith("DV-"):
-            gift_card = await db.gift_cards.find_one({
-                "code": code,
-                "status": "active"
-            })
+        # Check if it's a gift card code (starts with DV-) - uses Supabase
+        if code.startswith("DV-") and supabase_client:
+            result = supabase_client.table("gift_cards").select("*").eq("code", code).eq("status", "active").limit(1).execute()
+            gift_card = result.data[0] if result.data else None
             
             if gift_card:
                 remaining = gift_card.get("remaining_amount", gift_card.get("amount", 0))
@@ -1044,7 +1042,7 @@ async def validate_discount_code(data: DiscountCodeValidate):
                     "valid": True,
                     "code": code,
                     "type": "gift_card",
-                    "discount_amount": discount,
+                    "discount_amount": round(discount, 2),
                     "message": f"Cadeaubon toegepast: -€{discount:.2f}"
                 }
             else:
@@ -1053,11 +1051,11 @@ async def validate_discount_code(data: DiscountCodeValidate):
                     "message": "Ongeldige of verlopen cadeaubon"
                 }
         
-        # Check regular discount codes
-        discount_code = await db.discount_codes.find_one({
-            "code": code,
-            "active": True
-        })
+        # Check regular discount codes via Supabase
+        discount_code = None
+        if supabase_client:
+            result = supabase_client.table("discount_codes").select("*").eq("code", code).eq("active", True).limit(1).execute()
+            discount_code = result.data[0] if result.data else None
         
         logger.info(f"Discount code lookup result: {discount_code is not None}")
         
