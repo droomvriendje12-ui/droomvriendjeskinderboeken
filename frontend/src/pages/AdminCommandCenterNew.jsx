@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, BarChart3, Send, MessageCircle, Users,
   Megaphone, Gift, Star, Layers, LogOut, ChevronRight,
   DollarSign, ShoppingCart, Eye, Mail, TrendingUp, Plus,
-  Download, Activity, Package, Settings, Zap, Target, Clock
+  Download, Activity, Package, Settings, Zap, Target, Clock,
+  Bell, Wifi, WifiOff
 } from 'lucide-react';
 
 
