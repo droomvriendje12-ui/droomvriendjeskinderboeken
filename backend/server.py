@@ -1907,12 +1907,25 @@ async def update_order_status(order_id: str, data: dict):
             }
             if new_status == "shipped":
                 updates["shipped_at"] = datetime.now(timezone.utc).isoformat()
+            if new_status == "delivered":
+                updates["delivered_at"] = datetime.now(timezone.utc).isoformat()
             
             result = supabase_client.table("orders").update(updates).eq("id", order_id).execute()
             if not result.data:
                 raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
             
             logger.info(f"Order {order_id} status updated to {new_status}")
+            
+            # Send review request email when order is delivered
+            if new_status == "delivered":
+                try:
+                    order = result.data[0]
+                    items_result = supabase_client.table("order_items").select("*").eq("order_id", order_id).execute()
+                    items = items_result.data or []
+                    send_review_request_email(order, items)
+                except Exception as email_err:
+                    logger.error(f"Failed to send review request email: {email_err}")
+            
             return {"success": True, "status": new_status}
         else:
             raise HTTPException(status_code=500, detail="Database not configured")
