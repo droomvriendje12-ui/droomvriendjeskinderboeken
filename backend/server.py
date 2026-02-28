@@ -170,6 +170,7 @@ from routes import reviews as reviews_route
 from routes import uploads as uploads_route
 from routes import marketing as marketing_route
 from routes import database_info as database_info_route
+from routes import gift_cards_supabase as gift_cards_supabase_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
