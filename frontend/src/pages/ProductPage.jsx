@@ -998,11 +998,12 @@ const ProductPage = () => {
                 >
                   {/* Header with Avatar */}
                   <div className="flex items-start gap-3 mb-4">
-                    <img 
-                      src={review.avatar || `https://i.pravatar.cc/48?img=${(review.id % 20) + 20}`}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <div 
+                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-[#8B7355] text-white font-bold text-lg"
+                      data-testid={`review-avatar-${index}`}
+                    >
+                      {(review.name || '?').charAt(0).toUpperCase()}
+                    </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900">{review.name}</span>
