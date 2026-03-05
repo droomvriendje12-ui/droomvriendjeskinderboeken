@@ -255,6 +255,7 @@ async def update_product(product_id: str, updates: dict):
             "itemVariant": "item_variant",
             "itemId": "item_id",
             "reviewCount": "review_count",
+            "reviews": "review_count",
             "quickFeatures": "quick_features",
         }
         
