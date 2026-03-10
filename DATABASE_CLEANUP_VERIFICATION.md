@@ -85,7 +85,7 @@ Found and updated references to old preview domain:
 #### Changes:
 **Before:**
 ```
-https://gift-card-migration.preview.emergentagent.com
+https://email-import.preview.emergentagent.com
 ```
 
 **After:**

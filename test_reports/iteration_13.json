@@ -31,7 +31,7 @@
   },
   "test_credentials": {
     "admin_login": "username=admin, password=Droomvriendjes2024!",
-    "api_base_url": "https://gift-card-migration.preview.emergentagent.com"
+    "api_base_url": "https://email-import.preview.emergentagent.com"
   },
   "seed_data_creation": "None required - used existing orders for testing",
   "retest_needed": false,

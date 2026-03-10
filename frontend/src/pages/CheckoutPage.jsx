@@ -16,6 +16,7 @@ const CheckoutPage = () => {
   const hasTrackedRef = useRef(false);
   const [addedProducts, setAddedProducts] = useState({});
   const crossSellRef = useRef(null);
+  const formRef = useRef(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -313,6 +314,7 @@ const CheckoutPage = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-cream py-4 sm:py-6" style={{maxWidth: '100vw', overflowX: 'hidden'}}>
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8" style={{maxWidth: '100%'}}>
         {/* Header */}
@@ -344,7 +346,7 @@ const CheckoutPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} ref={formRef}>
           <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
@@ -358,7 +360,10 @@ const CheckoutPage = () => {
                     onClick={() => {
                       handlePaymentMethodChange('applepay');
                       if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                        document.getElementById('checkout-form-submit')?.click();
+                        formRef.current?.requestSubmit();
+                      } else {
+                        setError('Vul eerst alle verplichte velden in voordat je Apple Pay gebruikt');
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
                       }
                     }}
                     className="w-full max-w-[350px] flex items-center justify-center gap-2 py-3.5 px-6 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px]"
@@ -859,26 +864,7 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Sticky Mobile Payment Bar */}
-          <div className="fixed bottom-0 left-0 right-0 lg:hidden z-50 bg-warm-brown-500 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]" data-testid="sticky-payment-bar">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-4 px-6 text-white font-bold text-lg disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Verwerken...</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-5 h-5" />
-                  <span>Veilig betalen €{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0) + (formData.giftWrap ? GIFT_WRAP_PRICE : 0))).toFixed(2).replace('.', ',')}</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Sticky bar moved outside - see below */}
         </form>
 
         {/* Bottom padding for sticky bar on mobile */}
@@ -976,6 +962,30 @@ const CheckoutPage = () => {
         </div>
       </div>
     </div>
+
+      {/* Sticky Mobile Payment Bar - outside overflow container for proper fixed positioning */}
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-warm-brown-500" style={{zIndex: 9999, boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'}} data-testid="sticky-payment-bar">
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => formRef.current?.requestSubmit()}
+          className="w-full flex items-center justify-center gap-2 py-4 px-6 text-white font-bold text-lg disabled:opacity-50"
+          data-testid="sticky-payment-button"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Verwerken...</span>
+            </>
+          ) : (
+            <>
+              <Lock className="w-5 h-5" />
+              <span>Veilig betalen €{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0) + (formData.giftWrap ? GIFT_WRAP_PRICE : 0))).toFixed(2).replace('.', ',')}</span>
+            </>
+          )}
+        </button>
+      </div>
+    </>
   );
 };
 

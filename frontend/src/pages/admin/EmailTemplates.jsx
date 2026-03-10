@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Mail, Plus, Edit2, Trash2, Eye, Copy, Save, X, 
   ChevronLeft, Code, Link, Variable, Send, CheckCircle,
-  Upload, FileArchive, Image, FolderOpen
+  Upload, FileArchive, Image, FolderOpen, FileUp, Users, AlertCircle
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -26,6 +26,14 @@ const EmailTemplatesAdmin = () => {
   const [assets, setAssets] = useState([]);
   const [showAssets, setShowAssets] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // CSV Import state
+  const [showCsvImport, setShowCsvImport] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvSource, setCsvSource] = useState('');
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvResult, setCsvResult] = useState(null);
+  const csvInputRef = useRef(null);
 
   // Form state for editing
   const [formData, setFormData] = useState({
@@ -80,6 +88,34 @@ const EmailTemplatesAdmin = () => {
       }
     } catch (error) {
       console.error('Error fetching assets:', error);
+    }
+  };
+
+  const handleCsvImport = async () => {
+    if (!csvFile) return;
+    setCsvImporting(true);
+    setCsvResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', csvFile);
+      if (csvSource) formData.append('source', csvSource);
+
+      const response = await fetch(`${API_URL}/api/email/csv/import`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCsvResult(data);
+        setCsvFile(null);
+        if (csvInputRef.current) csvInputRef.current.value = '';
+      } else {
+        setCsvResult({ success: false, message: data.detail || 'Import mislukt' });
+      }
+    } catch (error) {
+      setCsvResult({ success: false, message: 'Verbindingsfout: ' + error.message });
+    } finally {
+      setCsvImporting(false);
     }
   };
 
@@ -316,6 +352,27 @@ const EmailTemplatesAdmin = () => {
             </div>
             <div className="flex gap-2">
               <input
+                ref={csvInputRef}
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  setCsvFile(e.target.files?.[0] || null);
+                  setCsvResult(null);
+                  if (e.target.files?.[0]) setShowCsvImport(true);
+                }}
+                className="hidden"
+                id="csv-upload"
+                data-testid="csv-file-input"
+              />
+              <Button 
+                variant="outline"
+                onClick={() => csvInputRef.current?.click()}
+                data-testid="csv-import-btn"
+              >
+                <FileUp className="w-4 h-4 mr-2" />
+                CSV Import
+              </Button>
+              <input
                 ref={fileInputRef}
                 type="file"
                 accept=".zip"
@@ -391,6 +448,133 @@ const EmailTemplatesAdmin = () => {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* CSV Import Panel */}
+        {showCsvImport && (
+          <div className="mb-6 bg-white rounded-xl shadow-sm border p-5" data-testid="csv-import-panel">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#8B7355]" />
+                CSV Contacten Importeren
+              </h3>
+              <button onClick={() => { setShowCsvImport(false); setCsvResult(null); }} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* File info */}
+              {csvFile && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <FileUp className="w-5 h-5 text-[#8B7355]" />
+                  <div>
+                    <p className="font-medium text-sm">{csvFile.name}</p>
+                    <p className="text-xs text-gray-500">{(csvFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={() => { setCsvFile(null); if (csvInputRef.current) csvInputRef.current.value = ''; }} className="ml-auto text-gray-400 hover:text-red-500">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Source tag */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bron label (optioneel)
+                </label>
+                <Input
+                  placeholder="bijv. webshop_nieuwsbrief, beurs_maart_2026"
+                  value={csvSource}
+                  onChange={(e) => setCsvSource(e.target.value)}
+                  data-testid="csv-source-input"
+                />
+                <p className="text-xs text-gray-500 mt-1">Voor analytics tracking. Standaard: csv_import_[datum]</p>
+              </div>
+
+              {/* Info box */}
+              <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+                <p className="font-medium mb-1">CSV Vereisten:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-xs">
+                  <li>Kolom <code className="bg-blue-100 px-1 rounded">email</code> (verplicht)</li>
+                  <li>Kolom <code className="bg-blue-100 px-1 rounded">naam</code> (optioneel)</li>
+                  <li>Scheidingsteken: komma, puntkomma of tab</li>
+                  <li>Duplicaten worden automatisch overgeslagen</li>
+                </ul>
+              </div>
+
+              {/* Import button */}
+              <Button 
+                onClick={handleCsvImport}
+                disabled={!csvFile || csvImporting}
+                className="w-full bg-[#8B7355] hover:bg-[#6d5a45]"
+                data-testid="csv-import-submit"
+              >
+                {csvImporting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                    Importeren...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    Importeer Contacten
+                  </span>
+                )}
+              </Button>
+
+              {/* Results */}
+              {csvResult && (
+                <div className={`p-4 rounded-lg ${csvResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`} data-testid="csv-import-result">
+                  <div className="flex items-start gap-2">
+                    {csvResult.success ? (
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-medium text-sm ${csvResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                        {csvResult.message}
+                      </p>
+                      {csvResult.success && (
+                        <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          <div className="bg-white p-2 rounded text-center">
+                            <div className="font-bold text-lg text-gray-900">{csvResult.total_rows}</div>
+                            <div className="text-gray-500">Totaal rijen</div>
+                          </div>
+                          <div className="bg-white p-2 rounded text-center">
+                            <div className="font-bold text-lg text-green-600">{csvResult.added}</div>
+                            <div className="text-gray-500">Toegevoegd</div>
+                          </div>
+                          <div className="bg-white p-2 rounded text-center">
+                            <div className="font-bold text-lg text-orange-500">{csvResult.skipped_existing}</div>
+                            <div className="text-gray-500">Al bestaand</div>
+                          </div>
+                          <div className="bg-white p-2 rounded text-center">
+                            <div className="font-bold text-lg text-red-500">{csvResult.invalid}</div>
+                            <div className="text-gray-500">Ongeldig</div>
+                          </div>
+                        </div>
+                      )}
+                      {csvResult.invalid_emails && csvResult.invalid_emails.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-red-600 font-medium">Ongeldige e-mails:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {csvResult.invalid_emails.map((e, i) => (
+                              <span key={i} className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">{e}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {csvResult.source && (
+                        <p className="mt-2 text-xs text-gray-500">Bron: <code className="bg-gray-100 px-1 rounded">{csvResult.source}</code></p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

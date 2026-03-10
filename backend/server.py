@@ -172,6 +172,7 @@ from routes import uploads as uploads_route
 from routes import marketing as marketing_route
 from routes import database_info as database_info_route
 from routes import gift_cards_supabase as gift_cards_supabase_route
+from routes import csv_import as csv_import_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -211,10 +212,12 @@ discount_codes_route.set_database(db)
 uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)
+csv_import_route.set_db(db)
 
 # Include other routers
 api_router.include_router(discount_codes_route.router)
 api_router.include_router(uploads_route.router)
+api_router.include_router(csv_import_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)
