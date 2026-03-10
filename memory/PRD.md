@@ -6,50 +6,41 @@ E-commerce platform voor Droomvriendjes (slaapknuffels). Volledig gemigreerd van
 ## Architectuur
 - **Frontend:** React, React Router, Tailwind CSS, Shadcn UI, @supabase/supabase-js
 - **Backend:** FastAPI, Pydantic
-- **Database:** Supabase (PostgreSQL)
+- **Database:** Supabase (PostgreSQL) + MongoDB (funnel events)
 - **Bestandsopslag:** Supabase Storage
 - **Email:** TransIP SMTP
 - **Betalingen:** Mollie API
-- **Adres Lookup:** PDOK API (gratis, Nederlands overheid)
+- **Adres Lookup:** PDOK (NL) + Nominatim/OpenStreetMap (BE) - gratis
 - **Realtime:** Supabase Realtime
+- **Analytics:** Custom Funnel Tracking (MongoDB)
 
 ## Wat is Geïmplementeerd
 
 ### Voltooide Features
 - [x] MongoDB → Supabase volledige migratie
-- [x] Productbeheer (CRUD, specs, afbeeldingen via Supabase Storage)
-- [x] Bestelflow met Mollie betalingen
-- [x] Admin dashboard met statistieken + Supabase Realtime
-- [x] Admin bestellingenbeheer (status, tracking)
-- [x] Review systeem (CRUD, toewijzing, avatars met eerste letter)
-- [x] Email templates beheer
+- [x] Productbeheer + Supabase Storage
+- [x] Bestelflow met Mollie
+- [x] Admin dashboard met echte Supabase stats
+- [x] Review systeem + avatars met eerste letter
 - [x] TransIP SMTP emails (bestelling, tracking, review-verzoek)
 - [x] Cadeaubon systeem (Supabase)
-- [x] Review-verzoek email bij status "Geleverd"
-- [x] **Checkout Mobile-First Reconstructie** (10 mrt 2026)
-  - Express Checkout (Apple Pay) bovenaan
-  - Adres auto-fill via PDOK API (postcode + huisnr → straat + stad)
-  - Floating labels op alle invoervelden
-  - Numeriek toetsenbord voor postcode/telefoon
-  - 48px minimum touch targets
-  - Cadeauverpakking checkbox (+€3) ipv opmerkingenveld
-  - Compacte radio-lijst betaalmethoden
-  - Sticky "Veilig betalen" balk op mobiel
-  - Cross-sell carousel in besteloverzicht
-
-## Openstaande Taken
-
-### P2 - Toekomstig
-- [ ] Admin interface verfijning (styling, navigatie, performance)
-
-### P3 - Backlog
-- [ ] Supabase Realtime publicatie inschakelen via Supabase Dashboard
+- [x] Supabase Realtime op Admin Dashboard
+- [x] Checkout Mobile-First Reconstructie
+- [x] **Apple Pay knop responsive** (10 mrt 2026) - SVG logo, max-width 350px, gecentreerd
+- [x] **Adres lookup NL + België** (10 mrt 2026) - PDOK (NL) + Nominatim (BE)
+- [x] **Dashboard data integrity** (10 mrt 2026) - Verwijderd: random bezoekers, fake percentages
+- [x] **Funnel Tracking** (10 mrt 2026) - 6-staps conversie funnel met drop-off percentages
+  - Product bekeken → In winkelwagen → Checkout gestart → Adres ingevuld → Betaalmethode gekozen → Aankoop voltooid
 
 ## Key API Endpoints
-- `GET /api/address/lookup?postcode=...&huisnummer=...` - PDOK adres auto-fill
-- `PUT /api/admin/orders/{id}/status` - Status update + review email bij "delivered"
-- `POST /api/gift-card/purchase` - Cadeaubon + Mollie betaling
-- `POST /api/gift-card/validate` - Cadeaubon validatie
+- `GET /api/address/lookup?postcode=...&huisnummer=...` - NL+BE adres auto-fill
+- `POST /api/funnel/event` - Track customer journey events
+- `GET /api/admin/funnel-stats?days=30` - Funnel statistics met drop-off
+- `GET /api/admin/dashboard?days=30` - Dashboard stats (echte Supabase data)
+
+## Openstaande Taken
+### P2 - Toekomstig
+- [ ] Admin interface verfijning
 
 ## Credentials
 - **Admin:** username=admin / password=Droomvriendjes2024!
