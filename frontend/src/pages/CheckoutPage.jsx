@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2, Plus, Minus, Trash2, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2, Plus, Minus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from '../utils/analytics';
 import { products } from '../mockData';
 
@@ -24,7 +24,7 @@ const CheckoutPage = () => {
     city: '',
     zipCode: '',
     phone: '',
-    comment: '',
+    giftWrap: false,
     paymentMethod: 'ideal'
   });
 
@@ -137,7 +137,8 @@ const CheckoutPage = () => {
       const subtotal = getSubtotal();
       const autoDiscount = getDiscount(); // 2nd item 50% off
       const couponDiscount = appliedCoupon ? appliedCoupon.discount_amount : 0;
-      const finalTotal = Math.max(0, subtotal - autoDiscount - couponDiscount);
+      const giftWrapCost = formData.giftWrap ? GIFT_WRAP_PRICE : 0;
+      const finalTotal = Math.max(0, subtotal - autoDiscount - couponDiscount + giftWrapCost);
       
       const orderResponse = await fetch(`/api/orders`, {
         method: 'POST',
@@ -149,7 +150,8 @@ const CheckoutPage = () => {
           customer_address: formData.address,
           customer_city: formData.city,
           customer_zipcode: formData.zipCode,
-          customer_comment: formData.comment || '',
+          customer_comment: formData.giftWrap ? 'Cadeauverpakking gewenst' : '',
+          gift_wrap: formData.giftWrap,
           items: cart.map(item => ({
             product_id: String(item.id),
             product_name: item.shortName || item.name,
@@ -202,12 +204,18 @@ const CheckoutPage = () => {
   };
 
   const paymentMethods = [
-    { value: 'ideal', label: 'iDEAL', icon: '🏦', popular: true, description: 'Direct via je bank' },
-    { value: 'creditcard', label: 'Creditcard', icon: '💳', description: 'Visa, Mastercard, Amex' },
-    { value: 'in3', label: 'iDEAL in3', icon: '3️⃣', description: 'Betaal in 3 termijnen' },
-    { value: 'applepay', label: 'Apple Pay', icon: '🍎', description: 'Snel & veilig' },
-    { value: 'bancontact', label: 'Bancontact', icon: '🇧🇪', description: 'Voor België' },
+    { value: 'ideal', label: 'iDEAL', icon: 'https://www.mollie.com/external/icons/payment-methods/ideal.svg', popular: true, description: 'Direct via je bank' },
+    { value: 'creditcard', label: 'Creditcard', icon: 'https://www.mollie.com/external/icons/payment-methods/creditcard.svg', description: 'Visa, Mastercard, Amex' },
+    { value: 'in3', label: 'iDEAL in3', icon: 'https://www.mollie.com/external/icons/payment-methods/in3.svg', description: 'Betaal in 3 termijnen' },
+    { value: 'bancontact', label: 'Bancontact', icon: 'https://www.mollie.com/external/icons/payment-methods/bancontact.svg', description: 'Voor Belgie' },
   ];
+
+  const expressMethods = [
+    { value: 'applepay', label: 'Apple Pay', icon: 'https://www.mollie.com/external/icons/payment-methods/applepay.svg' },
+  ];
+
+  // Gift wrap price
+  const GIFT_WRAP_PRICE = 3.00;
 
   // Get cross-sell products (exclude items already in cart)
   const cartProductIds = cart.map(item => item.id);
@@ -294,6 +302,37 @@ const CheckoutPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-6">
+              
+              {/* Express Checkout - Apple Pay First */}
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6" data-testid="express-checkout">
+                <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Express Checkout</h2>
+                <div className="space-y-2">
+                  {expressMethods.map(method => (
+                    <button
+                      key={method.value}
+                      type="button"
+                      onClick={() => {
+                        handlePaymentMethodChange(method.value);
+                        // For express, submit immediately if form is filled
+                        if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
+                          document.getElementById('checkout-form-submit')?.click();
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-3 p-4 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-900 transition-all"
+                      data-testid={`express-${method.value}`}
+                    >
+                      <img src={method.icon} alt={method.label} className="h-6 brightness-0 invert" />
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs text-slate-400 uppercase font-semibold">of vul je gegevens in</span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+              </div>
+
               {/* Contact Info */}
               <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -308,6 +347,7 @@ const CheckoutPage = () => {
                   onChange={handleInputChange}
                   required
                   className="w-full p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                  data-testid="checkout-email"
                 />
               </div>
 
@@ -326,6 +366,7 @@ const CheckoutPage = () => {
                     onChange={handleInputChange}
                     required
                     className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-firstname"
                   />
                   <input
                     type="text"
@@ -335,6 +376,7 @@ const CheckoutPage = () => {
                     onChange={handleInputChange}
                     required
                     className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-lastname"
                   />
                   <input
                     type="text"
@@ -344,6 +386,7 @@ const CheckoutPage = () => {
                     onChange={handleInputChange}
                     required
                     className="sm:col-span-2 p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-address"
                   />
                   <input
                     type="text"
@@ -353,6 +396,7 @@ const CheckoutPage = () => {
                     onChange={handleInputChange}
                     required
                     className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-zipcode"
                   />
                   <input
                     type="text"
@@ -362,6 +406,7 @@ const CheckoutPage = () => {
                     onChange={handleInputChange}
                     required
                     className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-city"
                   />
                   <input
                     type="tel"
@@ -370,51 +415,64 @@ const CheckoutPage = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="sm:col-span-2 p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-phone"
                   />
                 </div>
               </div>
 
-              {/* Comments/Special Requests */}
+              {/* Gift Wrap Checkbox (replaces opmerkingen) */}
               <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-warm-brown-500" />
-                  Opmerkingen
-                </h2>
-                <textarea
-                  name="comment"
-                  placeholder="Heb je een speciale wens of opmerking? (bijvoorbeeld: cadeauverpakking, bezorgmoment, persoonlijk bericht)"
-                  value={formData.comment}
-                  onChange={handleInputChange}
-                  rows="4"
-                  className="w-full p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none resize-none transition"
-                />
-                <p className="text-xs sm:text-sm text-slate-500 mt-2 flex items-center gap-1">
-                  <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-warm-brown-400" />
-                  Optioneel - We doen ons best om aan je wensen te voldoen!
-                </p>
+                <label 
+                  className="flex items-center gap-4 cursor-pointer group"
+                  data-testid="gift-wrap-option"
+                >
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                    formData.giftWrap 
+                      ? 'bg-warm-brown-500 border-warm-brown-500' 
+                      : 'border-slate-300 group-hover:border-warm-brown-400'
+                  }`}>
+                    {formData.giftWrap && <Check className="w-4 h-4 text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.giftWrap}
+                    onChange={(e) => setFormData(prev => ({ ...prev, giftWrap: e.target.checked }))}
+                    className="sr-only"
+                  />
+                  <div className="flex-1">
+                    <span className="font-semibold text-slate-800">Cadeauverpakking</span>
+                    <span className="text-warm-brown-600 font-bold ml-2">(+ EUR 3,00)</span>
+                    <p className="text-sm text-slate-500 mt-0.5">Mooi ingepakt met strik en kaartje</p>
+                  </div>
+                </label>
               </div>
 
-              {/* Payment Methods */}
+              {/* Payment Methods - Compact Radio List */}
               <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-warm-brown-500" />
                   Betaalmethode
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="space-y-2" data-testid="payment-methods-list">
                   {paymentMethods.map(method => (
                     <label 
                       key={method.value} 
-                      className={`relative flex flex-col items-center p-5 border-2 rounded-xl cursor-pointer hover:border-warm-brown-400 transition ${
+                      className={`flex items-center gap-3 p-3 sm:p-4 border-2 rounded-xl cursor-pointer transition-all ${
                         formData.paymentMethod === method.value 
-                          ? 'border-warm-brown-500 bg-warm-brown-50 shadow-md' 
-                          : 'border-slate-200 hover:bg-slate-50'
+                          ? 'border-warm-brown-500 bg-warm-brown-50' 
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
+                      data-testid={`payment-method-${method.value}`}
                     >
-                      {method.popular && (
-                        <span className="absolute -top-2 -right-2 bg-warm-brown-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                          Populair
-                        </span>
-                      )}
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        formData.paymentMethod === method.value 
+                          ? 'border-warm-brown-500' 
+                          : 'border-slate-300'
+                      }`}>
+                        {formData.paymentMethod === method.value && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-warm-brown-500" />
+                        )}
+                      </div>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -423,17 +481,24 @@ const CheckoutPage = () => {
                         onChange={() => handlePaymentMethodChange(method.value)}
                         className="sr-only"
                       />
-                      <span className="text-4xl mb-2">{method.icon}</span>
-                      <span className="font-semibold text-slate-700 text-base">{method.label}</span>
-                      <span className="text-sm text-slate-500 text-center mt-1">{method.description}</span>
+                      <img src={method.icon} alt={method.label} className="w-8 h-6 object-contain flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800 text-sm sm:text-base">{method.label}</span>
+                          {method.popular && (
+                            <span className="bg-warm-brown-500 text-white text-[10px] px-2 py-0.5 rounded-full font-semibold">Populair</span>
+                          )}
+                        </div>
+                        <span className="text-xs sm:text-sm text-slate-500">{method.description}</span>
+                      </div>
                     </label>
                   ))}
                 </div>
                 
                 {/* Payment Security Badge */}
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-600 bg-green-50 p-4 rounded-xl">
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-600 bg-green-50 p-3 rounded-xl">
                   <Lock className="w-4 h-4 text-green-600" />
-                  <span className="text-center">Veilige betaling via Mollie - SSL versleuteld</span>
+                  <span>Veilige betaling via Mollie - SSL versleuteld</span>
                 </div>
               </div>
             </div>
@@ -590,6 +655,12 @@ const CheckoutPage = () => {
                       <span className="font-semibold">-€{appliedCoupon.discount_amount.toFixed(2).replace('.', ',')}</span>
                     </div>
                   )}
+                  {formData.giftWrap && (
+                    <div className="flex justify-between text-slate-700">
+                      <span>Cadeauverpakking</span>
+                      <span className="font-semibold">€{GIFT_WRAP_PRICE.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-600">Verzending</span>
                     <span className="font-semibold text-green-600">GRATIS</span>
@@ -599,14 +670,15 @@ const CheckoutPage = () => {
                 {/* Total */}
                 <div className="flex justify-between text-xl sm:text-2xl font-bold mb-6 pt-4 border-t-2 border-warm-brown-100">
                   <span>Totaal</span>
-                  <span className="text-warm-brown-600">€{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0))).toFixed(2).replace('.', ',')}</span>
+                  <span className="text-warm-brown-600">€{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0) + (formData.giftWrap ? GIFT_WRAP_PRICE : 0))).toFixed(2).replace('.', ',')}</span>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Button - visible on desktop */}
                 <button
                   type="submit"
+                  id="checkout-form-submit"
                   disabled={isLoading}
-                  className="w-full bg-warm-brown-500 text-white py-5 sm:py-6 rounded-xl font-bold text-lg sm:text-xl hover:bg-warm-brown-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="hidden lg:flex w-full bg-warm-brown-500 text-white py-5 sm:py-6 rounded-xl font-bold text-lg sm:text-xl hover:bg-warm-brown-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center gap-2"
                   data-testid="checkout-submit-button"
                 >
                   {isLoading ? (
@@ -617,7 +689,7 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <span>Veilig betalen €{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0))).toFixed(2).replace('.', ',')}</span>
+                      <span>Veilig betalen €{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0) + (formData.giftWrap ? GIFT_WRAP_PRICE : 0))).toFixed(2).replace('.', ',')}</span>
                     </>
                   )}
                 </button>
@@ -644,7 +716,31 @@ const CheckoutPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Sticky Mobile Payment Bar */}
+          <div className="fixed bottom-0 left-0 right-0 lg:hidden z-50 bg-warm-brown-500 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]" data-testid="sticky-payment-bar">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 py-4 px-6 text-white font-bold text-lg disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Verwerken...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-5 h-5" />
+                  <span>Veilig betalen €{(Math.max(0, getTotal() - (appliedCoupon ? appliedCoupon.discount_amount : 0) + (formData.giftWrap ? GIFT_WRAP_PRICE : 0))).toFixed(2).replace('.', ',')}</span>
+                </>
+              )}
+            </button>
+          </div>
         </form>
+
+        {/* Bottom padding for sticky bar on mobile */}
+        <div className="h-16 lg:hidden" />
 
         {/* Trust Section - Enhanced */}
         <div className="mt-8 lg:mt-12">
