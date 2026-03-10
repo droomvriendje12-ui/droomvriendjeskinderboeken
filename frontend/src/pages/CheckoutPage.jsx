@@ -910,6 +910,27 @@ const CheckoutPage = () => {
                     algemene voorwaarden
                   </Link>
                 </p>
+
+                {/* Mobile-only "Betaal nu" button - visible in the gap before trust section */}
+                <button
+                  type="button"
+                  onClick={() => formRef.current?.requestSubmit()}
+                  disabled={isLoading}
+                  className="lg:hidden w-full mt-5 py-4 bg-warm-brown-500 text-white rounded-xl font-bold text-lg hover:bg-warm-brown-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  data-testid="mobile-betaal-nu-btn"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Verwerken...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      Betaal nu
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
