@@ -32,11 +32,15 @@ const MarketingCommandCenter = () => {
   const [campaignRunning, setCampaignRunning] = useState(false);
   const [campaignProgress, setCampaignProgress] = useState(null);
 
+  // Unsubscribe stats
+  const [unsubStats, setUnsubStats] = useState(null);
+
   // Fetch data on mount
   useEffect(() => {
     fetchQueueStats();
     fetchTemplates();
     fetchQueueItems();
+    fetchUnsubStats();
   }, []);
 
   // Cleanup
@@ -77,6 +81,16 @@ const MarketingCommandCenter = () => {
       }
     } catch (e) { console.error('Queue error:', e); }
     setQueueLoading(false);
+  };
+
+  const fetchUnsubStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/email/csv/unsubscribe-stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setUnsubStats(data);
+      }
+    } catch (e) { console.error('Unsub stats error:', e); }
   };
 
   // CSV Import
@@ -181,6 +195,7 @@ const MarketingCommandCenter = () => {
   const totalPending = queueStats ? Object.values(queueStats).reduce((sum, s) => sum + (s.pending || 0), 0) : 0;
   const totalSent = queueStats ? Object.values(queueStats).reduce((sum, s) => sum + (s.sent || 0), 0) : 0;
   const totalFailed = queueStats ? Object.values(queueStats).reduce((sum, s) => sum + (s.failed || 0), 0) : 0;
+  const totalUnsub = unsubStats?.total_unsubscribed || 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -210,7 +225,7 @@ const MarketingCommandCenter = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-testid="stats-cards">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" data-testid="stats-cards">
           <div className="bg-white rounded-xl p-4 border shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -252,6 +267,17 @@ const MarketingCommandCenter = () => {
               <div>
                 <p className="text-2xl font-bold text-slate-800">{totalFailed.toLocaleString()}</p>
                 <p className="text-xs text-slate-500">Mislukt</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-4 border shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-slate-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-800">{totalUnsub.toLocaleString()}</p>
+                <p className="text-xs text-slate-500">Uitgeschreven</p>
               </div>
             </div>
           </div>
@@ -542,6 +568,9 @@ const MarketingCommandCenter = () => {
                           {(stats.failed || 0) > 0 && (
                             <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">{stats.failed} mislukt</span>
                           )}
+                          {(stats.unsubscribed || 0) > 0 && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{stats.unsubscribed} afgemeld</span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -586,9 +615,10 @@ const MarketingCommandCenter = () => {
                         <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                           item.status === 'sent' ? 'bg-green-100 text-green-700' :
                           item.status === 'failed' ? 'bg-red-100 text-red-700' :
+                          item.status === 'unsubscribed' ? 'bg-slate-100 text-slate-600' :
                           'bg-orange-100 text-orange-700'
                         }`}>
-                          {item.status === 'sent' ? 'Verzonden' : item.status === 'failed' ? 'Mislukt' : 'Wachtend'}
+                          {item.status === 'sent' ? 'Verzonden' : item.status === 'failed' ? 'Mislukt' : item.status === 'unsubscribed' ? 'Afgemeld' : 'Wachtend'}
                         </span>
                       </div>
                     ))}

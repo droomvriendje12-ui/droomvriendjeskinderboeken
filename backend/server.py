@@ -215,6 +215,17 @@ database_info_route.set_database(db)
 csv_import_route.set_db(db)
 csv_import_route.set_supabase(supabase_client)
 
+# Set site URL for unsubscribe links - read from frontend env
+try:
+    with open('/app/frontend/.env', 'r') as f:
+        for line in f:
+            if line.startswith('REACT_APP_BACKEND_URL='):
+                site_url = line.strip().split('=', 1)[1]
+                csv_import_route.set_site_url(site_url)
+                break
+except Exception:
+    pass
+
 # Include other routers
 api_router.include_router(discount_codes_route.router)
 api_router.include_router(uploads_route.router)

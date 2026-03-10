@@ -2,8 +2,10 @@
 CSV Import & Email Queue API Routes
 Upload CSV with email + naam columns, validate, deduplicate, and add to email_queue
 Bulk email sending with template support
+Unsubscribe/afmelden feature for AVG/GDPR compliance
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
+from fastapi.responses import HTMLResponse
 from typing import Optional, Callable
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -13,6 +15,8 @@ import re
 import csv
 import io
 import asyncio
+import hashlib
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +28,8 @@ db = None
 supabase_client = None
 # Email send function reference
 email_sender: Callable = None
+# Site URL for unsubscribe links
+SITE_URL = os.environ.get("REACT_APP_BACKEND_URL", os.environ.get("SITE_URL", ""))
 
 def set_db(database):
     """Set the MongoDB database reference"""
@@ -41,8 +47,16 @@ def set_email_sender(sender_fn: Callable):
     global email_sender
     email_sender = sender_fn
 
+def set_site_url(url: str):
+    """Set the site URL for unsubscribe links"""
+    global SITE_URL
+    SITE_URL = url
+
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
+# Secret for generating unsubscribe tokens (consistent per deployment)
+UNSUB_SECRET = os.environ.get("UNSUB_SECRET", "droomvriendjes_unsub_2026")
 
 
 def validate_email(email: str) -> bool:
@@ -50,6 +64,39 @@ def validate_email(email: str) -> bool:
     if not email or not isinstance(email, str):
         return False
     return bool(EMAIL_REGEX.match(email.strip()))
+
+
+def generate_unsub_token(email: str) -> str:
+    """Generate a deterministic unsubscribe token for an email address"""
+    return hashlib.sha256(f"{UNSUB_SECRET}:{email}".encode()).hexdigest()[:32]
+
+
+def build_unsub_url(email: str) -> str:
+    """Build the full unsubscribe URL for a contact"""
+    token = generate_unsub_token(email)
+    base = SITE_URL.rstrip('/')
+    return f"{base}/api/email/csv/unsubscribe/{token}?email={email}"
+
+
+def append_unsub_footer(html_content: str, email: str) -> str:
+    """Append unsubscribe footer to HTML email content"""
+    unsub_url = build_unsub_url(email)
+    footer = f'''
+    <div style="margin-top:30px;padding-top:20px;border-top:1px solid #e5e5e5;text-align:center;font-size:12px;color:#999;">
+      <p>Je ontvangt deze email omdat je je hebt aangemeld bij Droomvriendjes.</p>
+      <p><a href="{unsub_url}" style="color:#8B7355;text-decoration:underline;">Uitschrijven</a> | Droomvriendjes</p>
+    </div>'''
+    # Insert before closing </body> or append at end
+    if '</body>' in html_content.lower():
+        idx = html_content.lower().rfind('</body>')
+        return html_content[:idx] + footer + html_content[idx:]
+    return html_content + footer
+
+
+def append_unsub_text(text_content: str, email: str) -> str:
+    """Append unsubscribe link to plain text email"""
+    unsub_url = build_unsub_url(email)
+    return text_content + f"\n\n---\nUitschrijven: {unsub_url}"
 
 
 @router.post("/import")
@@ -193,6 +240,7 @@ async def import_csv(
                 "source": source_tag,
                 "template_id": template_id,
                 "status": "pending",
+                "unsub_token": generate_unsub_token(entry['email']),
                 "created_at": now.isoformat(),
             })
 
@@ -325,7 +373,7 @@ async def send_campaign(request: CampaignRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Template ophalen mislukt: {e}")
 
-    # Get pending contacts from queue
+    # Get pending contacts from queue (skip unsubscribed)
     query = {"status": "pending"}
     if request.source:
         query["source"] = request.source
@@ -365,9 +413,13 @@ async def send_campaign(request: CampaignRequest):
             content = content.replace("{{naam}}", naam).replace("{{firstname}}", naam).replace("{{voornaam}}", naam)
             content = content.replace("{{email}}", email)
 
+            # Append unsubscribe footer (AVG/GDPR)
+            content = append_unsub_footer(content, email)
+
             # Plain text fallback
             import html as html_module
             text_content = html_module.unescape(re.sub(r'<[^>]+>', '', content))
+            text_content = append_unsub_text(text_content, email)
 
             try:
                 success = email_sender(email, subject, content, text_content)
@@ -466,3 +518,111 @@ async def get_queue_stats():
     except Exception as e:
         logger.error(f"Error getting queue stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/unsubscribe/{token}", response_class=HTMLResponse)
+async def unsubscribe(token: str, email: str = ""):
+    """
+    Unsubscribe endpoint - marks contact as unsubscribed.
+    Returns a friendly HTML confirmation page.
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database niet geconfigureerd")
+
+    try:
+        # Verify token matches the email
+        if email and generate_unsub_token(email) != token:
+            return HTMLResponse(content=_unsub_page("Ongeldige uitschrijflink", False), status_code=400)
+
+        # Find and update - match by email since token is verified above
+        if email:
+            result = await db['email_queue'].update_many(
+                {"email": email, "status": {"$ne": "unsubscribed"}},
+                {"$set": {
+                    "status": "unsubscribed",
+                    "unsub_token": token,
+                    "unsubscribed_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        else:
+            result = await db['email_queue'].update_many(
+                {"unsub_token": token, "status": {"$ne": "unsubscribed"}},
+                {"$set": {
+                    "status": "unsubscribed",
+                    "unsubscribed_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+
+        if result.modified_count > 0:
+            logger.info(f"Unsubscribed: {email} (token: {token[:8]}...) - {result.modified_count} records updated")
+            return HTMLResponse(content=_unsub_page("Je bent uitgeschreven", True, email))
+        else:
+            # Maybe already unsubscribed
+            existing = await db['email_queue'].find_one({"email": email})
+            if existing and existing.get("status") == "unsubscribed":
+                return HTMLResponse(content=_unsub_page("Je was al uitgeschreven", True, email))
+            return HTMLResponse(content=_unsub_page("E-mailadres niet gevonden", False))
+
+    except Exception as e:
+        logger.error(f"Unsubscribe error: {e}")
+        return HTMLResponse(content=_unsub_page("Er ging iets mis", False), status_code=500)
+
+
+@router.get("/unsubscribe-stats")
+async def get_unsubscribe_stats():
+    """Get unsubscribe statistics"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database niet geconfigureerd")
+
+    try:
+        total_unsub = await db['email_queue'].count_documents({"status": "unsubscribed"})
+        recent = await db['email_queue'].find(
+            {"status": "unsubscribed"},
+            {"_id": 0, "email": 1, "naam": 1, "unsubscribed_at": 1}
+        ).sort("unsubscribed_at", -1).limit(20).to_list(length=20)
+
+        return {
+            "total_unsubscribed": total_unsub,
+            "recent": recent
+        }
+    except Exception as e:
+        logger.error(f"Unsubscribe stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def _unsub_page(title: str, success: bool, email: str = "") -> str:
+    """Generate the unsubscribe confirmation HTML page"""
+    icon = "&#10003;" if success else "&#10007;"
+    color = "#4ade80" if success else "#f87171"
+    bg = "#f0fdf4" if success else "#fef2f2"
+
+    return f"""<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title} - Droomvriendjes</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #faf8f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }}
+        .card {{ background: white; border-radius: 16px; padding: 48px 40px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }}
+        .icon {{ width: 64px; height: 64px; border-radius: 50%; background: {bg}; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 28px; color: {color}; }}
+        h1 {{ font-size: 22px; color: #1e293b; margin-bottom: 12px; }}
+        p {{ font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 8px; }}
+        .email {{ font-weight: 600; color: #8B7355; }}
+        .home-link {{ display: inline-block; margin-top: 24px; padding: 12px 28px; background: #8B7355; color: white; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px; }}
+        .home-link:hover {{ background: #6d5a45; }}
+        .footer {{ margin-top: 32px; font-size: 12px; color: #94a3b8; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">{icon}</div>
+        <h1>{title}</h1>
+        {"<p>Het e-mailadres <span class='email'>" + email + "</span> ontvangt geen marketing emails meer van ons.</p>" if success and email else ""}
+        {"<p>Mocht je je vergist hebben, neem dan contact met ons op via onze website.</p>" if success else "<p>Deze link is ongeldig of verlopen. Neem contact met ons op als je je wilt uitschrijven.</p>"}
+        <a href="https://droomvriendjes.nl" class="home-link">Naar Droomvriendjes</a>
+        <p class="footer">Droomvriendjes &mdash; Slaapknuffels met liefde gemaakt</p>
+    </div>
+</body>
+</html>"""
