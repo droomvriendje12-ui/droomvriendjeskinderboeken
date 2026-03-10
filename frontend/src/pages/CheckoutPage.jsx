@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2, Plus, Minus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2, Plus, Minus, Trash2, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from '../utils/analytics';
 import { products } from '../mockData';
 
@@ -23,10 +23,15 @@ const CheckoutPage = () => {
     address: '',
     city: '',
     zipCode: '',
+    houseNumber: '',
     phone: '',
     giftWrap: false,
     paymentMethod: 'ideal'
   });
+
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressFound, setAddressFound] = useState(null);
+  const addressTimeoutRef = useRef(null);
 
   // GA4: Track begin_checkout when page loads
   useEffect(() => {
@@ -79,6 +84,35 @@ const CheckoutPage = () => {
     }
   };
 
+  // Auto-fill address from postcode + huisnummer via PDOK
+  const lookupAddress = useCallback(async (zipCode, houseNumber) => {
+    const pc = zipCode.replace(/\s/g, '');
+    if (pc.length < 4) return;
+    
+    setAddressLoading(true);
+    setAddressFound(null);
+    try {
+      const params = new URLSearchParams({ postcode: pc });
+      if (houseNumber) params.append('huisnummer', houseNumber);
+      const res = await fetch(`/api/address/lookup?${params}`);
+      const data = await res.json();
+      if (data.found) {
+        setFormData(prev => ({
+          ...prev,
+          address: data.straat + (houseNumber ? ` ${houseNumber}` : ''),
+          city: data.stad,
+        }));
+        setAddressFound(true);
+      } else {
+        setAddressFound(false);
+      }
+    } catch {
+      setAddressFound(false);
+    } finally {
+      setAddressLoading(false);
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -92,6 +126,16 @@ const CheckoutPage = () => {
         const fullName = `${formData.firstName} ${formData.lastName}`.trim();
         trackCheckoutSession(value, fullName);
       }, 2000);
+    }
+
+    // Trigger address lookup when postcode or house number changes
+    if (name === 'zipCode' || name === 'houseNumber') {
+      if (addressTimeoutRef.current) clearTimeout(addressTimeoutRef.current);
+      const newZip = name === 'zipCode' ? value : formData.zipCode;
+      const newHouse = name === 'houseNumber' ? value : formData.houseNumber;
+      if (newZip.replace(/\s/g, '').length >= 4) {
+        addressTimeoutRef.current = setTimeout(() => lookupAddress(newZip, newHouse), 400);
+      }
     }
   };
 
@@ -267,8 +311,8 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream py-6 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-cream py-4 sm:py-6" style={{maxWidth: '100vw', overflowX: 'hidden'}}>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8" style={{maxWidth: '100%'}}>
         {/* Header */}
         <div className="text-center mb-6">
           <Link to="/" className="inline-block mb-4">
@@ -299,129 +343,219 @@ const CheckoutPage = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Left Column - Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               
               {/* Express Checkout - Apple Pay First */}
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6" data-testid="express-checkout">
+              <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6" data-testid="express-checkout">
                 <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Express Checkout</h2>
-                <div className="space-y-2">
-                  {expressMethods.map(method => (
-                    <button
-                      key={method.value}
-                      type="button"
-                      onClick={() => {
-                        handlePaymentMethodChange(method.value);
-                        // For express, submit immediately if form is filled
-                        if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                          document.getElementById('checkout-form-submit')?.click();
-                        }
-                      }}
-                      className="w-full flex items-center justify-center gap-3 p-4 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-900 transition-all"
-                      data-testid={`express-${method.value}`}
-                    >
-                      <img src={method.icon} alt={method.label} className="h-6 brightness-0 invert" />
-                      {method.label}
-                    </button>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handlePaymentMethodChange('applepay');
+                    if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
+                      document.getElementById('checkout-form-submit')?.click();
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-3 p-4 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-900 transition-all min-h-[48px]"
+                  data-testid="express-applepay"
+                >
+                  <img src="https://www.mollie.com/external/icons/payment-methods/applepay.svg" alt="Apple Pay" className="h-5 brightness-0 invert" />
+                  Apple Pay
+                </button>
                 <div className="flex items-center gap-3 mt-4">
                   <div className="flex-1 h-px bg-slate-200" />
-                  <span className="text-xs text-slate-400 uppercase font-semibold">of vul je gegevens in</span>
+                  <span className="text-[11px] text-slate-400 uppercase font-semibold whitespace-nowrap">of vul je gegevens in</span>
                   <div className="flex-1 h-px bg-slate-200" />
                 </div>
               </div>
 
               {/* Contact Info */}
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <Lock className="w-5 h-5 text-warm-brown-500" />
                   Contactgegevens
                 </h2>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="E-mailadres *"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                  data-testid="checkout-email"
-                />
+                <div className="relative">
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder=" "
+                    inputMode="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    data-testid="checkout-email"
+                  />
+                  <label htmlFor="email" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                    E-mailadres *
+                  </label>
+                </div>
               </div>
 
-              {/* Shipping Address */}
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              {/* Shipping Address with Auto-fill */}
+              <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <Truck className="w-5 h-5 text-warm-brown-500" />
                   Verzendadres
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="Voornaam *"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                    data-testid="checkout-firstname"
-                  />
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Achternaam *"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                    data-testid="checkout-lastname"
-                  />
-                  <input
-                    type="text"
-                    name="address"
-                    placeholder="Adres + huisnummer *"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    required
-                    className="sm:col-span-2 p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                    data-testid="checkout-address"
-                  />
-                  <input
-                    type="text"
-                    name="zipCode"
-                    placeholder="Postcode *"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
-                    required
-                    className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                    data-testid="checkout-zipcode"
-                  />
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="Plaats *"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    required
-                    className="p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
-                    data-testid="checkout-city"
-                  />
+
+                {/* Postcode + Huisnummer - triggers auto-fill */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="zipCode"
+                      id="zipCode"
+                      placeholder=" "
+                      inputMode="text"
+                      autoComplete="postal-code"
+                      value={formData.zipCode}
+                      onChange={handleInputChange}
+                      required
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-zipcode"
+                    />
+                    <label htmlFor="zipCode" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Postcode *
+                    </label>
+                    {addressLoading && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 text-warm-brown-500 animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="houseNumber"
+                      id="houseNumber"
+                      placeholder=" "
+                      inputMode="numeric"
+                      value={formData.houseNumber}
+                      onChange={handleInputChange}
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-housenumber"
+                    />
+                    <label htmlFor="houseNumber" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Huisnr.
+                    </label>
+                  </div>
+                </div>
+
+                {/* Address found feedback */}
+                {addressFound === true && (
+                  <div className="flex items-center gap-2 text-green-600 text-sm mb-3 px-1 animate-fadeIn" data-testid="address-found">
+                    <MapPin className="w-4 h-4" />
+                    <span>{formData.address}, {formData.city}</span>
+                  </div>
+                )}
+                {addressFound === false && formData.zipCode.replace(/\s/g, '').length >= 6 && (
+                  <p className="text-amber-600 text-sm mb-3 px-1" data-testid="address-not-found">Adres niet gevonden, vul handmatig in</p>
+                )}
+
+                {/* Auto-filled or manual street + city */}
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="address"
+                      id="address"
+                      placeholder=" "
+                      autoComplete="street-address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      required
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-address"
+                    />
+                    <label htmlFor="address" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Straat + huisnummer *
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="city"
+                      id="city"
+                      placeholder=" "
+                      autoComplete="address-level2"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-city"
+                    />
+                    <label htmlFor="city" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Plaats *
+                    </label>
+                  </div>
+                </div>
+
+                {/* Name fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="firstName"
+                      id="firstName"
+                      placeholder=" "
+                      autoComplete="given-name"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-firstname"
+                    />
+                    <label htmlFor="firstName" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Voornaam *
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="lastName"
+                      id="lastName"
+                      placeholder=" "
+                      autoComplete="family-name"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                      data-testid="checkout-lastname"
+                    />
+                    <label htmlFor="lastName" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                      Achternaam *
+                    </label>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="relative mt-3">
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="Telefoonnummer (optioneel)"
+                    id="phone"
+                    placeholder=" "
+                    inputMode="tel"
+                    autoComplete="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="sm:col-span-2 p-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
+                    className="peer w-full min-h-[48px] pt-5 pb-2 px-4 text-base border-2 border-slate-200 rounded-xl focus:border-warm-brown-500 focus:outline-none transition"
                     data-testid="checkout-phone"
                   />
+                  <label htmlFor="phone" className="absolute left-4 top-1 text-[11px] text-warm-brown-500 font-semibold peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-400 peer-placeholder-shown:font-normal transition-all pointer-events-none">
+                    Telefoonnummer (optioneel)
+                  </label>
                 </div>
               </div>
 
               {/* Gift Wrap Checkbox (replaces opmerkingen) */}
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6">
                 <label 
                   className="flex items-center gap-4 cursor-pointer group"
                   data-testid="gift-wrap-option"
@@ -448,7 +582,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Methods - Compact Radio List */}
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-warm-brown-500" />
                   Betaalmethode

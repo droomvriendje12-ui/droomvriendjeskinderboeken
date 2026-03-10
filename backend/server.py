@@ -13,6 +13,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 from mollie.api.client import Client as MollieClient
+import requests as http_requests
 from bson import ObjectId
 import smtplib
 import ssl
@@ -981,6 +982,63 @@ async def submit_contact_form(contact: ContactFormCreate):
     except Exception as e:
         logger.error(f"Contact form error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Er ging iets mis: {str(e)}")
+
+
+@api_router.get("/address/lookup")
+async def address_lookup(postcode: str, huisnummer: str = ""):
+    """Lookup Dutch address via PDOK API (free, no API key needed)"""
+    try:
+        pc = postcode.strip().upper().replace(" ", "")
+        if len(pc) < 4:
+            return {"found": False, "message": "Voer een geldige postcode in"}
+
+        query = pc
+        if huisnummer.strip():
+            query = f"{pc} {huisnummer.strip()}"
+
+        # First try exact address lookup
+        r = http_requests.get(
+            "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
+            params={"q": query, "rows": 1, "fq": "type:adres"},
+            timeout=5
+        )
+        data = r.json()
+        docs = data.get("response", {}).get("docs", [])
+
+        if docs:
+            doc = docs[0]
+            return {
+                "found": True,
+                "straat": doc.get("straatnaam", ""),
+                "stad": doc.get("woonplaatsnaam", ""),
+                "postcode": doc.get("postcode", pc),
+            }
+
+        # Fallback to postcode-only lookup
+        r2 = http_requests.get(
+            "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
+            params={"q": pc, "rows": 1, "fq": "type:postcode"},
+            timeout=5
+        )
+        data2 = r2.json()
+        docs2 = data2.get("response", {}).get("docs", [])
+
+        if docs2:
+            doc = docs2[0]
+            return {
+                "found": True,
+                "straat": doc.get("straatnaam", ""),
+                "stad": doc.get("woonplaatsnaam", ""),
+                "postcode": doc.get("postcode", pc),
+            }
+
+        return {"found": False, "message": "Adres niet gevonden"}
+
+    except http_requests.exceptions.Timeout:
+        return {"found": False, "message": "Adres service tijdelijk niet beschikbaar"}
+    except Exception as e:
+        logger.error(f"Address lookup error: {e}")
+        return {"found": False, "message": "Fout bij het opzoeken van het adres"}
 
 
 @api_router.post("/checkout-started")
