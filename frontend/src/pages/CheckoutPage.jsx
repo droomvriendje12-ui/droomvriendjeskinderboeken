@@ -97,6 +97,10 @@ const CheckoutPage = () => {
       const params = new URLSearchParams({ postcode: pc });
       if (houseNumber) params.append('huisnummer', houseNumber);
       const res = await fetch(`/api/address/lookup?${params}`);
+      if (!res.ok) {
+        setAddressLoading(false);
+        return;
+      }
       const data = await res.json();
       if (data.found) {
         setFormData(prev => ({
