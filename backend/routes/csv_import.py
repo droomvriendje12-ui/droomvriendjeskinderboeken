@@ -1,9 +1,10 @@
 """
 CSV Import & Email Queue API Routes
 Upload CSV with email + naam columns, validate, deduplicate, and add to email_queue
+Bulk email sending with template support
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from typing import Optional
+from typing import Optional, Callable
 from datetime import datetime, timezone
 from pydantic import BaseModel
 import logging
@@ -11,6 +12,7 @@ import uuid
 import re
 import csv
 import io
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +20,26 @@ router = APIRouter(prefix="/email/csv", tags=["csv-import"])
 
 # MongoDB database reference - will be set by main app
 db = None
+# Supabase client reference for templates
+supabase_client = None
+# Email send function reference
+email_sender: Callable = None
 
 def set_db(database):
     """Set the MongoDB database reference"""
     global db
     db = database
     logger.info("✅ MongoDB set for CSV import route")
+
+def set_supabase(client):
+    """Set the Supabase client for template access"""
+    global supabase_client
+    supabase_client = client
+
+def set_email_sender(sender_fn: Callable):
+    """Set the email sending function reference"""
+    global email_sender
+    email_sender = sender_fn
 
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
@@ -239,4 +255,184 @@ async def clear_queue(source: Optional[str] = None):
         }
     except Exception as e:
         logger.error(f"Error clearing queue: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+class CampaignRequest(BaseModel):
+    template_id: str
+    source: Optional[str] = None
+    batch_size: int = 25
+    delay_seconds: float = 1.2
+
+
+# In-memory campaign progress tracking
+campaign_progress = {}
+
+
+@router.post("/send-campaign")
+async def send_campaign(request: CampaignRequest):
+    """
+    Send a bulk email campaign to contacts in the queue.
+    Uses a template from Supabase and personalizes with naam.
+    Sends in batches with delays to protect sender reputation.
+    """
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database niet geconfigureerd")
+    if supabase_client is None:
+        raise HTTPException(status_code=500, detail="Template database niet geconfigureerd")
+    if email_sender is None:
+        raise HTTPException(status_code=500, detail="Email service niet geconfigureerd")
+
+    # Fetch template from Supabase
+    try:
+        result = supabase_client.table("email_templates").select("*").eq("id", request.template_id).limit(1).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Template niet gevonden")
+        template = result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Template ophalen mislukt: {e}")
+
+    # Get pending contacts from queue
+    query = {"status": "pending"}
+    if request.source:
+        query["source"] = request.source
+
+    cursor = db['email_queue'].find(query)
+    contacts = await cursor.to_list(length=5000)
+
+    if not contacts:
+        return {
+            "success": True,
+            "message": "Geen contacten in de wachtrij om te mailen",
+            "sent": 0, "failed": 0, "total": 0
+        }
+
+    # Create campaign ID for progress tracking
+    campaign_id = str(uuid.uuid4())[:8]
+    total = len(contacts)
+    campaign_progress[campaign_id] = {
+        "total": total, "sent": 0, "failed": 0,
+        "status": "running", "started_at": datetime.now(timezone.utc).isoformat()
+    }
+
+    # Process in background
+    async def process_campaign():
+        sent = 0
+        failed = 0
+        failed_emails = []
+
+        for i, contact in enumerate(contacts):
+            email = contact.get("email", "")
+            naam = contact.get("naam", "")
+
+            # Personalize template
+            subject = template.get("subject", "Droomvriendjes")
+            content = template.get("content", "")
+            subject = subject.replace("{{naam}}", naam).replace("{{firstname}}", naam).replace("{{voornaam}}", naam)
+            content = content.replace("{{naam}}", naam).replace("{{firstname}}", naam).replace("{{voornaam}}", naam)
+            content = content.replace("{{email}}", email)
+
+            # Plain text fallback
+            import html as html_module
+            text_content = html_module.unescape(re.sub(r'<[^>]+>', '', content))
+
+            try:
+                success = email_sender(email, subject, content, text_content)
+                if success:
+                    sent += 1
+                    await db['email_queue'].update_one(
+                        {"_id": contact["_id"]},
+                        {"$set": {"status": "sent", "sent_at": datetime.now(timezone.utc).isoformat()}}
+                    )
+                else:
+                    failed += 1
+                    failed_emails.append(email)
+                    await db['email_queue'].update_one(
+                        {"_id": contact["_id"]},
+                        {"$set": {"status": "failed", "error": "SMTP error"}}
+                    )
+            except Exception as e:
+                failed += 1
+                failed_emails.append(email)
+                await db['email_queue'].update_one(
+                    {"_id": contact["_id"]},
+                    {"$set": {"status": "failed", "error": str(e)[:200]}}
+                )
+
+            # Update progress
+            campaign_progress[campaign_id] = {
+                "total": total, "sent": sent, "failed": failed,
+                "processed": i + 1,
+                "percent": round(((i + 1) / total) * 100, 1),
+                "status": "running",
+                "failed_emails": failed_emails[-10:]
+            }
+
+            # Delay between emails
+            if i < len(contacts) - 1:
+                await asyncio.sleep(request.delay_seconds)
+
+        # Mark complete
+        campaign_progress[campaign_id] = {
+            "total": total, "sent": sent, "failed": failed,
+            "processed": total,
+            "percent": 100,
+            "status": "completed",
+            "failed_emails": failed_emails[:50],
+            "completed_at": datetime.now(timezone.utc).isoformat()
+        }
+        logger.info(f"Campaign {campaign_id} complete: {sent} sent, {failed} failed out of {total}")
+
+    # Start background task
+    asyncio.create_task(process_campaign())
+
+    return {
+        "success": True,
+        "campaign_id": campaign_id,
+        "total": total,
+        "message": f"Campagne gestart voor {total} contacten",
+        "template_name": template.get("name", "Onbekend")
+    }
+
+
+@router.get("/campaign-progress/{campaign_id}")
+async def get_campaign_progress(campaign_id: str):
+    """Get the progress of a running campaign"""
+    if campaign_id not in campaign_progress:
+        raise HTTPException(status_code=404, detail="Campagne niet gevonden")
+    return campaign_progress[campaign_id]
+
+
+@router.get("/queue/stats")
+async def get_queue_stats():
+    """Get queue statistics grouped by source and status"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database niet geconfigureerd")
+
+    try:
+        pipeline = [
+            {"$group": {
+                "_id": {"source": "$source", "status": "$status"},
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"_id.source": 1}}
+        ]
+        cursor = db['email_queue'].aggregate(pipeline)
+        results = await cursor.to_list(length=500)
+
+        stats = {}
+        for r in results:
+            src = r["_id"].get("source") or "onbekend"
+            status = r["_id"].get("status") or "onbekend"
+            if src not in stats:
+                stats[src] = {"pending": 0, "sent": 0, "failed": 0, "total": 0}
+            stats[src][status] = stats[src].get(status, 0) + r["count"]
+            stats[src]["total"] += r["count"]
+
+        return {"sources": stats}
+    except Exception as e:
+        logger.error(f"Error getting queue stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))

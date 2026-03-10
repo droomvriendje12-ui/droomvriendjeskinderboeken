@@ -255,6 +255,7 @@ const CheckoutPage = () => {
     { value: 'creditcard', label: 'Creditcard', icon: 'https://www.mollie.com/external/icons/payment-methods/creditcard.svg', description: 'Visa, Mastercard, Amex' },
     { value: 'in3', label: 'iDEAL in3', icon: 'https://www.mollie.com/external/icons/payment-methods/in3.svg', description: 'Betaal in 3 termijnen' },
     { value: 'bancontact', label: 'Bancontact', icon: 'https://www.mollie.com/external/icons/payment-methods/bancontact.svg', description: 'Voor Belgie' },
+    { value: 'paypal', label: 'PayPal', icon: 'https://www.mollie.com/external/icons/payment-methods/paypal.svg', description: 'Betaal met PayPal' },
   ];
 
   const expressMethods = [
@@ -351,10 +352,11 @@ const CheckoutPage = () => {
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               
-              {/* Express Checkout - Apple Pay First */}
+              {/* Express Checkout */}
               <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6" data-testid="express-checkout">
-                <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Express Checkout</h2>
-                <div className="flex justify-center">
+                <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Snel Betalen</h2>
+                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
+                  {/* Apple Pay */}
                   <button
                     type="button"
                     onClick={() => {
@@ -366,15 +368,59 @@ const CheckoutPage = () => {
                         window.scrollTo({ top: 400, behavior: 'smooth' });
                       }
                     }}
-                    className="w-full max-w-[350px] flex items-center justify-center gap-2 py-3.5 px-6 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px]"
-                    style={{maxWidth: 'min(100%, 350px)'}}
+                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px]"
                     data-testid="express-applepay"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 814 1000" fill="white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 814 1000" fill="white">
                       <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.4-155.5-127.4C34.5 764.6 0 618.3 0 479.1 0 306.9 100.5 214.9 199.7 214.9c66.5 0 121.7 43.6 163.3 43.6 39.5 0 101.1-46.2 176.6-46.2 28.5 0 130.9 2.6 198.3 99.2l.2.3-.1-.1 50.1 29.2z"/>
                       <path d="M554.1 0c-26.5 82.1-96.8 142.6-168.5 142.6-8.5 0-17-1.3-23.5-2.6 6.5-33.8 28.5-73.2 57.4-100.4C449.7 7.8 509.4-4.6 554.1 0z"/>
                     </svg>
-                    <span className="text-base font-semibold">Pay</span>
+                    <span className="text-sm font-semibold">Pay</span>
+                  </button>
+
+                  {/* Google Pay */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handlePaymentMethodChange('googlepay');
+                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
+                        formRef.current?.requestSubmit();
+                      } else {
+                        setError('Vul eerst alle verplichte velden in voordat je Google Pay gebruikt');
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                      }
+                    }}
+                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-white border-2 border-slate-200 text-slate-800 rounded-xl font-semibold hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[48px]"
+                    data-testid="express-googlepay"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                      <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    <span className="text-sm font-semibold">Pay</span>
+                  </button>
+
+                  {/* PayPal */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handlePaymentMethodChange('paypal');
+                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
+                        formRef.current?.requestSubmit();
+                      } else {
+                        setError('Vul eerst alle verplichte velden in voordat je PayPal gebruikt');
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                      }
+                    }}
+                    className="flex-1 max-w-[280px] flex items-center justify-center gap-1 py-3.5 px-5 bg-[#FFC439] text-[#003087] rounded-xl font-bold hover:bg-[#f0b82e] transition-all min-h-[48px]"
+                    data-testid="express-paypal"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 124 33">
+                      <path fill="#003087" d="M46.211 6.749h-6.839a.95.95 0 0 0-.939.802l-2.766 17.537a.57.57 0 0 0 .564.658h3.265a.95.95 0 0 0 .939-.803l.746-4.73a.95.95 0 0 1 .938-.803h2.165c4.505 0 7.105-2.18 7.784-6.5.306-1.89.013-3.375-.872-4.415-.972-1.142-2.696-1.746-4.985-1.746zM47 13.154c-.374 2.454-2.249 2.454-4.062 2.454h-1.032l.724-4.583a.57.57 0 0 1 .563-.481h.473c1.235 0 2.4 0 3.002.704.359.42.469 1.044.332 1.906zM66.654 13.075h-3.275a.57.57 0 0 0-.563.481l-.146.916-.228-.332c-.709-1.029-2.29-1.373-3.868-1.373-3.619 0-6.71 2.741-7.312 6.586-.313 1.918.132 3.752 1.22 5.031.998 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .562.66h2.95a.95.95 0 0 0 .939-.803l1.77-11.209a.568.568 0 0 0-.561-.658zm-4.565 6.374c-.316 1.871-1.801 3.127-3.695 3.127-.951 0-1.711-.305-2.199-.883-.484-.574-.668-1.391-.514-2.301.295-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.499.589.697 1.411.554 2.317zM84.096 13.075h-3.291a.954.954 0 0 0-.787.417l-4.539 6.686-1.924-6.425a.953.953 0 0 0-.912-.678h-3.234a.57.57 0 0 0-.541.754l3.625 10.638-3.408 4.811a.57.57 0 0 0 .465.9h3.287a.949.949 0 0 0 .781-.408l10.946-15.8a.57.57 0 0 0-.468-.895z"/>
+                      <path fill="#009cde" d="M94.992 6.749h-6.84a.95.95 0 0 0-.938.802l-2.766 17.537a.569.569 0 0 0 .562.658h3.51a.665.665 0 0 0 .656-.562l.785-4.971a.95.95 0 0 1 .938-.803h2.164c4.506 0 7.105-2.18 7.785-6.5.307-1.89.012-3.375-.873-4.415-.971-1.142-2.694-1.746-4.983-1.746zm.789 6.405c-.373 2.454-2.248 2.454-4.062 2.454h-1.031l.725-4.583a.568.568 0 0 1 .562-.481h.473c1.234 0 2.4 0 3.002.704.359.42.468 1.044.331 1.906zM115.434 13.075h-3.273a.567.567 0 0 0-.562.481l-.145.916-.23-.332c-.709-1.029-2.289-1.373-3.867-1.373-3.619 0-6.709 2.741-7.311 6.586-.312 1.918.131 3.752 1.219 5.031 1 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .564.66h2.949a.95.95 0 0 0 .938-.803l1.771-11.209a.571.571 0 0 0-.565-.658zm-4.565 6.374c-.314 1.871-1.801 3.127-3.695 3.127-.949 0-1.711-.305-2.199-.883-.484-.574-.666-1.391-.514-2.301.297-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.501.589.699 1.411.554 2.317zM119.295 7.23l-2.807 17.858a.569.569 0 0 0 .562.658h2.822c.469 0 .867-.34.939-.803l2.768-17.536a.57.57 0 0 0-.562-.659h-3.16a.571.571 0 0 0-.562.482z" />
+                    </svg>
                   </button>
                 </div>
                 <div className="flex items-center gap-3 mt-4">
@@ -958,6 +1004,7 @@ const CheckoutPage = () => {
           <img src="https://www.mollie.com/external/icons/payment-methods/creditcard.svg" alt="Creditcard" className="h-8" />
           <img src="https://www.mollie.com/external/icons/payment-methods/paypal.svg" alt="PayPal" className="h-8" />
           <img src="https://www.mollie.com/external/icons/payment-methods/applepay.svg" alt="Apple Pay" className="h-8" />
+          <img src="https://www.mollie.com/external/icons/payment-methods/googlepay.svg" alt="Google Pay" className="h-8" />
           <img src="https://www.mollie.com/external/icons/payment-methods/bancontact.svg" alt="Bancontact" className="h-8" />
         </div>
       </div>

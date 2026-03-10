@@ -213,6 +213,7 @@ uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)
 csv_import_route.set_db(db)
+csv_import_route.set_supabase(supabase_client)
 
 # Include other routers
 api_router.include_router(discount_codes_route.router)
@@ -387,6 +388,10 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
     except Exception as e:
         logger.error(f"❌ EMAIL FAILED: To={to_email}, Subject={subject}, Error={str(e)}")
         return False
+
+
+# Set email sender for CSV import route
+csv_import_route.set_email_sender(send_email)
 
 
 def send_contact_form_email(contact_data: dict):

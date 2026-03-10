@@ -35,6 +35,14 @@ const EmailTemplatesAdmin = () => {
   const [csvResult, setCsvResult] = useState(null);
   const csvInputRef = useRef(null);
 
+  // Campaign state
+  const [campaignTemplateId, setCampaignTemplateId] = useState('');
+  const [campaignRunning, setCampaignRunning] = useState(false);
+  const [campaignProgress, setCampaignProgress] = useState(null);
+  const [campaignId, setCampaignId] = useState(null);
+  const [queueStats, setQueueStats] = useState(null);
+  const progressRef = useRef(null);
+
   // Form state for editing
   const [formData, setFormData] = useState({
     name: '',
@@ -118,6 +126,73 @@ const EmailTemplatesAdmin = () => {
       setCsvImporting(false);
     }
   };
+
+  const fetchQueueStats = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/email/csv/queue/stats`);
+      if (response.ok) {
+        const data = await response.json();
+        setQueueStats(data.sources || {});
+      }
+    } catch (error) {
+      console.error('Error fetching queue stats:', error);
+    }
+  };
+
+  const startCampaign = async () => {
+    if (!campaignTemplateId) return;
+    setCampaignRunning(true);
+    setCampaignProgress(null);
+    try {
+      const body = {
+        template_id: campaignTemplateId,
+        source: csvSource || undefined,
+        batch_size: 25,
+        delay_seconds: 1.2
+      };
+      const response = await fetch(`${API_URL}/api/email/csv/send-campaign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      if (response.ok && data.campaign_id) {
+        setCampaignId(data.campaign_id);
+        setCampaignProgress({ total: data.total, sent: 0, failed: 0, processed: 0, percent: 0, status: 'running' });
+        // Poll for progress
+        progressRef.current = setInterval(async () => {
+          try {
+            const res = await fetch(`${API_URL}/api/email/csv/campaign-progress/${data.campaign_id}`);
+            if (res.ok) {
+              const prog = await res.json();
+              setCampaignProgress(prog);
+              if (prog.status === 'completed') {
+                clearInterval(progressRef.current);
+                setCampaignRunning(false);
+                fetchQueueStats();
+              }
+            }
+          } catch {}
+        }, 2000);
+      } else {
+        setCampaignProgress({ status: 'error', message: data.detail || 'Campagne starten mislukt' });
+        setCampaignRunning(false);
+      }
+    } catch (error) {
+      setCampaignProgress({ status: 'error', message: error.message });
+      setCampaignRunning(false);
+    }
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => { if (progressRef.current) clearInterval(progressRef.current); };
+  }, []);
+
+  // Fetch queue stats when CSV panel opens
+  useEffect(() => {
+    if (showCsvImport) fetchQueueStats();
+  }, [showCsvImport]);
 
   const handleZipUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -572,6 +647,137 @@ const EmailTemplatesAdmin = () => {
                       )}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Campaign Section - shown after import or when queue has items */}
+              {(csvResult?.success || (queueStats && Object.values(queueStats).some(s => s.pending > 0))) && (
+                <div className="border-t pt-4 mt-4" data-testid="campaign-section">
+                  <h4 className="font-semibold text-gray-800 flex items-center gap-2 mb-3">
+                    <Send className="w-4 h-4 text-[#8B7355]" />
+                    Campagne Versturen
+                  </h4>
+
+                  {/* Queue Stats */}
+                  {queueStats && (
+                    <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs font-medium text-gray-600 mb-2">Wachtrij overzicht:</p>
+                      <div className="space-y-1">
+                        {Object.entries(queueStats).map(([src, stats]) => (
+                          <div key={src} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-500 truncate max-w-[150px]">{src}</span>
+                            <div className="flex gap-3">
+                              <span className="text-orange-600">{stats.pending || 0} wachtend</span>
+                              <span className="text-green-600">{stats.sent || 0} verzonden</span>
+                              {stats.failed > 0 && <span className="text-red-600">{stats.failed} mislukt</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Template Selection */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Kies template
+                    </label>
+                    <select
+                      value={campaignTemplateId}
+                      onChange={(e) => setCampaignTemplateId(e.target.value)}
+                      className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#8B7355] focus:border-[#8B7355]"
+                      data-testid="campaign-template-select"
+                    >
+                      <option value="">Selecteer een template...</option>
+                      {templates.map(t => (
+                        <option key={t.id} value={t.id}>{t.name} - {t.subject}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Send Button */}
+                  <Button
+                    onClick={startCampaign}
+                    disabled={!campaignTemplateId || campaignRunning}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    data-testid="campaign-send-btn"
+                  >
+                    {campaignRunning ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        Verzenden...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Send className="w-4 h-4" />
+                        Verstuur Campagne
+                      </span>
+                    )}
+                  </Button>
+
+                  {/* Progress */}
+                  {campaignProgress && campaignProgress.status === 'running' && (
+                    <div className="mt-3 space-y-2" data-testid="campaign-progress">
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <span>{campaignProgress.processed || 0} / {campaignProgress.total}</span>
+                        <span>{campaignProgress.percent || 0}%</span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 rounded-full transition-all duration-500"
+                          style={{ width: `${campaignProgress.percent || 0}%` }}
+                        />
+                      </div>
+                      <div className="flex gap-4 text-xs">
+                        <span className="text-green-600">{campaignProgress.sent || 0} verzonden</span>
+                        {campaignProgress.failed > 0 && <span className="text-red-600">{campaignProgress.failed} mislukt</span>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campaign Results */}
+                  {campaignProgress && campaignProgress.status === 'completed' && (
+                    <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg" data-testid="campaign-result">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-sm text-green-800">Campagne voltooid!</p>
+                          <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                            <div className="bg-white p-2 rounded text-center">
+                              <div className="font-bold text-lg text-gray-900">{campaignProgress.total}</div>
+                              <div className="text-gray-500">Totaal</div>
+                            </div>
+                            <div className="bg-white p-2 rounded text-center">
+                              <div className="font-bold text-lg text-green-600">{campaignProgress.sent}</div>
+                              <div className="text-gray-500">Verzonden</div>
+                            </div>
+                            <div className="bg-white p-2 rounded text-center">
+                              <div className="font-bold text-lg text-red-500">{campaignProgress.failed}</div>
+                              <div className="text-gray-500">Mislukt</div>
+                            </div>
+                          </div>
+                          {campaignProgress.failed_emails?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-red-600 font-medium">Mislukte adressen:</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {campaignProgress.failed_emails.map((e, i) => (
+                                  <span key={i} className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">{e}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error */}
+                  {campaignProgress && campaignProgress.status === 'error' && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                      <AlertCircle className="w-4 h-4 inline mr-1" />
+                      {campaignProgress.message}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
