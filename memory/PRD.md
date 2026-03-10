@@ -24,15 +24,19 @@ E-commerce platform voor Droomvriendjes (slaapknuffels). Volledig gemigreerd van
 - [x] Email templates beheer
 - [x] Drag-and-drop foto upload (Supabase Storage)
 - [x] TransIP SMTP orderbevestigingsemails
-- [x] Cadeaubon pagina gemigreerd naar Supabase (28 feb 2026)
-- [x] Review-verzoek email bij status "Geleverd" (28 feb 2026)
-- [x] Supabase Realtime op Admin Dashboard (28 feb 2026)
-- [x] **Review avatars met eerste letter voornaam** in merkkleur (1 mrt 2026)
+- [x] Cadeaubon pagina gemigreerd naar Supabase
+- [x] Review-verzoek email bij status "Geleverd"
+- [x] Supabase Realtime op Admin Dashboard
+- [x] Review avatars met eerste letter voornaam in merkkleur
+- [x] **Checkout flow verbeteringen** (10 mrt 2026)
+  - Express Checkout (Apple Pay) bovenaan
+  - Compacte radio-lijst betaalmethoden (ipv tegels)
+  - Opmerkingenveld verwijderd, cadeauverpakking checkbox (+EUR 3)
+  - Sticky betaalbalk op mobiel
 
 ## Openstaande Taken
 
 ### P2 - Toekomstig
-- [ ] E-commerce flow verbeteringen (checkout, productpagina's)
 - [ ] Admin interface verfijning (styling, navigatie, performance)
 
 ### P3 - Backlog
