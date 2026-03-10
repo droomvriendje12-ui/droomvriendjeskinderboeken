@@ -89,8 +89,20 @@ async def import_csv(
             lower = col.strip().lower()
             if lower in ('email', 'e-mail', 'emailadres', 'email_address', 'mail'):
                 col_map['email'] = col
-            elif lower in ('naam', 'name', 'voornaam', 'firstname', 'first_name', 'volledige_naam', 'full_name'):
+            elif lower in ('naam', 'name', 'volledige_naam', 'full_name'):
                 col_map['naam'] = col
+            elif lower in ('voornaam', 'firstname', 'first_name', 'first name'):
+                col_map['firstname'] = col
+            elif lower in ('achternaam', 'lastname', 'last_name', 'last name', 'surname'):
+                col_map['lastname'] = col
+            elif lower in ('straat', 'street', 'adres', 'address'):
+                col_map['street'] = col
+            elif lower in ('postcode', 'zipcode', 'zip_code', 'zip'):
+                col_map['zipcode'] = col
+            elif lower in ('stad', 'city', 'plaats', 'woonplaats'):
+                col_map['city'] = col
+            elif lower in ('telefoon', 'phone', 'tel', 'tel_number_complete', 'telefoonnummer'):
+                col_map['phone'] = col
 
         if 'email' not in col_map:
             raise HTTPException(
@@ -110,7 +122,16 @@ async def import_csv(
         for row in reader:
             total_rows += 1
             email = row.get(col_map['email'], '').strip().lower()
-            naam = row.get(col_map.get('naam', ''), '').strip() if 'naam' in col_map else ''
+
+            # Build naam from available columns
+            if 'naam' in col_map:
+                naam = row.get(col_map['naam'], '').strip()
+            elif 'firstname' in col_map:
+                first = row.get(col_map['firstname'], '').strip()
+                last = row.get(col_map.get('lastname', ''), '').strip() if 'lastname' in col_map else ''
+                naam = f"{first} {last}".strip()
+            else:
+                naam = ''
 
             if not validate_email(email):
                 invalid_emails.append(email or f"(rij {total_rows}: leeg)")
@@ -123,6 +144,10 @@ async def import_csv(
             valid_entries.append({
                 'email': email,
                 'naam': naam,
+                'street': row.get(col_map.get('street', ''), '').strip() if 'street' in col_map else '',
+                'zipcode': row.get(col_map.get('zipcode', ''), '').strip() if 'zipcode' in col_map else '',
+                'city': row.get(col_map.get('city', ''), '').strip() if 'city' in col_map else '',
+                'phone': row.get(col_map.get('phone', ''), '').strip() if 'phone' in col_map else '',
             })
 
         if not valid_entries:
@@ -161,6 +186,10 @@ async def import_csv(
                 "id": str(uuid.uuid4()),
                 "email": entry['email'],
                 "naam": entry['naam'],
+                "street": entry.get('street', ''),
+                "zipcode": entry.get('zipcode', ''),
+                "city": entry.get('city', ''),
+                "phone": entry.get('phone', ''),
                 "source": source_tag,
                 "template_id": template_id,
                 "status": "pending",
@@ -188,6 +217,7 @@ async def import_csv(
             "added": added,
             "skipped_existing": skipped_existing,
             "source": source_tag,
+            "columns_found": list(col_map.keys()),
             "invalid_emails": invalid_emails[:20],
         }
 
