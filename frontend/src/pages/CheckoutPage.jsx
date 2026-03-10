@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { trackCheckoutStart, trackAddressFilled, trackPaymentSelected } from '../lib/funnel';
 import { ShoppingCart, CreditCard, Lock, Check, Truck, Heart, ArrowLeft, Loader2, Plus, Minus, Trash2, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { trackBeginCheckout, trackAddPaymentInfo, trackAddShippingInfo } from '../utils/analytics';
 import { products } from '../mockData';
@@ -33,10 +34,10 @@ const CheckoutPage = () => {
   const [addressFound, setAddressFound] = useState(null);
   const addressTimeoutRef = useRef(null);
 
-  // GA4: Track begin_checkout when page loads
+  // Track checkout start when page loads
   useEffect(() => {
     if (cart.length > 0) {
-      trackBeginCheckout(cart);
+      trackCheckoutStart(getSubtotal());
     }
   }, []);
 
@@ -103,6 +104,7 @@ const CheckoutPage = () => {
           city: data.stad,
         }));
         setAddressFound(true);
+        trackAddressFilled(formData.email);
       } else {
         setAddressFound(false);
       }
@@ -141,7 +143,7 @@ const CheckoutPage = () => {
 
   const handlePaymentMethodChange = (value) => {
     setFormData(prev => ({ ...prev, paymentMethod: value }));
-    trackAddPaymentInfo(cart, value);
+    trackPaymentSelected(value);
   };
 
   const handleSubmit = async (e) => {
@@ -350,20 +352,26 @@ const CheckoutPage = () => {
               {/* Express Checkout - Apple Pay First */}
               <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6" data-testid="express-checkout">
                 <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Express Checkout</h2>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handlePaymentMethodChange('applepay');
-                    if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                      document.getElementById('checkout-form-submit')?.click();
-                    }
-                  }}
-                  className="w-full flex items-center justify-center gap-3 p-4 bg-black text-white rounded-xl font-semibold text-base hover:bg-gray-900 transition-all min-h-[48px]"
-                  data-testid="express-applepay"
-                >
-                  <img src="https://www.mollie.com/external/icons/payment-methods/applepay.svg" alt="Apple Pay" className="h-5 brightness-0 invert" />
-                  Apple Pay
-                </button>
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handlePaymentMethodChange('applepay');
+                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
+                        document.getElementById('checkout-form-submit')?.click();
+                      }
+                    }}
+                    className="w-full max-w-[350px] flex items-center justify-center gap-2 py-3.5 px-6 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px]"
+                    style={{maxWidth: 'min(100%, 350px)'}}
+                    data-testid="express-applepay"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 814 1000" fill="white">
+                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.4-155.5-127.4C34.5 764.6 0 618.3 0 479.1 0 306.9 100.5 214.9 199.7 214.9c66.5 0 121.7 43.6 163.3 43.6 39.5 0 101.1-46.2 176.6-46.2 28.5 0 130.9 2.6 198.3 99.2l.2.3-.1-.1 50.1 29.2z"/>
+                      <path d="M554.1 0c-26.5 82.1-96.8 142.6-168.5 142.6-8.5 0-17-1.3-23.5-2.6 6.5-33.8 28.5-73.2 57.4-100.4C449.7 7.8 509.4-4.6 554.1 0z"/>
+                    </svg>
+                    <span className="text-base font-semibold">Pay</span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-3 mt-4">
                   <div className="flex-1 h-px bg-slate-200" />
                   <span className="text-[11px] text-slate-400 uppercase font-semibold whitespace-nowrap">of vul je gegevens in</span>
@@ -638,7 +646,7 @@ const CheckoutPage = () => {
             </div>
 
             {/* Right Column - Order Summary */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 overflow-hidden">
               <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:sticky lg:top-6">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-warm-brown-500" />

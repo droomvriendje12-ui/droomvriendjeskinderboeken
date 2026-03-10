@@ -986,51 +986,72 @@ async def submit_contact_form(contact: ContactFormCreate):
 
 @api_router.get("/address/lookup")
 async def address_lookup(postcode: str, huisnummer: str = ""):
-    """Lookup Dutch address via PDOK API (free, no API key needed)"""
+    """Lookup Dutch/Belgian address via PDOK (NL) or Nominatim (BE) API"""
     try:
         pc = postcode.strip().upper().replace(" ", "")
         if len(pc) < 4:
             return {"found": False, "message": "Voer een geldige postcode in"}
 
-        query = pc
-        if huisnummer.strip():
-            query = f"{pc} {huisnummer.strip()}"
+        # Detect country: NL postcodes = 4 digits + 2 letters, BE = 4 digits only
+        is_belgian = pc.isdigit() and len(pc) == 4
+        is_dutch = len(pc) == 6 and pc[:4].isdigit() and pc[4:].isalpha()
 
-        # First try exact address lookup
-        r = http_requests.get(
-            "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
-            params={"q": query, "rows": 1, "fq": "type:adres"},
-            timeout=5
-        )
-        data = r.json()
-        docs = data.get("response", {}).get("docs", [])
+        if is_dutch or not is_belgian:
+            # Try PDOK (Netherlands)
+            query = pc
+            if huisnummer.strip():
+                query = f"{pc} {huisnummer.strip()}"
+            r = http_requests.get(
+                "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
+                params={"q": query, "rows": 1, "fq": "type:adres"},
+                timeout=5
+            )
+            data = r.json()
+            docs = data.get("response", {}).get("docs", [])
+            if docs:
+                doc = docs[0]
+                return {
+                    "found": True,
+                    "straat": doc.get("straatnaam", ""),
+                    "stad": doc.get("woonplaatsnaam", ""),
+                    "postcode": doc.get("postcode", pc),
+                    "land": "NL"
+                }
+            # Fallback to postcode-only
+            r2 = http_requests.get(
+                "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
+                params={"q": pc, "rows": 1, "fq": "type:postcode"},
+                timeout=5
+            )
+            data2 = r2.json()
+            docs2 = data2.get("response", {}).get("docs", [])
+            if docs2:
+                doc = docs2[0]
+                return {
+                    "found": True,
+                    "straat": doc.get("straatnaam", ""),
+                    "stad": doc.get("woonplaatsnaam", ""),
+                    "postcode": doc.get("postcode", pc),
+                    "land": "NL"
+                }
 
-        if docs:
-            doc = docs[0]
-            return {
-                "found": True,
-                "straat": doc.get("straatnaam", ""),
-                "stad": doc.get("woonplaatsnaam", ""),
-                "postcode": doc.get("postcode", pc),
-            }
-
-        # Fallback to postcode-only lookup
-        r2 = http_requests.get(
-            "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free",
-            params={"q": pc, "rows": 1, "fq": "type:postcode"},
-            timeout=5
-        )
-        data2 = r2.json()
-        docs2 = data2.get("response", {}).get("docs", [])
-
-        if docs2:
-            doc = docs2[0]
-            return {
-                "found": True,
-                "straat": doc.get("straatnaam", ""),
-                "stad": doc.get("woonplaatsnaam", ""),
-                "postcode": doc.get("postcode", pc),
-            }
+        if is_belgian or not is_dutch:
+            # Try Nominatim for Belgium (OpenStreetMap - free)
+            query_parts = [f"postalcode={pc}", "country=BE", "format=json", "addressdetails=1", "limit=1"]
+            nom_url = f"https://nominatim.openstreetmap.org/search?{'&'.join(query_parts)}"
+            r3 = http_requests.get(nom_url, headers={"User-Agent": "Droomvriendjes-Webshop/1.0"}, timeout=5)
+            nom_data = r3.json()
+            if nom_data:
+                addr = nom_data[0].get("address", {})
+                stad = addr.get("city") or addr.get("town") or addr.get("village") or addr.get("municipality", "")
+                straat = addr.get("road", "")
+                return {
+                    "found": True,
+                    "straat": straat,
+                    "stad": stad,
+                    "postcode": pc,
+                    "land": "BE"
+                }
 
         return {"found": False, "message": "Adres niet gevonden"}
 
@@ -1039,6 +1060,72 @@ async def address_lookup(postcode: str, huisnummer: str = ""):
     except Exception as e:
         logger.error(f"Address lookup error: {e}")
         return {"found": False, "message": "Fout bij het opzoeken van het adres"}
+
+
+@api_router.post("/funnel/event")
+async def track_funnel_event(data: dict):
+    """Track a customer journey funnel event"""
+    try:
+        event = {
+            "event_type": data.get("event_type"),  # product_view, add_to_cart, checkout_start, address_filled, payment_selected, purchase_success
+            "session_id": data.get("session_id", ""),
+            "product_id": data.get("product_id"),
+            "product_name": data.get("product_name"),
+            "cart_total": data.get("cart_total"),
+            "customer_email": data.get("customer_email"),
+            "metadata": data.get("metadata", {}),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.funnel_events.insert_one(event)
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Funnel event error: {e}")
+        return {"status": "error"}
+
+
+@api_router.get("/admin/funnel-stats")
+async def get_funnel_stats(days: int = 30):
+    """Get funnel statistics for the admin dashboard"""
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+        # Count events by type
+        pipeline = [
+            {"$match": {"created_at": {"$gte": cutoff}}},
+            {"$group": {"_id": "$event_type", "count": {"$sum": 1}}}
+        ]
+        results = await db.funnel_events.aggregate(pipeline).to_list(length=20)
+        counts = {r["_id"]: r["count"] for r in results}
+
+        # Also count from checkout_events (legacy)
+        checkout_count = await db.checkout_events.count_documents({"created_at": {"$gte": cutoff}})
+
+        steps = [
+            {"step": "Product bekeken", "key": "product_view", "count": counts.get("product_view", 0)},
+            {"step": "In winkelwagen", "key": "add_to_cart", "count": counts.get("add_to_cart", 0)},
+            {"step": "Checkout gestart", "key": "checkout_start", "count": max(counts.get("checkout_start", 0), checkout_count)},
+            {"step": "Adres ingevuld", "key": "address_filled", "count": counts.get("address_filled", 0)},
+            {"step": "Betaalmethode gekozen", "key": "payment_selected", "count": counts.get("payment_selected", 0)},
+            {"step": "Aankoop voltooid", "key": "purchase_success", "count": counts.get("purchase_success", 0)},
+        ]
+
+        # Calculate drop-off percentages
+        for i in range(len(steps)):
+            if i == 0:
+                steps[i]["dropoff"] = 0
+            else:
+                prev = steps[i-1]["count"]
+                curr = steps[i]["count"]
+                if prev > 0:
+                    steps[i]["dropoff"] = round(((prev - curr) / prev) * 100, 1)
+                else:
+                    steps[i]["dropoff"] = 0
+
+        return {"funnel": steps, "period_days": days}
+
+    except Exception as e:
+        logger.error(f"Funnel stats error: {e}")
+        return {"funnel": [], "period_days": days}
 
 
 @api_router.post("/checkout-started")

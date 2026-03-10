@@ -17,10 +17,20 @@ const AdminCommandCenterNew = () => {
   const [activeSection, setActiveSection] = useState('live');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
     revenueToday: 0,
     ordersToday: 0,
-    activeVisitors: 0,
-    emailOpenRate: 0
+    avgOrderValue: 0,
+    totalCustomers: 0,
+    pendingOrders: 0,
+    paidOrders: 0,
+    shippedOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0,
+    toShip: 0,
+    revenueGrowth: 0,
+    conversionRate: 0,
   });
   const [products, setProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
@@ -28,6 +38,7 @@ const AdminCommandCenterNew = () => {
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const [liveEvents, setLiveEvents] = useState([]);
   const [newOrderFlash, setNewOrderFlash] = useState(false);
+  const [funnelData, setFunnelData] = useState([]);
 
   // Update clock
   useEffect(() => {
@@ -113,19 +124,38 @@ const AdminCommandCenterNew = () => {
         setProducts(productsData);
       }
 
-      // Fetch orders & stats
-      const dashboardRes = await fetch(`/api/admin/dashboard?days=1`, {
+      // Fetch full dashboard stats (last 30 days for analytics)
+      const dashboardRes = await fetch(`/api/admin/dashboard?days=30`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (dashboardRes.ok) {
         const data = await dashboardRes.json();
         setStats({
-          revenueToday: data.stats?.revenue || 0,
-          ordersToday: data.stats?.orders || 0,
-          activeVisitors: Math.floor(Math.random() * 50) + 100,
-          emailOpenRate: 64.2
+          totalRevenue: data.stats?.total_revenue || 0,
+          totalOrders: data.stats?.total_orders || 0,
+          revenueToday: data.stats?.revenue_today || 0,
+          ordersToday: data.stats?.orders_today || 0,
+          avgOrderValue: data.stats?.avg_order_value || 0,
+          totalCustomers: data.stats?.total_customers || 0,
+          pendingOrders: data.stats?.pending_orders || 0,
+          paidOrders: data.stats?.paid_orders || 0,
+          shippedOrders: data.stats?.shipped_orders || 0,
+          deliveredOrders: data.stats?.delivered_orders || 0,
+          cancelledOrders: data.stats?.cancelled_orders || 0,
+          toShip: data.stats?.to_ship || 0,
+          revenueGrowth: data.stats?.revenue_growth || 0,
+          conversionRate: data.stats?.conversion_rate || 0,
         });
         setRecentOrders(data.recent_orders || []);
+      }
+
+      // Fetch funnel stats
+      const funnelRes = await fetch(`/api/admin/funnel-stats?days=30`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (funnelRes.ok) {
+        const fData = await funnelRes.json();
+        setFunnelData(fData.funnel || []);
       }
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -311,67 +341,68 @@ const AdminCommandCenterNew = () => {
 
               {/* KPI Strip */}
               <div className="grid grid-cols-4 gap-4 mb-6">
-                {/* Revenue Today */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-emerald-500/30 transition-all cursor-pointer">
+                {/* Total Revenue (30 days) */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-emerald-500/30 transition-all cursor-pointer" data-testid="kpi-revenue">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Omzet Vandaag</span>
+                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Omzet (30d)</span>
                     <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center">
                       <DollarSign className="w-4 h-4 text-emerald-400" />
                     </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">{formatCurrency(stats.revenueToday)}</div>
+                  <div className="text-3xl font-black text-white mb-1">{formatCurrency(stats.totalRevenue)}</div>
                   <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3 text-emerald-400" />
-                    <span className="text-emerald-400 text-xs font-bold">+18% vs gisteren</span>
+                    {stats.revenueGrowth >= 0 ? (
+                      <><TrendingUp className="w-3 h-3 text-emerald-400" /><span className="text-emerald-400 text-xs font-bold">+{stats.revenueGrowth}% groei</span></>
+                    ) : (
+                      <span className="text-red-400 text-xs font-bold">{stats.revenueGrowth}% daling</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Orders Today */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-blue-500/30 transition-all cursor-pointer">
+                {/* Total Orders */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-blue-500/30 transition-all cursor-pointer" data-testid="kpi-orders">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Orders Vandaag</span>
+                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Bestellingen (30d)</span>
                     <div className="w-8 h-8 bg-blue-500/15 rounded-lg flex items-center justify-center">
                       <ShoppingCart className="w-4 h-4 text-blue-400" />
                     </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">{stats.ordersToday}</div>
+                  <div className="text-3xl font-black text-white mb-1">{stats.totalOrders}</div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
-                    <span className="text-blue-400 text-xs font-bold">2 laatste uur</span>
+                    <span className="text-blue-400 text-xs font-bold">{stats.ordersToday} vandaag</span>
                   </div>
                 </div>
 
-                {/* Active Visitors */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-violet-500/30 transition-all cursor-pointer">
+                {/* Customers */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-violet-500/30 transition-all cursor-pointer" data-testid="kpi-customers">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Actieve Bezoekers</span>
+                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Klanten</span>
                     <div className="w-8 h-8 bg-violet-500/15 rounded-lg flex items-center justify-center">
                       <Users className="w-4 h-4 text-violet-400" />
                     </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">{stats.activeVisitors}</div>
+                  <div className="text-3xl font-black text-white mb-1">{stats.totalCustomers}</div>
                   <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3 text-violet-400" />
-                    <span className="text-violet-400 text-xs font-bold">+24% vs gemiddeld</span>
+                    <span className="text-violet-400 text-xs font-bold">{stats.toShip} te verzenden</span>
                   </div>
                 </div>
 
-                {/* Email Open Rate */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-amber-500/30 transition-all cursor-pointer">
+                {/* Avg Order Value */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 relative overflow-hidden group hover:border-amber-500/30 transition-all cursor-pointer" data-testid="kpi-aov">
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all"></div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Email Open Rate</span>
+                    <span className="text-white/40 text-xs font-semibold uppercase tracking-widest">Gem. Orderwaarde</span>
                     <div className="w-8 h-8 bg-amber-500/15 rounded-lg flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-amber-400" />
+                      <Target className="w-4 h-4 text-amber-400" />
                     </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">{stats.emailOpenRate}%</div>
+                  <div className="text-3xl font-black text-white mb-1">{formatCurrency(stats.avgOrderValue)}</div>
                   <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-3 h-3 text-amber-400" />
-                    <span className="text-amber-400 text-xs font-bold">+6.2% deze week</span>
+                    <span className="text-amber-400 text-xs font-bold">Conversie: {stats.conversionRate}%</span>
                   </div>
                 </div>
               </div>
@@ -382,10 +413,14 @@ const AdminCommandCenterNew = () => {
                 <div className="col-span-2 bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center justify-between mb-5">
                     <div>
-                      <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-1">Omzet Vandaag</h3>
+                      <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-1">Omzet Overzicht</h3>
                       <div className="flex items-baseline gap-3">
-                        <span className="text-2xl font-black text-white">{formatCurrency(stats.revenueToday * 1.5)}</span>
-                        <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">↑ 18%</span>
+                        <span className="text-2xl font-black text-white">{formatCurrency(stats.totalRevenue)}</span>
+                        {stats.revenueGrowth >= 0 ? (
+                          <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">+{stats.revenueGrowth}%</span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full">{stats.revenueGrowth}%</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center divide-x divide-white/10">
@@ -488,37 +523,53 @@ const AdminCommandCenterNew = () => {
                   </div>
                 </div>
 
-                {/* Channel Performance */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Kanalen</h3>
-                  <div className="space-y-4">
-                    {[
-                      { name: 'Email', color: 'emerald', amount: 1230, pct: 45, width: 85 },
-                      { name: 'Social Media', color: 'blue', amount: 892, pct: 33, width: 62 },
-                      { name: 'WhatsApp', color: 'green', amount: 487, pct: 18, width: 34 },
-                      { name: 'SMS', color: 'amber', amount: 238, pct: 9, width: 17 },
-                    ].map((channel) => (
-                      <div key={channel.name}>
-                        <div className="flex justify-between items-center mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 bg-${channel.color}-400 rounded-full`}></span>
-                            <span className="text-white text-sm font-medium">{channel.name}</span>
+                {/* Customer Funnel Tracking */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10" data-testid="funnel-tracking">
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Conversie Funnel (30d)</h3>
+                  {funnelData.length > 0 ? (
+                    <div className="space-y-3">
+                      {funnelData.map((step, i) => {
+                        const maxCount = Math.max(...funnelData.map(s => s.count), 1);
+                        const barWidth = (step.count / maxCount) * 100;
+                        const colors = ['emerald', 'blue', 'violet', 'amber', 'orange', 'rose'];
+                        const color = colors[i % colors.length];
+                        return (
+                          <div key={step.key} data-testid={`funnel-step-${step.key}`}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-white text-xs font-medium">{step.step}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-bold text-sm">{step.count}</span>
+                                {step.dropoff > 0 && (
+                                  <span className="text-red-400 text-[10px] font-bold">-{step.dropoff}%</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full bg-${color}-400 rounded-full transition-all duration-700`}
+                                style={{width: `${barWidth}%`}}
+                              ></div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className={`text-${channel.color}-400 font-bold text-sm`}>{formatCurrency(channel.amount)}</span>
-                            <span className="text-white/30 text-xs ml-2">{channel.pct}%</span>
-                          </div>
+                        );
+                      })}
+                      {funnelData.length >= 2 && (
+                        <div className="pt-3 border-t border-white/10 flex justify-between text-xs">
+                          <span className="text-white/40">Totale conversie</span>
+                          <span className="text-emerald-400 font-bold">
+                            {funnelData[0].count > 0 
+                              ? `${((funnelData[funnelData.length-1].count / funnelData[0].count) * 100).toFixed(1)}%`
+                              : '0%'}
+                          </span>
                         </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                          <div className={`h-full bg-${channel.color}-400 rounded-full`} style={{width: `${channel.width}%`}}></div>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="pt-3 border-t border-white/10 flex justify-between text-xs">
-                      <span className="text-white/40">Totaal vandaag</span>
-                      <span className="text-white font-bold">{formatCurrency(stats.revenueToday)}</span>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-white/40 text-sm">Nog geen funnel data</p>
+                      <p className="text-white/25 text-xs mt-1">Events worden bijgehouden vanaf nu</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* AI Insights */}

@@ -12,6 +12,7 @@ import { Star, ShoppingCart, Check, Sparkles, Shield, ChevronLeft, ChevronRight,
 import Layout from '../components/Layout';
 import StickyAddToCart from '../components/StickyAddToCart';
 import { trackViewItem } from '../utils/analytics';
+import { trackProductView, trackAddToCart } from '../lib/funnel';
 
 
 const ProductPage = () => {
@@ -275,6 +276,7 @@ const ProductPage = () => {
   useEffect(() => {
     if (product) {
       trackViewItem(product);
+      trackProductView(product.id, product.name);
     }
   }, [product]);
 
@@ -320,11 +322,13 @@ const ProductPage = () => {
 
   const handleAddToCart = () => {
     addToCart(product);
+    trackAddToCart(product.id, product.name, product.price);
     setIsCartOpen(true);
   };
 
   const handleDirectOrder = () => {
     addToCart(product);
+    trackAddToCart(product.id, product.name, product.price);
     setIsCartOpen(true);
   };
 
