@@ -142,13 +142,13 @@ async def import_csv(
                 col_map['firstname'] = col
             elif lower in ('achternaam', 'lastname', 'last_name', 'last name', 'surname'):
                 col_map['lastname'] = col
-            elif lower in ('straat', 'street', 'adres', 'address'):
+            elif lower in ('straat', 'street', 'street1', 'adres', 'address'):
                 col_map['street'] = col
             elif lower in ('postcode', 'zipcode', 'zip_code', 'zip'):
                 col_map['zipcode'] = col
-            elif lower in ('stad', 'city', 'plaats', 'woonplaats'):
+            elif lower in ('stad', 'city', 'plaats', 'woonplaats', 'towncity', 'town'):
                 col_map['city'] = col
-            elif lower in ('telefoon', 'phone', 'tel', 'tel_number_complete', 'telefoonnummer'):
+            elif lower in ('telefoon', 'phone', 'phone1', 'tel', 'tel_number_complete', 'telefoonnummer'):
                 col_map['phone'] = col
 
         if 'email' not in col_map:
@@ -157,8 +157,13 @@ async def import_csv(
                 detail=f"Kolom 'email' niet gevonden. Gevonden kolommen: {', '.join(reader.fieldnames)}"
             )
 
-        # Generate source tag
-        source_tag = source or f"csv_import_{datetime.now(timezone.utc).strftime('%Y-%m-%d_%H%M')}"
+        # Generate source tag - use filename if no source specified
+        if source:
+            source_tag = source
+        else:
+            # Use the CSV filename (without extension) as source
+            fname = file.filename.rsplit('.', 1)[0] if file.filename else ''
+            source_tag = fname or f"csv_import_{datetime.now(timezone.utc).strftime('%Y-%m-%d_%H%M')}"
 
         # Read all rows and validate
         valid_entries = []

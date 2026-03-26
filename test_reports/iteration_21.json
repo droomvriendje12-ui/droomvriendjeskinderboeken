@@ -1,0 +1,118 @@
+{
+  "summary": "Iteration 21: Email Marketing Dashboard Per-File Workflow - ALL TESTS PASSED (13/13 backend, 100% frontend verification)",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration21_email_marketing.py",
+    "/app/test_reports/pytest/iteration21_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MarketingCommandCenter.jsx: Complete 3-step workflow: Upload (Stap 1), Template (Stap 2), Per-File Tracking (Stap 3)",
+    "csv_import.py lines 163-166: Filename used as source when no source param provided (source_tag = filename without .csv)",
+    "csv_import.py lines 145-152: Column mapping handles street1->street, towncity->city, phone1->phone",
+    "csv_import.py lines 498-522: /api/email/csv/queue/stats returns stats grouped by source with pending/sent/failed/unsubscribed counts",
+    "CheckoutPage.jsx line 424: PayPal button correctly uses <img src='https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png'>"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration21_email_marketing.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all UI elements verified)"
+  },
+  "test_credentials": {
+    "api_base_url": "https://email-import.preview.emergentagent.com",
+    "admin_login": "admin / Droomvriendjes2024!"
+  },
+  "seed_data_creation": "Backend tests create and clean up test CSV data (test_unique_source_12345, test_semicolon_cols, test_alt_columns)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Email Marketing Dashboard at /admin/email-marketing now has 3-step per-file workflow: (1) Upload CSV with drag-drop, filename auto-used as source, (2) Select template, (3) Per-file cards show individual stats and send buttons. Current data: zonnepanelen_leads (22,874 contacts, 1 afgemeld), playwright_test (2 contacts), onbekend (28 contacts, 2 verzonden). PayPal button in checkout uses official CDN logo.",
+  "features_tested": {
+    "email_marketing_dashboard_3_step_layout": {
+      "status": "PASS",
+      "details": "Dashboard shows 3 clear steps: Stap 1 (CSV Upload), Stap 2 (Template Select), Stap 3 (Per-File Tracking)"
+    },
+    "stats_cards": {
+      "status": "PASS",
+      "details": "5 stats cards: Totaal (22,904), Wachtend (22,875), Verzonden (2), Mislukt (0), Afgemeld (1)"
+    },
+    "csv_upload_uses_filename_as_source": {
+      "status": "PASS",
+      "details": "Backend test confirmed: uploading 'test_unique_source_12345.csv' creates source='test_unique_source_12345'"
+    },
+    "per_file_cards_with_stats": {
+      "status": "PASS",
+      "details": "Each source gets own card: onbekend (28, alle verzonden), playwright_test (2 wachtend), zonnepanelen_leads (22,873 wachtend, 1 afgemeld)"
+    },
+    "per_file_send_button": {
+      "status": "PASS",
+      "details": "Send button targets specific source: 'Verstuur 22,873 emails' for zonnepanelen_leads"
+    },
+    "csv_semicolon_delimiter": {
+      "status": "PASS",
+      "details": "Backend handles semicolon-delimited CSV files correctly"
+    },
+    "csv_column_mapping_street1_towncity_phone1": {
+      "status": "PASS",
+      "details": "Backend maps street1->street, towncity->city, phone1->phone"
+    },
+    "queue_stats_grouped_by_source": {
+      "status": "PASS",
+      "details": "GET /api/email/csv/queue/stats returns {sources: {source1: {pending, sent, failed, total}, ...}}"
+    },
+    "unsubscribe_endpoint": {
+      "status": "PASS",
+      "details": "Unsubscribe still works, stats show 1 unsubscribed contact"
+    },
+    "paypal_button_fix": {
+      "status": "PASS",
+      "details": "CheckoutPage.jsx uses <img src='https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png'> for PayPal button"
+    },
+    "progress_bar_in_file_cards": {
+      "status": "PASS",
+      "details": "Each file card shows progress bar based on sent/total percentage"
+    },
+    "afgemeld_count_in_file_cards": {
+      "status": "PASS",
+      "details": "zonnepanelen_leads shows '1 afgemeld' badge"
+    },
+    "template_dropdown": {
+      "status": "PASS",
+      "details": "Template select dropdown loads templates from API"
+    }
+  },
+  "tests_executed": [
+    "Backend: TestQueueStatsAPI::test_queue_stats_returns_sources - PASS",
+    "Backend: TestQueueStatsAPI::test_queue_stats_has_per_source_counts - PASS",
+    "Backend: TestQueueStatsAPI::test_queue_stats_includes_unsubscribed - PASS",
+    "Backend: TestCSVImportAPI::test_import_uses_filename_as_source - PASS",
+    "Backend: TestCSVImportAPI::test_import_handles_semicolon_delimiter - PASS",
+    "Backend: TestCSVImportAPI::test_import_handles_street1_towncity_phone1_columns - PASS",
+    "Backend: TestUnsubscribeFeature::test_unsubscribe_stats_endpoint - PASS",
+    "Backend: TestUnsubscribeFeature::test_unsubscribe_invalid_token_returns_400 - PASS",
+    "Backend: TestQueueFilterAPI::test_queue_filter_by_source - PASS",
+    "Backend: TestQueueFilterAPI::test_queue_returns_total_count - PASS",
+    "Backend: TestAdminAuth::test_admin_dev_login - PASS",
+    "Backend: TestEmailTemplates::test_list_templates - PASS",
+    "Backend: TestHealthAndProducts::test_products_endpoint - PASS",
+    "Frontend: Admin login via /admin - PASS",
+    "Frontend: Email Marketing Dashboard loads at /admin/email-marketing - PASS",
+    "Frontend: 5 stat cards visible (Totaal, Wachtend, Verzonden, Mislukt, Afgemeld) - PASS",
+    "Frontend: Stap 1 CSV Upload section with drag-drop zone - PASS",
+    "Frontend: Stap 2 Template Select with dropdown - PASS",
+    "Frontend: Stap 3 Per-File Cards section - PASS",
+    "Frontend: zonnepanelen_leads card with 22,873 wachtend, 1 afgemeld - PASS",
+    "Frontend: Send button shows 'Verstuur 22,873 emails' - PASS",
+    "Frontend: Progress bar in file cards - PASS",
+    "Code Review: PayPal button uses official CDN img tag - VERIFIED"
+  ]
+}
