@@ -17,6 +17,9 @@ const CheckoutPage = () => {
   const [addedProducts, setAddedProducts] = useState({});
   const crossSellRef = useRef(null);
   const formRef = useRef(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
   
   const [formData, setFormData] = useState({
     email: '',
@@ -149,6 +152,35 @@ const CheckoutPage = () => {
   const handlePaymentMethodChange = (value) => {
     setFormData(prev => ({ ...prev, paymentMethod: value }));
     trackPaymentSelected(value);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await fetch(`/api/discount-codes/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim().toUpperCase() })
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setAppliedCoupon({
+          code: data.code,
+          discount_amount: data.discount || data.discount_value || 0,
+          discount_type: data.discount_type || 'fixed',
+          discount_value: data.discount_value || 0
+        });
+        setCouponError('');
+      } else {
+        setCouponError(data.message || 'Ongeldige kortingscode');
+        setAppliedCoupon(null);
+      }
+    } catch (e) {
+      setCouponError('Fout bij validatie');
+    }
+    setCouponLoading(false);
   };
 
   const handleSubmit = async (e) => {
@@ -830,6 +862,44 @@ const CheckoutPage = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Coupon Code Input */}
+                <div className="mb-4 pb-4 border-b border-slate-100">
+                  <label className="text-sm font-semibold text-slate-700 mb-2 block">Kortingscode</label>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">{appliedCoupon.code}</span>
+                      </div>
+                      <button type="button" onClick={() => { setAppliedCoupon(null); setCouponInput(''); setCouponError(''); }} className="text-xs text-red-500 hover:text-red-700">Verwijder</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponInput}
+                          onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                          placeholder="Code invoeren"
+                          className="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-warm-brown-500/50 focus:border-warm-brown-500 uppercase"
+                          data-testid="coupon-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={couponLoading || !couponInput.trim()}
+                          className="px-4 py-2 bg-warm-brown-500 text-white rounded-lg text-sm font-semibold hover:bg-warm-brown-600 transition disabled:opacity-50"
+                          data-testid="coupon-apply-btn"
+                        >
+                          {couponLoading ? '...' : 'Toepassen'}
+                        </button>
+                      </div>
+                      {couponError && <p className="text-xs text-red-500 mt-1" data-testid="coupon-error">{couponError}</p>}
+                    </div>
+                  )}
+                </div>
 
                 {/* Pricing */}
                 <div className="space-y-2 text-sm sm:text-base mb-6">

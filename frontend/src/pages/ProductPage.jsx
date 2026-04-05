@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Input } from '../components/ui/input';
 import { Star, ShoppingCart, Check, Sparkles, Shield, ChevronLeft, ChevronRight, Send, User, MessageSquare, Camera } from 'lucide-react';
 import Layout from '../components/Layout';
+import ShareButtons from '../components/ShareButtons';
 import StickyAddToCart from '../components/StickyAddToCart';
 import { trackViewItem } from '../utils/analytics';
 import { trackProductView, trackAddToCart } from '../lib/funnel';
@@ -165,7 +166,10 @@ const ProductPage = () => {
       if (typeof img === 'string') {
         return { url: img, alt: product.name };
       }
-      return { url: img.url || img, alt: img.alt || product.name };
+      if (img && typeof img === 'object') {
+        return { url: img.url || '', alt: img.alt || product.name };
+      }
+      return { url: '', alt: product.name };
     };
     
     const images = [processImage(product.image)];
@@ -506,11 +510,11 @@ const ProductPage = () => {
               {galleryImages.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
                   {galleryImages.map((img, idx) => {
-                    const imgUrl = img?.url || img;
+                    const imgUrl = (typeof img === 'string' ? img : img?.url) || '';
                     const imgAlt = img?.alt || `${product.name} foto ${idx + 1}`;
                     return (
                       <button
-                        key={`thumb-${idx}-${imgUrl.slice(-10)}`}
+                        key={`thumb-${idx}`}
                         onClick={() => setSelectedImage(idx)}
                         className={`flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 transition-all ${
                           selectedImage === idx 
@@ -571,13 +575,18 @@ const ProductPage = () => {
                 </div>
                 
                 {/* Social Proof Bar */}
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-6 flex items-center gap-4 flex-wrap">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center gap-4 flex-wrap">
                   <span className="text-sm text-green-800 font-medium flex items-center gap-1">
                     <span className="text-green-600">✓</span> 86% van ouders zegt: kind slaapt beter
                   </span>
                   <span className="text-sm text-green-800 font-medium flex items-center gap-1">
                     <span className="text-green-600">✓</span> 10.000+ tevreden klanten
                   </span>
+                </div>
+
+                {/* Share Buttons */}
+                <div className="mb-6">
+                  <ShareButtons title={product.name} url={window.location.href} />
                 </div>
                 
                 {/* Emotional Description */}
