@@ -165,9 +165,20 @@ class PaymentCreate(BaseModel):
     payment_method: str = "ideal"
 
 
+class ExpressCheckoutRequest(BaseModel):
+    payment_method: str
+    items: List[OrderItem]
+    subtotal: Optional[float] = None
+    discount: Optional[float] = None
+    discount_code: Optional[str] = None
+    coupon_discount: Optional[float] = None
+    total_amount: float
+    gift_wrap: Optional[bool] = False
+
+
 def get_mollie_client():
     """Get configured Mollie client"""
-    api_key = os.environ.get('MOLLIE_API_KEY', '')
+    api_key = os.environ.get('MOLLIE_TEST_KEY') or os.environ.get('MOLLIE_API_KEY', '')
     if not api_key:
         raise ValueError("MOLLIE_API_KEY not configured")
     client = MollieClient()
@@ -347,6 +358,87 @@ async def create_payment(payment: PaymentCreate):
     except Exception as e:
         logger.error(f"Payment creation error: {e}")
         raise HTTPException(status_code=500, detail=f"Payment creation failed: {str(e)}")
+
+
+@router.post("/express-checkout")
+async def express_checkout(req: ExpressCheckoutRequest):
+    """Express checkout: creates order + payment in one step, skipping address form.
+    For Apple Pay, Google Pay, PayPal — the payment provider collects customer details."""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
+    try:
+        order_id = str(uuid.uuid4())
+        order_data = {
+            "id": order_id,
+            "order_number": f"DV-{datetime.now().strftime('%Y%m%d')}-{order_id[:8].upper()}",
+            "customer_email": "express@pending.nl",
+            "customer_name": "Express Checkout",
+            "customer_phone": "",
+            "shipping_address": "",
+            "shipping_city": "",
+            "shipping_zipcode": "",
+            "customer_notes": f"Express checkout via {req.payment_method}",
+            "subtotal": req.subtotal or req.total_amount,
+            "discount_amount": (req.discount or 0) + (req.coupon_discount or 0),
+            "total_amount": req.total_amount,
+            "currency": "EUR",
+            "status": "pending",
+            "discount_code": req.discount_code,
+        }
+        supabase.table("orders").insert(order_data).execute()
+
+        for item in req.items:
+            supabase.table("order_items").insert({
+                "id": str(uuid.uuid4()),
+                "order_id": order_id,
+                "product_name": item.product_name,
+                "product_sku": item.product_id,
+                "quantity": item.quantity,
+                "unit_price": item.price,
+                "total_price": item.price * item.quantity,
+            }).execute()
+
+        # Create Mollie payment
+        mollie_client = get_mollie_client()
+        frontend_url = get_frontend_url()
+        api_url = get_api_url()
+
+        payment_data = {
+            'amount': {'currency': 'EUR', 'value': f"{req.total_amount:.2f}"},
+            'description': f"Droomvriendjes Bestelling #{order_id[:8].upper()}",
+            'redirectUrl': f"{frontend_url}/betaling-resultaat/{order_id}",
+            'cancelUrl': f"{frontend_url}/checkout",
+            'webhookUrl': f"{api_url}/api/webhook/mollie",
+            'method': req.payment_method,
+            'metadata': {'order_id': order_id},
+        }
+
+        mollie_payment = mollie_client.payments.create(payment_data)
+
+        supabase.table("orders").update({
+            "mollie_payment_id": mollie_payment.id,
+            "payment_method": req.payment_method,
+        }).eq("id", order_id).execute()
+
+        supabase.table("payments").insert({
+            "id": str(uuid.uuid4()),
+            "order_id": order_id,
+            "mollie_payment_id": mollie_payment.id,
+            "status": "pending",
+            "amount": req.total_amount,
+            "currency": "EUR",
+            "method": req.payment_method,
+        }).execute()
+
+        logger.info(f"Express checkout created: order={order_id}, payment={mollie_payment.id}")
+        return {"checkout_url": mollie_payment.checkout_url, "order_id": order_id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Express checkout error: {e}")
+        raise HTTPException(status_code=500, detail=f"Express checkout failed: {str(e)}")
 
 
 @router.post("/webhook/mollie")

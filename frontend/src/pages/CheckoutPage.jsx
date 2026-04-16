@@ -183,6 +183,48 @@ const CheckoutPage = () => {
     setCouponLoading(false);
   };
 
+  // Express checkout — skip form, go straight to payment provider
+  const handleExpressCheckout = async (method) => {
+    if (cart.length === 0) { setError('Je winkelwagen is leeg'); return; }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const subtotal = getSubtotal();
+      const autoDiscount = getDiscount();
+      const couponDiscount = appliedCoupon ? appliedCoupon.discount_amount : 0;
+      const giftWrapCost = formData.giftWrap ? GIFT_WRAP_PRICE : 0;
+      const finalTotal = Math.max(0, subtotal - autoDiscount - couponDiscount + giftWrapCost);
+
+      const res = await fetch(`/api/express-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payment_method: method,
+          items: cart.map(item => ({
+            product_id: String(item.id),
+            product_name: item.shortName || item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          subtotal,
+          discount: autoDiscount,
+          discount_code: appliedCoupon ? appliedCoupon.code : null,
+          coupon_discount: couponDiscount,
+          total_amount: finalTotal,
+          gift_wrap: formData.giftWrap,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Express checkout mislukt');
+      if (data.checkout_url) { clearCart(); window.location.href = data.checkout_url; }
+      else throw new Error('Geen checkout URL ontvangen');
+    } catch (err) {
+      console.error('Express checkout error:', err);
+      setError(err.message || 'Er is iets misgegaan. Probeer het opnieuw.');
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -395,16 +437,9 @@ const CheckoutPage = () => {
                   {/* Apple Pay */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handlePaymentMethodChange('applepay');
-                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                        formRef.current?.requestSubmit();
-                      } else {
-                        setError('Vul eerst alle verplichte velden in voordat je Apple Pay gebruikt');
-                        window.scrollTo({ top: 400, behavior: 'smooth' });
-                      }
-                    }}
-                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px]"
+                    disabled={isLoading}
+                    onClick={() => handleExpressCheckout('applepay')}
+                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition-all min-h-[48px] disabled:opacity-50"
                     data-testid="express-applepay"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 814 1000" fill="white">
@@ -417,16 +452,9 @@ const CheckoutPage = () => {
                   {/* Google Pay */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handlePaymentMethodChange('googlepay');
-                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                        formRef.current?.requestSubmit();
-                      } else {
-                        setError('Vul eerst alle verplichte velden in voordat je Google Pay gebruikt');
-                        window.scrollTo({ top: 400, behavior: 'smooth' });
-                      }
-                    }}
-                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-white border-2 border-slate-200 text-slate-800 rounded-xl font-semibold hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[48px]"
+                    disabled={isLoading}
+                    onClick={() => handleExpressCheckout('creditcard')}
+                    className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-white border-2 border-slate-200 text-slate-800 rounded-xl font-semibold hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[48px] disabled:opacity-50"
                     data-testid="express-googlepay"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
@@ -441,21 +469,20 @@ const CheckoutPage = () => {
                   {/* PayPal */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handlePaymentMethodChange('paypal');
-                      if (formData.email && formData.firstName && formData.lastName && formData.address && formData.zipCode && formData.city) {
-                        formRef.current?.requestSubmit();
-                      } else {
-                        setError('Vul eerst alle verplichte velden in voordat je PayPal gebruikt');
-                        window.scrollTo({ top: 400, behavior: 'smooth' });
-                      }
-                    }}
-                    className="flex-1 max-w-[280px] flex items-center justify-center py-3.5 px-5 bg-[#FFC439] rounded-xl hover:bg-[#f0b82e] transition-all min-h-[48px]"
+                    disabled={isLoading}
+                    onClick={() => handleExpressCheckout('paypal')}
+                    className="flex-1 max-w-[280px] flex items-center justify-center py-3.5 px-5 bg-[#FFC439] rounded-xl hover:bg-[#f0b82e] transition-all min-h-[48px] disabled:opacity-50"
                     data-testid="express-paypal"
                   >
                     <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" alt="PayPal" className="h-6" />
                   </button>
                 </div>
+                {isLoading && (
+                  <div className="flex items-center justify-center gap-2 mt-3 text-sm text-slate-500">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Even geduld, je wordt doorgestuurd...</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 mt-4">
                   <div className="flex-1 h-px bg-slate-200" />
                   <span className="text-[11px] text-slate-400 uppercase font-semibold whitespace-nowrap">of vul je gegevens in</span>
