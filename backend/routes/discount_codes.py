@@ -321,8 +321,8 @@ async def seed_discount_codes():
                     "description": "10% welkomstkorting voor nieuwe klanten"
                 },
                 {
-                    "id": "WINTER25",
-                    "code": "WINTER25",
+                    "id": "LENTE25",
+                    "code": "LENTE25",
                     "discount_type": "percentage",
                     "discount_value": 25,
                     "min_order_amount": 75,
@@ -332,7 +332,7 @@ async def seed_discount_codes():
                     "valid_until": "2026-02-28T23:59:59Z",
                     "active": True,
                     "created_at": datetime.now(timezone.utc).isoformat(),
-                    "description": "Winter sale - 25% korting bij minimaal €75"
+                    "description": "Lente sale - 25% korting bij minimaal €75"
                 },
                 {
                     "id": "GRATISVZ",

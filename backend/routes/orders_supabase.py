@@ -155,7 +155,9 @@ class OrderCreate(BaseModel):
     discount: Optional[float] = None
     total_amount: float
     discount_code: Optional[str] = None
+    coupon_discount: Optional[float] = None
     affiliate_code: Optional[str] = None
+    gift_wrap: Optional[bool] = False
 
 
 class PaymentCreate(BaseModel):
@@ -204,7 +206,7 @@ async def create_order(order: OrderCreate):
             "shipping_zipcode": order.customer_zipcode,
             "customer_notes": order.customer_comment or "",
             "subtotal": order.subtotal or order.total_amount,
-            "discount_amount": order.discount or 0,
+            "discount_amount": (order.discount or 0) + (order.coupon_discount or 0),
             "total_amount": order.total_amount,
             "currency": "EUR",
             "status": "pending",
@@ -411,6 +413,13 @@ async def mollie_webhook(request: Request):
                 if new_status == 'paid':
                     _send_order_confirmation(order, items)
                     _send_order_notification(order, items, 'payment_success')
+                    # Increment discount code usage if one was applied
+                    if order.get('discount_code'):
+                        try:
+                            from routes.discount_codes import use_discount_code
+                            await use_discount_code({"code": order['discount_code'], "order_id": order_id})
+                        except Exception as dc_err:
+                            logger.error(f"Failed to increment discount code usage: {dc_err}")
                 elif new_status == 'cancelled':
                     _send_order_notification(order, items, 'payment_failed')
         except Exception as email_err:

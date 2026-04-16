@@ -127,7 +127,7 @@ const ContactPage = () => {
                 <p className="text-xs text-slate-500">Snelste manier om contact op te nemen</p>
               </div>
             </div>
-            <a href="https://wa.me/31612345678?text=Hallo%20Droomvriendjes!%20Ik%20heb%20een%20vraag." target="_blank" rel="noopener noreferrer"
+            <a href="https://wa.me/31684588815?text=Hallo%20Droomvriendjes!%20Ik%20heb%20een%20vraag." target="_blank" rel="noopener noreferrer"
               className="px-4 py-2 bg-[#25D366] text-white font-semibold rounded-lg text-sm hover:bg-[#20bd5a] transition flex-shrink-0" data-testid="whatsapp-btn">
               WhatsApp
             </a>

@@ -39,6 +39,7 @@ const AdminCommandCenterNew = () => {
   const [liveEvents, setLiveEvents] = useState([]);
   const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [funnelData, setFunnelData] = useState([]);
+  const [dailyBreakdown, setDailyBreakdown] = useState([]);
 
   // Update clock
   useEffect(() => {
@@ -147,6 +148,7 @@ const AdminCommandCenterNew = () => {
           conversionRate: data.stats?.conversion_rate || 0,
         });
         setRecentOrders(data.recent_orders || []);
+        setDailyBreakdown(data.daily_breakdown || []);
       }
 
       // Fetch funnel stats
@@ -429,20 +431,34 @@ const AdminCommandCenterNew = () => {
                         <div className="text-white/40 text-xs">orders</div>
                       </div>
                       <div className="text-center px-4">
-                        <div className="text-white font-bold">€45,60</div>
+                        <div className="text-white font-bold">{formatCurrency(stats.avgOrderValue)}</div>
                         <div className="text-white/40 text-xs">gem. order</div>
                       </div>
                       <div className="text-center px-4">
-                        <div className="text-white font-bold">4.2%</div>
+                        <div className="text-white font-bold">{stats.conversionRate}%</div>
                         <div className="text-white/40 text-xs">conv. rate</div>
                       </div>
                     </div>
                   </div>
-                  {/* Simple chart placeholder */}
+                  {/* Daily revenue chart from real data */}
                   <div className="h-[200px] flex items-end gap-1">
-                    {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 100].map((height, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500/20 to-emerald-500/60 rounded-t" style={{height: `${height}%`}}></div>
-                    ))}
+                    {(dailyBreakdown.length > 0 ? dailyBreakdown.slice(-12) : []).map((day, i) => {
+                      const maxRev = Math.max(...dailyBreakdown.slice(-12).map(d => d.revenue || 0), 1);
+                      const height = Math.max(2, ((day.revenue || 0) / maxRev) * 100);
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1 group cursor-pointer relative">
+                          <div className="absolute -top-8 bg-white/10 rounded px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+                            {formatCurrency(day.revenue || 0)} &bull; {day.orders} orders
+                          </div>
+                          <div className="w-full bg-gradient-to-t from-emerald-500/20 to-emerald-500/60 rounded-t transition-all group-hover:from-emerald-500/40 group-hover:to-emerald-500/80" style={{height: `${height}%`}}></div>
+                        </div>
+                      );
+                    })}
+                    {dailyBreakdown.length === 0 && (
+                      <div className="flex-1 flex items-center justify-center text-white/30 text-sm">
+                        Nog geen omzetdata beschikbaar
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -625,61 +641,57 @@ const AdminCommandCenterNew = () => {
           {activeSection === 'analytics' && (
             <div>
               <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-8">
-                📊 Geavanceerde Analytics
+                Geavanceerde Analytics
               </h1>
               
-              {/* KPI Cards */}
+              {/* KPI Cards - REAL DATA */}
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-emerald-500/40 transition-all group">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-all">💰</div>
-                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">+23.4%</span>
+                    <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">
+                      <DollarSign className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    {stats.revenueGrowth >= 0 ? (
+                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">+{stats.revenueGrowth}%</span>
+                    ) : (
+                      <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-1 rounded-full">{stats.revenueGrowth}%</span>
+                    )}
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">€84.2K</div>
-                  <div className="text-white/50 text-sm">Totale Omzet</div>
-                  <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                    <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-1.5 rounded-full" style={{width: '84%'}}></div>
-                  </div>
-                  <div className="text-white/30 text-xs mt-1">Target: €100K</div>
+                  <div className="text-3xl font-black text-white mb-1" data-testid="analytics-revenue">{formatCurrency(stats.totalRevenue)}</div>
+                  <div className="text-white/50 text-sm">Totale Omzet (30d)</div>
                 </div>
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-blue-500/40 transition-all group">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-all">🛍️</div>
-                    <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">+18.7%</span>
+                    <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">
+                      <ShoppingCart className="w-5 h-5 text-blue-400" />
+                    </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">2,847</div>
-                  <div className="text-white/50 text-sm">Orders</div>
-                  <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                    <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-1.5 rounded-full" style={{width: '71%'}}></div>
-                  </div>
-                  <div className="text-white/30 text-xs mt-1">Target: 4.000</div>
+                  <div className="text-3xl font-black text-white mb-1" data-testid="analytics-orders">{stats.totalOrders}</div>
+                  <div className="text-white/50 text-sm">Bestellingen (30d)</div>
                 </div>
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-purple-500/40 transition-all group">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-all">👥</div>
-                    <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded-full">+12.1%</span>
+                    <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">
+                      <Users className="w-5 h-5 text-purple-400" />
+                    </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">12,847</div>
-                  <div className="text-white/50 text-sm">Actieve Klanten</div>
-                  <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                    <div className="bg-gradient-to-r from-purple-400 to-purple-600 h-1.5 rounded-full" style={{width: '64%'}}></div>
-                  </div>
-                  <div className="text-white/30 text-xs mt-1">Target: 20.000</div>
+                  <div className="text-3xl font-black text-white mb-1" data-testid="analytics-customers">{stats.totalCustomers}</div>
+                  <div className="text-white/50 text-sm">Unieke Klanten (30d)</div>
                 </div>
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-orange-500/40 transition-all group">
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-all">📈</div>
-                    <span className="text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-1 rounded-full">+5.2%</span>
+                    <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">
+                      <Target className="w-5 h-5 text-orange-400" />
+                    </div>
                   </div>
-                  <div className="text-3xl font-black text-white mb-1">4.2%</div>
+                  <div className="text-3xl font-black text-white mb-1" data-testid="analytics-conversion">{stats.conversionRate > 0 ? `${stats.conversionRate}%` : '-'}</div>
                   <div className="text-white/50 text-sm">Conversieratio</div>
-                  <div className="mt-3 w-full bg-white/10 rounded-full h-1.5">
-                    <div className="bg-gradient-to-r from-orange-400 to-orange-600 h-1.5 rounded-full" style={{width: '42%'}}></div>
-                  </div>
-                  <div className="text-white/30 text-xs mt-1">Target: 6%</div>
+                  {stats.conversionRate === 0 && (
+                    <div className="text-white/30 text-xs mt-1">Onvoldoende data</div>
+                  )}
                 </div>
               </div>
 

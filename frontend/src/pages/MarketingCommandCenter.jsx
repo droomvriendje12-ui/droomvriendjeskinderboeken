@@ -4,7 +4,8 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import {
   Mail, Users, Send, Upload, FileText, ChevronLeft,
   Check, AlertTriangle, Trash2, RefreshCw, Clock,
-  CheckCircle, XCircle, Loader2, Play, BarChart3
+  CheckCircle, XCircle, Loader2, Play, BarChart3,
+  Eye, MousePointerClick
 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -21,66 +22,55 @@ const MarketingCommandCenter = () => {
   const [sources, setSources] = useState({});
   const [templates, setTemplates] = useState([]);
   const [unsubCount, setUnsubCount] = useState(0);
+  const [trackingStats, setTrackingStats] = useState({});
 
   // Campaign per source
-  const [activeCampaign, setActiveCampaign] = useState(null); // source name
+  const [activeCampaign, setActiveCampaign] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [campaignRunning, setCampaignRunning] = useState(false);
   const [campaignProgress, setCampaignProgress] = useState(null);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  useEffect(() => {
-    return () => { if (progressRef.current) clearInterval(progressRef.current); };
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { return () => { if (progressRef.current) clearInterval(progressRef.current); }; }, []);
 
   const fetchAll = () => {
     fetchStats();
     fetchTemplates();
     fetchUnsubCount();
+    fetchTrackingStats();
   };
 
   const fetchStats = async () => {
     try {
       const res = await fetch(`${API_URL}/api/email/csv/queue/stats`);
-      if (res.ok) {
-        const data = await res.json();
-        setSources(data.sources || {});
-      }
+      if (res.ok) { const data = await res.json(); setSources(data.sources || {}); }
     } catch (e) { console.error(e); }
   };
 
   const fetchTemplates = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const res = await fetch(`${API_URL}/api/email-templates`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTemplates(data.templates || []);
-      }
+      const res = await fetch(`${API_URL}/api/email-templates`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) { const data = await res.json(); setTemplates(data.templates || []); }
     } catch (e) { console.error(e); }
   };
 
   const fetchUnsubCount = async () => {
     try {
       const res = await fetch(`${API_URL}/api/email/csv/unsubscribe-stats`);
-      if (res.ok) {
-        const data = await res.json();
-        setUnsubCount(data.total_unsubscribed || 0);
-      }
+      if (res.ok) { const data = await res.json(); setUnsubCount(data.total_unsubscribed || 0); }
     } catch (e) { console.error(e); }
   };
 
-  // Upload CSV
+  const fetchTrackingStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/email/csv/tracking-stats`);
+      if (res.ok) { const data = await res.json(); setTrackingStats(data.tracking || {}); }
+    } catch (e) { console.error(e); }
+  };
+
   const handleUpload = async (file) => {
-    if (!file?.name.endsWith('.csv')) {
-      setImportResult({ success: false, message: 'Alleen CSV bestanden' });
-      return;
-    }
+    if (!file?.name.endsWith('.csv')) { setImportResult({ success: false, message: 'Alleen CSV bestanden' }); return; }
     setImporting(true);
     setImportResult(null);
     try {
@@ -90,14 +80,11 @@ const MarketingCommandCenter = () => {
       const data = await res.json();
       setImportResult(res.ok ? data : { success: false, message: data.detail || 'Mislukt' });
       if (res.ok) fetchStats();
-    } catch (e) {
-      setImportResult({ success: false, message: e.message });
-    }
+    } catch (e) { setImportResult({ success: false, message: e.message }); }
     setImporting(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Send campaign for a specific source
   const startCampaign = async (source) => {
     if (!selectedTemplate) return;
     setCampaignRunning(true);
@@ -121,7 +108,7 @@ const MarketingCommandCenter = () => {
               if (prog.status === 'completed') {
                 clearInterval(progressRef.current);
                 setCampaignRunning(false);
-                fetchStats();
+                fetchAll();
               }
             }
           } catch {}
@@ -139,7 +126,7 @@ const MarketingCommandCenter = () => {
   const deleteSource = async (source) => {
     if (!window.confirm(`"${source}" verwijderen? Alle contacten worden gewist.`)) return;
     await fetch(`${API_URL}/api/email/csv/queue?source=${encodeURIComponent(source)}`, { method: 'DELETE' });
-    fetchStats();
+    fetchAll();
   };
 
   // Totals
@@ -149,6 +136,13 @@ const MarketingCommandCenter = () => {
     sent: acc.sent + (s.sent || 0),
     failed: acc.failed + (s.failed || 0),
   }), { total: 0, pending: 0, sent: 0, failed: 0 });
+
+  // Tracking totals
+  const trackTotals = Object.values(trackingStats).reduce((acc, s) => ({
+    opened: acc.opened + (s.opened || 0),
+    clicked: acc.clicked + (s.clicked || 0),
+    sent: acc.sent + (s.sent || 0),
+  }), { opened: 0, clicked: 0, sent: 0 });
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -173,12 +167,14 @@ const MarketingCommandCenter = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3" data-testid="stats-cards">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3" data-testid="stats-cards">
           {[
             { label: 'Totaal', value: totals.total, icon: Users, color: 'blue' },
             { label: 'Wachtend', value: totals.pending, icon: Clock, color: 'orange' },
             { label: 'Verzonden', value: totals.sent, icon: CheckCircle, color: 'green' },
             { label: 'Mislukt', value: totals.failed, icon: XCircle, color: 'red' },
+            { label: 'Geopend', value: trackTotals.opened, icon: Eye, color: 'indigo' },
+            { label: 'Geklikt', value: trackTotals.clicked, icon: MousePointerClick, color: 'purple' },
             { label: 'Afgemeld', value: unsubCount, icon: Mail, color: 'slate' },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-xl p-3 border shadow-sm flex items-center gap-3">
@@ -227,7 +223,6 @@ const MarketingCommandCenter = () => {
               )}
             </div>
 
-            {/* Import Result */}
             {importResult && (
               <div className={`mt-4 p-4 rounded-xl ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`} data-testid="import-result">
                 <div className="flex items-start gap-2">
@@ -272,7 +267,7 @@ const MarketingCommandCenter = () => {
             </select>
 
             <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700 mb-4">
-              Placeholders: <code className="bg-blue-100 px-1 rounded">{'{{naam}}'}</code> <code className="bg-blue-100 px-1 rounded">{'{{voornaam}}'}</code> <code className="bg-blue-100 px-1 rounded">{'{{email}}'}</code> &bull; Afmeldlink wordt automatisch toegevoegd (AVG)
+              Placeholders: <code className="bg-blue-100 px-1 rounded">{'{{naam}}'}</code> <code className="bg-blue-100 px-1 rounded">{'{{voornaam}}'}</code> <code className="bg-blue-100 px-1 rounded">{'{{email}}'}</code> &bull; Afmeldlink + open/click tracking wordt automatisch toegevoegd
             </div>
           </div>
         </div>
@@ -287,7 +282,7 @@ const MarketingCommandCenter = () => {
           {Object.keys(sources).length === 0 ? (
             <div className="bg-white rounded-xl border p-8 text-center">
               <FileText className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-400">Nog geen bestanden geüpload</p>
+              <p className="text-slate-400">Nog geen bestanden geupload</p>
               <p className="text-xs text-slate-300 mt-1">Upload een CSV om te beginnen</p>
             </div>
           ) : (
@@ -301,6 +296,13 @@ const MarketingCommandCenter = () => {
               const isActive = activeCampaign === src && campaignRunning;
               const isCompleted = activeCampaign === src && campaignProgress?.status === 'completed';
 
+              // Tracking data for this source
+              const tracking = trackingStats[src] || {};
+              const opened = tracking.opened || 0;
+              const clicked = tracking.clicked || 0;
+              const openRate = tracking.open_rate || 0;
+              const clickRate = tracking.click_rate || 0;
+
               return (
                 <div key={src} className="bg-white rounded-xl border shadow-sm overflow-hidden" data-testid={`file-card-${src}`}>
                   <div className="p-4 sm:p-5">
@@ -309,7 +311,7 @@ const MarketingCommandCenter = () => {
                         <h3 className="font-semibold text-slate-800 truncate text-sm sm:text-base" title={src}>{src}</h3>
                         <p className="text-xs text-slate-400">{total.toLocaleString()} contacten</p>
                       </div>
-                      <button onClick={() => deleteSource(src)} className="p-1.5 text-slate-300 hover:text-red-500 transition flex-shrink-0" title="Verwijderen">
+                      <button onClick={() => deleteSource(src)} className="p-1.5 text-slate-300 hover:text-red-500 transition flex-shrink-0" title="Verwijderen" data-testid={`delete-source-${src}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -322,12 +324,28 @@ const MarketingCommandCenter = () => {
                       {unsub > 0 && <span className="text-xs bg-slate-50 text-slate-600 px-2 py-1 rounded-md font-medium">{unsub.toLocaleString()} afgemeld</span>}
                     </div>
 
+                    {/* Tracking stats row (only when there are sends) */}
+                    {sent > 0 && (
+                      <div className="flex gap-3 mb-3 p-2.5 bg-indigo-50/50 rounded-lg border border-indigo-100" data-testid={`tracking-stats-${src}`}>
+                        <div className="flex items-center gap-1.5">
+                          <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                          <span className="text-xs font-semibold text-indigo-700">{opened} geopend</span>
+                          <span className="text-[10px] text-indigo-400">({openRate}%)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MousePointerClick className="w-3.5 h-3.5 text-purple-600" />
+                          <span className="text-xs font-semibold text-purple-700">{clicked} geklikt</span>
+                          <span className="text-[10px] text-purple-400">({clickRate}%)</span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Progress bar */}
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
                       <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${sentPercent}%` }} />
                     </div>
 
-                    {/* Campaign progress for this source */}
+                    {/* Campaign progress */}
                     {isActive && campaignProgress?.status === 'running' && (
                       <div className="mb-3 p-3 bg-blue-50 rounded-lg" data-testid="campaign-progress">
                         <div className="flex justify-between text-sm text-blue-700 mb-1">
@@ -344,7 +362,6 @@ const MarketingCommandCenter = () => {
                       </div>
                     )}
 
-                    {/* Completed */}
                     {isCompleted && (
                       <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200" data-testid="campaign-result">
                         <p className="text-sm text-green-700 font-semibold flex items-center gap-1">
@@ -354,7 +371,6 @@ const MarketingCommandCenter = () => {
                       </div>
                     )}
 
-                    {/* Error */}
                     {activeCampaign === src && campaignProgress?.status === 'error' && (
                       <div className="mb-3 p-3 bg-red-50 rounded-lg text-sm text-red-700 flex items-center gap-1">
                         <AlertTriangle className="w-4 h-4" /> {campaignProgress.message}

@@ -244,7 +244,7 @@ const CheckoutPage = () => {
           })),
           subtotal: subtotal,
           discount: autoDiscount,
-          coupon_code: appliedCoupon ? appliedCoupon.code : null,
+          discount_code: appliedCoupon ? appliedCoupon.code : null,
           coupon_discount: couponDiscount,
           total_amount: finalTotal
         })

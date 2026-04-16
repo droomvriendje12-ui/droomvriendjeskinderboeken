@@ -78,14 +78,18 @@ def build_unsub_url(email: str) -> str:
     return f"{base}/api/email/csv/unsubscribe/{token}?email={email}"
 
 
-def append_unsub_footer(html_content: str, email: str) -> str:
-    """Append unsubscribe footer to HTML email content"""
+def append_unsub_footer(html_content: str, email: str, email_id: str = "") -> str:
+    """Append unsubscribe footer and open tracking pixel to HTML email content"""
     unsub_url = build_unsub_url(email)
+    base = SITE_URL.rstrip('/')
+    tracking_pixel = ""
+    if email_id:
+        tracking_pixel = f'<img src="{base}/api/email/csv/track/open/{email_id}" width="1" height="1" style="display:none;" alt="" />'
     footer = f'''
     <div style="margin-top:30px;padding-top:20px;border-top:1px solid #e5e5e5;text-align:center;font-size:12px;color:#999;">
       <p>Je ontvangt deze email omdat je je hebt aangemeld bij Droomvriendjes.</p>
       <p><a href="{unsub_url}" style="color:#8B7355;text-decoration:underline;">Uitschrijven</a> | Droomvriendjes</p>
-    </div>'''
+    </div>{tracking_pixel}'''
     # Insert before closing </body> or append at end
     if '</body>' in html_content.lower():
         idx = html_content.lower().rfind('</body>')
@@ -97,6 +101,22 @@ def append_unsub_text(text_content: str, email: str) -> str:
     """Append unsubscribe link to plain text email"""
     unsub_url = build_unsub_url(email)
     return text_content + f"\n\n---\nUitschrijven: {unsub_url}"
+
+
+def wrap_links_for_tracking(html_content: str, email_id: str) -> str:
+    """Wrap <a href="..."> links in the email body to go through click tracking redirect"""
+    base = SITE_URL.rstrip('/')
+    import urllib.parse
+
+    def replace_link(match):
+        original_url = match.group(1)
+        # Don't wrap unsubscribe links or tracking links
+        if 'unsubscribe' in original_url or '/track/' in original_url:
+            return match.group(0)
+        tracked = f'{base}/api/email/csv/track/click/{email_id}?url={urllib.parse.quote(original_url, safe="")}'
+        return match.group(0).replace(original_url, tracked)
+
+    return re.sub(r'href="(https?://[^"]+)"', replace_link, html_content)
 
 
 @router.post("/import")
@@ -341,6 +361,24 @@ async def clear_queue(source: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.delete("/queue/item/{item_id}")
+async def delete_queue_item(item_id: str):
+    """Delete a single email queue item by its id"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
+    try:
+        result = await db['email_queue'].delete_one({"id": item_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Item niet gevonden")
+        return {"success": True, "message": "Item verwijderd"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting queue item {item_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 class CampaignRequest(BaseModel):
     template_id: str
@@ -410,6 +448,7 @@ async def send_campaign(request: CampaignRequest):
         for i, contact in enumerate(contacts):
             email = contact.get("email", "")
             naam = contact.get("naam", "")
+            email_id = contact.get("id", "")
 
             # Personalize template
             subject = template.get("subject", "Droomvriendjes")
@@ -418,8 +457,12 @@ async def send_campaign(request: CampaignRequest):
             content = content.replace("{{naam}}", naam).replace("{{firstname}}", naam).replace("{{voornaam}}", naam)
             content = content.replace("{{email}}", email)
 
-            # Append unsubscribe footer (AVG/GDPR)
-            content = append_unsub_footer(content, email)
+            # Wrap links for click tracking (before adding footer)
+            if email_id:
+                content = wrap_links_for_tracking(content, email_id)
+
+            # Append unsubscribe footer + open tracking pixel (AVG/GDPR)
+            content = append_unsub_footer(content, email, email_id)
 
             # Plain text fallback
             import html as html_module
@@ -592,6 +635,93 @@ async def get_unsubscribe_stats():
         }
     except Exception as e:
         logger.error(f"Unsubscribe stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== EMAIL TRACKING (Open Pixel + Click Redirect) =====
+
+# 1x1 transparent GIF for open tracking
+TRACKING_PIXEL = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x00\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+
+from fastapi.responses import Response, RedirectResponse
+
+
+@router.get("/track/open/{email_id}")
+async def track_open(email_id: str):
+    """Track email open via 1x1 tracking pixel. Returns a transparent GIF."""
+    if db is not None:
+        try:
+            await db['email_queue'].update_one(
+                {"id": email_id},
+                {"$set": {"opened": True, "opened_at": datetime.now(timezone.utc).isoformat()},
+                 "$inc": {"open_count": 1}}
+            )
+        except Exception as e:
+            logger.error(f"Track open error for {email_id}: {e}")
+    return Response(content=TRACKING_PIXEL, media_type="image/gif",
+                    headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"})
+
+
+@router.get("/track/click/{email_id}")
+async def track_click(email_id: str, url: str = "https://droomvriendjes.nl"):
+    """Track email link click and redirect to the target URL."""
+    if db is not None:
+        try:
+            await db['email_queue'].update_one(
+                {"id": email_id},
+                {"$set": {"clicked": True, "clicked_at": datetime.now(timezone.utc).isoformat()},
+                 "$inc": {"click_count": 1}}
+            )
+        except Exception as e:
+            logger.error(f"Track click error for {email_id}: {e}")
+    return RedirectResponse(url=url, status_code=302)
+
+
+@router.get("/tracking-stats")
+async def get_tracking_stats(source: Optional[str] = None):
+    """Get open/click tracking statistics, optionally filtered by source"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database niet geconfigureerd")
+
+    try:
+        match = {}
+        if source:
+            match["source"] = source
+
+        pipeline = [
+            {"$match": match},
+            {"$group": {
+                "_id": "$source",
+                "total": {"$sum": 1},
+                "sent": {"$sum": {"$cond": [{"$eq": ["$status", "sent"]}, 1, 0]}},
+                "opened": {"$sum": {"$cond": [{"$eq": ["$opened", True]}, 1, 0]}},
+                "clicked": {"$sum": {"$cond": [{"$eq": ["$clicked", True]}, 1, 0]}},
+                "total_opens": {"$sum": {"$ifNull": ["$open_count", 0]}},
+                "total_clicks": {"$sum": {"$ifNull": ["$click_count", 0]}},
+            }},
+            {"$sort": {"_id": 1}}
+        ]
+        cursor = db['email_queue'].aggregate(pipeline)
+        results = await cursor.to_list(length=100)
+
+        stats = {}
+        for r in results:
+            src = r["_id"] or "onbekend"
+            sent = r["sent"]
+            stats[src] = {
+                "total": r["total"],
+                "sent": sent,
+                "opened": r["opened"],
+                "clicked": r["clicked"],
+                "total_opens": r["total_opens"],
+                "total_clicks": r["total_clicks"],
+                "open_rate": round((r["opened"] / sent * 100), 1) if sent > 0 else 0,
+                "click_rate": round((r["clicked"] / sent * 100), 1) if sent > 0 else 0,
+            }
+
+        return {"tracking": stats}
+    except Exception as e:
+        logger.error(f"Tracking stats error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
