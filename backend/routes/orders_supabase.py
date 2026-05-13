@@ -21,6 +21,16 @@ router = APIRouter(tags=["orders"])
 # Supabase client - will be set by main app
 supabase = None
 
+# MongoDB fallback - will be set by main app
+mongo_db = None
+
+
+def set_mongo_db(db):
+    """Set MongoDB client for fallback order storage"""
+    global mongo_db
+    mongo_db = db
+    logger.info("✅ MongoDB fallback set for orders route")
+
 # SMTP config
 SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
@@ -235,19 +245,32 @@ def get_api_url():
     return os.environ.get('API_URL', 'https://droomvriendjes.nl')
 
 
+def _supabase_available():
+    """Quick check if Supabase is reachable"""
+    if supabase is None:
+        return False
+    try:
+        supabase.table("orders").select("id").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
 @router.post("/orders")
 async def create_order(order: OrderCreate):
-    """Create a new order in Supabase"""
-    if supabase is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
-    
+    """Create a new order - tries Supabase first, falls back to MongoDB"""
+    use_supabase = _supabase_available()
+
+    if not use_supabase and mongo_db is None:
+        raise HTTPException(status_code=503, detail="Bestelsysteem tijdelijk niet beschikbaar. Probeer het over een paar minuten opnieuw.")
+
     try:
         order_id = str(uuid.uuid4())
-        
-        # Create order in Supabase
+        order_number = f"DV-{datetime.now().strftime('%Y%m%d')}-{order_id[:8].upper()}"
+
         order_data = {
             "id": order_id,
-            "order_number": f"DV-{datetime.now().strftime('%Y%m%d')}-{order_id[:8].upper()}",
+            "order_number": order_number,
             "customer_email": order.customer_email,
             "customer_name": order.customer_name,
             "customer_phone": order.customer_phone or "",
@@ -262,17 +285,12 @@ async def create_order(order: OrderCreate):
             "status": "pending",
             "discount_code": order.discount_code,
             "affiliate_code": order.affiliate_code,
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        
-        # Insert order
-        result = supabase.table("orders").insert(order_data).execute()
-        
-        if not result.data:
-            raise HTTPException(status_code=500, detail="Failed to create order")
-        
-        # Insert order items
+
+        items_data = []
         for item in order.items:
-            item_data = {
+            items_data.append({
                 "id": str(uuid.uuid4()),
                 "order_id": order_id,
                 "product_name": item.product_name,
@@ -280,81 +298,77 @@ async def create_order(order: OrderCreate):
                 "quantity": item.quantity,
                 "unit_price": item.price,
                 "total_price": item.price * item.quantity,
-            }
-            supabase.table("order_items").insert(item_data).execute()
-        
-        logger.info(f"Order created in Supabase: {order_id}")
-        
-        # Send notification email to owner
+            })
+
+        if use_supabase:
+            supabase.table("orders").insert(order_data).execute()
+            for item in items_data:
+                supabase.table("order_items").insert(item).execute()
+            logger.info(f"Order created in Supabase: {order_id}")
+        else:
+            # MongoDB fallback
+            order_data["items"] = items_data
+            order_data["_storage"] = "mongodb"
+            await mongo_db['orders'].insert_one(order_data)
+            logger.info(f"Order created in MongoDB (fallback): {order_id}")
+
+        # Send notification
         try:
             _send_order_notification(order_data, [{"product_name": i.product_name, "quantity": i.quantity, "unit_price": i.price} for i in order.items], 'order_placed')
         except Exception as email_err:
             logger.error(f"Failed to send order notification: {email_err}")
-        
+
         return {"order_id": order_id, "status": "pending"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating order: {e}")
-        raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Bestelling kon niet worden aangemaakt. Probeer het opnieuw.")
 
 
 @router.post("/payments/create")
 async def create_payment(payment: PaymentCreate):
-    """Create a Mollie payment for an order"""
-    if supabase is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
-    
+    """Create a Mollie payment for an order (supports both Supabase and MongoDB)"""
     try:
-        # Get order from Supabase
-        result = supabase.table("orders").select("*").eq("id", payment.order_id).limit(1).execute()
-        
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Order not found")
-        
-        order = result.data[0]
-        
+        use_supabase = _supabase_available()
+        order = None
+
+        # Try to find order
+        if use_supabase:
+            result = supabase.table("orders").select("*").eq("id", payment.order_id).limit(1).execute()
+            if result.data:
+                order = result.data[0]
+
+        if not order and mongo_db is not None:
+            order = await mongo_db['orders'].find_one({"id": payment.order_id}, {"_id": 0})
+
+        if not order:
+            raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
+
         # Initialize Mollie client
         mollie_client = get_mollie_client()
-        
+
         # Build URLs
         frontend_url = get_frontend_url()
         api_url = get_api_url()
-        redirect_url = f"{frontend_url}/betaling-resultaat/{payment.order_id}"
-        webhook_url = f"{api_url}/api/webhook/mollie"
-        cancel_url = f"{frontend_url}/checkout"
-        
-        logger.info(f"Creating payment for order {payment.order_id}")
-        logger.info(f"Redirect URL: {redirect_url}")
-        logger.info(f"Webhook URL: {webhook_url}")
-        
-        # Base payment data
+
         payment_data = {
-            'amount': {
-                'currency': 'EUR',
-                'value': f"{order['total_amount']:.2f}"
-            },
+            'amount': {'currency': 'EUR', 'value': f"{order['total_amount']:.2f}"},
             'description': f"Droomvriendjes Bestelling #{payment.order_id[:8].upper()}",
-            'redirectUrl': redirect_url,
-            'cancelUrl': cancel_url,
-            'webhookUrl': webhook_url,
+            'redirectUrl': f"{frontend_url}/betaling-resultaat/{payment.order_id}",
+            'cancelUrl': f"{frontend_url}/checkout",
+            'webhookUrl': f"{api_url}/api/webhook/mollie",
             'method': payment.payment_method,
-            'metadata': {
-                'order_id': payment.order_id,
-                'customer_email': order['customer_email']
-            }
+            'metadata': {'order_id': payment.order_id, 'customer_email': order.get('customer_email', '')}
         }
-        
+
         # Add billing address for Klarna/iDEAL in3
         if payment.payment_method in ['klarna', 'klarnapaylater', 'klarnasliceit', 'in3', 'ideal_in3']:
             name_parts = order.get('customer_name', '').split(' ', 1)
-            given_name = name_parts[0] if name_parts else ''
-            family_name = name_parts[1] if len(name_parts) > 1 else name_parts[0]
-            
             payment_data['billingAddress'] = {
-                'givenName': given_name,
-                'familyName': family_name,
+                'givenName': name_parts[0] if name_parts else '',
+                'familyName': name_parts[1] if len(name_parts) > 1 else name_parts[0] if name_parts else '',
                 'email': order.get('customer_email', ''),
                 'streetAndNumber': order.get('shipping_address', ''),
                 'postalCode': order.get('shipping_zipcode', ''),
@@ -362,35 +376,26 @@ async def create_payment(payment: PaymentCreate):
                 'country': 'NL'
             }
             payment_data['shippingAddress'] = payment_data['billingAddress'].copy()
-        
-        # Create Mollie payment
+
         mollie_payment = mollie_create_payment_with_retry(mollie_client, payment_data)
-        
+
         # Update order with payment info
-        supabase.table("orders").update({
-            "mollie_payment_id": mollie_payment.id,
-            "payment_method": payment.payment_method,
-        }).eq("id", payment.order_id).execute()
-        
-        # Create payment record
-        payment_record = {
-            "id": str(uuid.uuid4()),
-            "order_id": payment.order_id,
-            "mollie_payment_id": mollie_payment.id,
-            "status": "pending",
-            "amount": order['total_amount'],
-            "currency": "EUR",
-            "method": payment.payment_method,
-        }
-        supabase.table("payments").insert(payment_record).execute()
-        
+        payment_update = {"mollie_payment_id": mollie_payment.id, "payment_method": payment.payment_method}
+        if use_supabase and not order.get('_storage') == 'mongodb':
+            try:
+                supabase.table("orders").update(payment_update).eq("id", payment.order_id).execute()
+                supabase.table("payments").insert({
+                    "id": str(uuid.uuid4()), "order_id": payment.order_id,
+                    "mollie_payment_id": mollie_payment.id, "status": "pending",
+                    "amount": order['total_amount'], "currency": "EUR", "method": payment.payment_method,
+                }).execute()
+            except Exception:
+                pass
+        if mongo_db is not None:
+            await mongo_db['orders'].update_one({"id": payment.order_id}, {"$set": payment_update})
+
         logger.info(f"Payment created: {mollie_payment.id}")
-        
-        return {
-            "payment_id": mollie_payment.id,
-            "checkout_url": mollie_payment.checkout_url,
-            "status": mollie_payment.status
-        }
+        return {"payment_id": mollie_payment.id, "checkout_url": mollie_payment.checkout_url, "status": mollie_payment.status}
         
     except HTTPException:
         raise
@@ -404,10 +409,11 @@ async def create_payment(payment: PaymentCreate):
 
 @router.post("/express-checkout")
 async def express_checkout(req: ExpressCheckoutRequest):
-    """Express checkout: creates order + payment in one step, skipping address form.
-    For Apple Pay, Google Pay, PayPal — the payment provider collects customer details."""
-    if supabase is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+    """Express checkout: creates order + payment in one step, skipping address form."""
+    use_supabase = _supabase_available()
+
+    if not use_supabase and mongo_db is None:
+        raise HTTPException(status_code=503, detail="Bestelsysteem tijdelijk niet beschikbaar.")
 
     try:
         order_id = str(uuid.uuid4())
@@ -427,19 +433,26 @@ async def express_checkout(req: ExpressCheckoutRequest):
             "currency": "EUR",
             "status": "pending",
             "discount_code": req.discount_code,
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        supabase.table("orders").insert(order_data).execute()
 
+        items_data = []
         for item in req.items:
-            supabase.table("order_items").insert({
-                "id": str(uuid.uuid4()),
-                "order_id": order_id,
-                "product_name": item.product_name,
-                "product_sku": item.product_id,
-                "quantity": item.quantity,
-                "unit_price": item.price,
+            items_data.append({
+                "id": str(uuid.uuid4()), "order_id": order_id,
+                "product_name": item.product_name, "product_sku": item.product_id,
+                "quantity": item.quantity, "unit_price": item.price,
                 "total_price": item.price * item.quantity,
-            }).execute()
+            })
+
+        if use_supabase:
+            supabase.table("orders").insert(order_data).execute()
+            for it in items_data:
+                supabase.table("order_items").insert(it).execute()
+        else:
+            order_data["items"] = items_data
+            order_data["_storage"] = "mongodb"
+            await mongo_db['orders'].insert_one(order_data)
 
         # Create Mollie payment
         mollie_client = get_mollie_client()
@@ -458,20 +471,20 @@ async def express_checkout(req: ExpressCheckoutRequest):
 
         mollie_payment = mollie_create_payment_with_retry(mollie_client, payment_data)
 
-        supabase.table("orders").update({
-            "mollie_payment_id": mollie_payment.id,
-            "payment_method": req.payment_method,
-        }).eq("id", order_id).execute()
-
-        supabase.table("payments").insert({
-            "id": str(uuid.uuid4()),
-            "order_id": order_id,
-            "mollie_payment_id": mollie_payment.id,
-            "status": "pending",
-            "amount": req.total_amount,
-            "currency": "EUR",
-            "method": req.payment_method,
-        }).execute()
+        # Update order with payment info
+        payment_update = {"mollie_payment_id": mollie_payment.id, "payment_method": req.payment_method}
+        if use_supabase and not order_data.get('_storage') == 'mongodb':
+            try:
+                supabase.table("orders").update(payment_update).eq("id", order_id).execute()
+                supabase.table("payments").insert({
+                    "id": str(uuid.uuid4()), "order_id": order_id,
+                    "mollie_payment_id": mollie_payment.id, "status": "pending",
+                    "amount": req.total_amount, "currency": "EUR", "method": req.payment_method,
+                }).execute()
+            except Exception:
+                pass
+        if mongo_db is not None:
+            await mongo_db['orders'].update_one({"id": order_id}, {"$set": payment_update})
 
         logger.info(f"Express checkout created: order={order_id}, payment={mollie_payment.id}")
         return {"checkout_url": mollie_payment.checkout_url, "order_id": order_id}
@@ -488,69 +501,65 @@ async def express_checkout(req: ExpressCheckoutRequest):
 
 @router.post("/webhook/mollie")
 async def mollie_webhook(request: Request):
-    """Handle Mollie webhook notifications"""
-    if supabase is None:
-        return {"status": "error", "message": "Database not configured"}
-    
+    """Handle Mollie webhook notifications (supports both Supabase and MongoDB)"""
     try:
         form_data = await request.form()
         payment_id = form_data.get("id")
-        
+
         if not payment_id:
-            logger.warning("Webhook received without payment ID")
             return {"status": "error", "message": "Missing payment ID"}
-        
+
         logger.info(f"Webhook received for payment: {payment_id}")
-        
-        # Get Mollie payment status
         mollie_client = get_mollie_client()
         mollie_payment = mollie_client.payments.get(payment_id)
-        
-        # Find payment record in Supabase
-        result = supabase.table("payments").select("*").eq("mollie_payment_id", payment_id).limit(1).execute()
-        
-        if not result.data:
-            logger.warning(f"Payment not found: {payment_id}")
-            return {"status": "error", "message": "Payment not found"}
-        
-        db_payment = result.data[0]
-        order_id = db_payment["order_id"]
-        
-        # Map Mollie status to order status
+
         status_map = {
-            'paid': 'paid',
-            'pending': 'pending',
-            'open': 'pending',
-            'canceled': 'cancelled',
-            'expired': 'cancelled',
-            'failed': 'cancelled',
+            'paid': 'paid', 'pending': 'pending', 'open': 'pending',
+            'canceled': 'cancelled', 'expired': 'cancelled', 'failed': 'cancelled',
         }
-        
         new_status = status_map.get(mollie_payment.status, 'pending')
-        
-        # Update payment status
-        supabase.table("payments").update({
-            "status": new_status,
-        }).eq("mollie_payment_id", payment_id).execute()
-        
-        # Update order status
-        supabase.table("orders").update({
-            "status": new_status,
-        }).eq("id", order_id).execute()
-        
+
+        order_id = None
+        order = None
+        items = []
+        use_supabase = _supabase_available()
+
+        # Try Supabase first
+        if use_supabase:
+            try:
+                result = supabase.table("payments").select("*").eq("mollie_payment_id", payment_id).limit(1).execute()
+                if result.data:
+                    order_id = result.data[0]["order_id"]
+                    supabase.table("payments").update({"status": new_status}).eq("mollie_payment_id", payment_id).execute()
+                    supabase.table("orders").update({"status": new_status}).eq("id", order_id).execute()
+                    order_res = supabase.table("orders").select("*").eq("id", order_id).limit(1).execute()
+                    items_res = supabase.table("order_items").select("*").eq("order_id", order_id).execute()
+                    order = order_res.data[0] if order_res.data else None
+                    items = items_res.data or []
+            except Exception as sb_err:
+                logger.warning(f"Supabase webhook update failed, trying MongoDB: {sb_err}")
+
+        # Try MongoDB
+        if not order_id and mongo_db is not None:
+            mongo_order = await mongo_db['orders'].find_one({"mollie_payment_id": payment_id}, {"_id": 0})
+            if mongo_order:
+                order_id = mongo_order["id"]
+                await mongo_db['orders'].update_one({"id": order_id}, {"$set": {"status": new_status}})
+                order = mongo_order
+                items = mongo_order.get("items", [])
+
+        if not order_id:
+            logger.warning(f"Payment not found in any DB: {payment_id}")
+            return {"status": "error", "message": "Payment not found"}
+
         logger.info(f"Payment {payment_id} status updated to: {new_status}")
-        
-        # Send emails on payment status change
+
+        # Send emails on status change
         try:
-            order_result = supabase.table("orders").select("*").eq("id", order_id).limit(1).execute()
-            items_result = supabase.table("order_items").select("*").eq("order_id", order_id).execute()
-            if order_result.data:
-                order = order_result.data[0]
-                items = items_result.data or []
+            if order:
                 if new_status == 'paid':
                     _send_order_confirmation(order, items)
                     _send_order_notification(order, items, 'payment_success')
-                    # Increment discount code usage if one was applied
                     if order.get('discount_code'):
                         try:
                             from routes.discount_codes import use_discount_code
@@ -561,9 +570,9 @@ async def mollie_webhook(request: Request):
                     _send_order_notification(order, items, 'payment_failed')
         except Exception as email_err:
             logger.error(f"Failed to send payment emails: {email_err}")
-        
+
         return {"status": "ok"}
-        
+
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return {"status": "error", "message": str(e)}
@@ -571,35 +580,32 @@ async def mollie_webhook(request: Request):
 
 @router.get("/orders/{order_id}")
 async def get_order(order_id: str):
-    """Get order by ID"""
-    if supabase is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
-    
+    """Get order by ID (supports both Supabase and MongoDB)"""
     try:
-        result = supabase.table("orders").select("*").eq("id", order_id).limit(1).execute()
-        
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Order not found")
-        
-        order = result.data[0]
-        
-        # Get order items
-        items_result = supabase.table("order_items").select("*").eq("order_id", order_id).execute()
-        order['items'] = items_result.data or []
-        
-        # Format response
-        return {
-            "id": order.get("id"),
-            "order_number": order.get("order_number"),
-            "customer_email": order.get("customer_email"),
-            "customer_name": order.get("customer_name"),
-            "total_amount": order.get("total_amount"),
-            "status": order.get("status"),
-            "mollie_payment_id": order.get("mollie_payment_id"),
-            "items": order.get("items", []),
-            "created_at": order.get("created_at"),
-        }
-        
+        use_supabase = _supabase_available()
+        order = None
+        items = []
+
+        if use_supabase:
+            try:
+                result = supabase.table("orders").select("*").eq("id", order_id).limit(1).execute()
+                if result.data:
+                    order = result.data[0]
+                    items_result = supabase.table("order_items").select("*").eq("order_id", order_id).execute()
+                    items = items_result.data or []
+            except Exception:
+                pass
+
+        if not order and mongo_db is not None:
+            order = await mongo_db['orders'].find_one({"id": order_id}, {"_id": 0})
+            if order:
+                items = order.get("items", [])
+
+        if not order:
+            raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
+
+        return {"order": order, "items": items}
+
     except HTTPException:
         raise
     except Exception as e:

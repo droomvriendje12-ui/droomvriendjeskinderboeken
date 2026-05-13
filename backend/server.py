@@ -183,6 +183,7 @@ if USE_SUPABASE and supabase_client:
     # Also use Supabase for orders
     logger.info("🚀 Using SUPABASE for orders")
     orders_supabase_route.set_supabase_client(supabase_client)
+    orders_supabase_route.set_mongo_db(db)  # MongoDB fallback
     api_router.include_router(orders_supabase_route.router)
     
     # Also use Supabase for reviews
