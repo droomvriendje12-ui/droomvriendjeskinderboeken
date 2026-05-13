@@ -1,52 +1,67 @@
-# Droomvriendjes E-commerce Platform - PRD
+# Droomvriendjes - Product Requirements Document
 
 ## Originele Probleemstelling
-E-commerce platform voor Droomvriendjes (slaapknuffels). Volledig gemigreerd van MongoDB naar Supabase (PostgreSQL).
+Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffels voor kinderen. Full-stack platform met React frontend, FastAPI backend, Supabase (primary DB) en MongoDB (analytics).
 
 ## Architectuur
-- **Frontend:** React, React Router, Tailwind CSS, Shadcn UI
-- **Backend:** FastAPI, Pydantic
-- **Database:** Supabase (PostgreSQL) + MongoDB (funnel events + email queue)
+- **Frontend:** React + Tailwind CSS + Shadcn/UI
+- **Backend:** FastAPI (Python)
+- **Databases:** Supabase (PostgreSQL - core data), MongoDB (analytics/email queue)
+- **Betalingen:** Mollie (iDEAL, creditcard, PayPal, Apple Pay, Google Pay, Bancontact)
 - **Email:** TransIP SMTP
-- **Betalingen:** Mollie API (iDEAL, Creditcard, Apple Pay, Google Pay, PayPal, Bancontact, in3)
-- **Adres Lookup:** PDOK (NL) + Nominatim (BE)
+- **Adres lookup:** PDOK (NL), Be-API (BE)
 
-## Voltooide Features
-- [x] Supabase migratie + productbeheer + Realtime
-- [x] Bestelflow met Mollie + Admin dashboard
-- [x] Review systeem + TransIP emails + Cadeaubon systeem
-- [x] Checkout Mobile-First + Adres Auto-fill (NL+BE)
-- [x] Funnel Tracking (MongoDB)
-- [x] **Betaalknoppen fix** - formRef.requestSubmit() + mobiele sticky bar
-- [x] **Express Checkout** - Apple Pay, Google Pay, PayPal knoppen
-- [x] **Mobiele "Betaal nu" knop** - tussen voorwaarden en trust sectie
-- [x] **PayPal professioneel** - officieel PayPal logo
-- [x] **CSV Import** - email/naam/adres validatie, dedup, puntkomma support (23k+ getest)
-- [x] **Email Marketing Dashboard** - /admin/email-marketing
-- [x] **Bulk Email Campagne** - achtergrond batch verzending met polling
-- [x] **AVG/GDPR Afmeldlink** (10 mrt 2026)
-  - Unieke SHA256 token per contact
-  - Automatische afmeldlink footer in elke campagne email
-  - Professionele uitschrijf-bevestigingspagina
-  - Dashboard toont uitschrijf-statistieken (5e stat card)
-  - Campagne slaat uitgeschreven contacten automatisch over
+## Wat is geïmplementeerd
 
-## Key API Endpoints
-- `POST /api/email/csv/import` - CSV contacten importeren
-- `POST /api/email/csv/send-campaign` - Bulk campagne starten
-- `GET /api/email/csv/campaign-progress/{id}` - Voortgang polling
-- `GET /api/email/csv/queue/stats` - Wachtrij statistieken
-- `GET /api/email/csv/unsubscribe/{token}?email=...` - Uitschrijven (HTML pagina)
-- `GET /api/email/csv/unsubscribe-stats` - Uitschrijf-statistieken
+### Core E-commerce
+- [x] Productpagina's met gallerij, reviews, share buttons
+- [x] Winkelwagen met cross-sell
+- [x] Checkout met mobiel-first design, floating labels
+- [x] Adres auto-fill (NL via PDOK, BE via publieke API)
+- [x] Express checkout (Apple Pay, Google Pay, PayPal) - direct naar betaaldienst
+- [x] Kortingscode invoerveld in checkout (WELKOM10, LENTE25, EENMALIG2026)
+- [x] Mollie betalingen met retry-logica (3 pogingen) en nette Nederlandse foutmeldingen
+- [x] Mollie health check endpoint: GET /api/mollie-status
+- [x] Cadeaubonnen (/cadeaubon) via Supabase
 
-## Openstaande Taken
-### P1 - E-commerce flow verbeteringen
-- [ ] Productpagina's verbeteren
-- [ ] Winkelwagen optimalisatie
-- [ ] Checkout flow verfijning
-### P2 - Admin interface verfijning
-- [ ] Dashboard styling/performance
-- [ ] Navigatie verbeteren
+### Admin Dashboard
+- [x] Real-time statistieken uit Supabase (omzet, orders, klanten)
+- [x] Live bestellingen feed met polling
+- [x] Conversie funnel (product_view → add_to_cart → checkout → purchase)
+- [x] Dagelijkse omzet chart met echte data
+- [x] Analytics sectie met echte database cijfers (geen hardcoded data)
+
+### Email Marketing
+- [x] CSV import per bestand (/admin/email-marketing)
+- [x] Bulk verzending met templates en voortgangsindicator
+- [x] AVG/GDPR afmeldlink (unsubscribe)
+- [x] Open tracking (pixel) + Click tracking (redirect)
+- [x] Verwijder-functie per bestand/campagne
+- [x] Single email import endpoint (voor popup)
+
+### Homepage Features
+- [x] Exit-intent / welkomst popup (na 5 sec, 1x per sessie, 10% korting WELKOM10)
+- [x] "Vertrouwen & Zekerheid" sectie (bedrijfsgegevens, betaalmethoden, verzendpartners)
+- [x] Lente Sale thema (was Winter)
+- [x] Product fallback naar mockData als Supabase niet bereikbaar is
+
+### Overige
+- [x] WhatsApp nummer gewijzigd naar +31684588815
+- [x] Social share buttons op productpagina's
+- [x] Automatische review-verzoek emails bij status "delivered"
+- [x] Schema markup voor SEO
+
+## Bekende Issues
+- Supabase URL (qoykbhocordugtbvpvsl.supabase.co) is momenteel niet bereikbaar (DNS fout). Frontend valt terug op mockData.
+- Mollie live key werkt alleen in productie, niet in preview-omgeving.
+- WhatsApp zwevende knop wordt via GTM (extern) geladen, niet aanpasbaar in React code.
+
+## Backlog (P2)
+- E-commerce flow verbeteringen
+- Admin interface verfijning
+- Refactoring: grote componenten opsplitsen (MarketingCommandCenter, CheckoutPage)
 
 ## Credentials
-- **Admin:** username=admin / password=Droomvriendjes2024!
+- Admin: admin@droomvriendjes.nl / Droomvriendjes2024!
+- Productie: https://droomvriendjes.com
+- Preview: https://email-import.preview.emergentagent.com
