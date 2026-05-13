@@ -18,6 +18,12 @@ import asyncio
 import hashlib
 import os
 
+
+class SingleEmailImport(BaseModel):
+    email: str
+    source: str = "popup"
+    naam: str = ""
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/email/csv", tags=["csv-import"])
@@ -378,6 +384,31 @@ async def delete_queue_item(item_id: str):
         logger.error(f"Error deleting queue item {item_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/import-single")
+async def import_single_email(data: SingleEmailImport):
+    """Import a single email address (from popup, form, etc.)"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    email = data.email.strip().lower()
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        raise HTTPException(status_code=400, detail="Ongeldig e-mailadres")
+    try:
+        existing = await db['email_queue'].find_one({"email": email})
+        if existing:
+            return {"success": True, "message": "E-mailadres al bekend", "new": False}
+        await db['email_queue'].insert_one({
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "naam": data.naam,
+            "source": data.source,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        return {"success": True, "message": "E-mailadres opgeslagen", "new": True}
+    except Exception as e:
+        logger.error(f"Import single email error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 class CampaignRequest(BaseModel):

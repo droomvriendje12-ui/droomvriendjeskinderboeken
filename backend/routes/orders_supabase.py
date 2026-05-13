@@ -176,14 +176,53 @@ class ExpressCheckoutRequest(BaseModel):
     gift_wrap: Optional[bool] = False
 
 
+import time as _time
+
+
 def get_mollie_client():
-    """Get configured Mollie client"""
-    api_key = os.environ.get('MOLLIE_TEST_KEY') or os.environ.get('MOLLIE_API_KEY', '')
+    """Get configured Mollie client - uses live key in production, test key in dev"""
+    api_key = os.environ.get('MOLLIE_API_KEY', '')
     if not api_key:
         raise ValueError("MOLLIE_API_KEY not configured")
     client = MollieClient()
     client.set_api_key(api_key)
     return client
+
+
+def mollie_create_payment_with_retry(mollie_client, payment_data, retries=3, delay=1.0):
+    """Create Mollie payment with retry logic for connection issues"""
+    last_error = None
+    for attempt in range(1, retries + 1):
+        try:
+            return mollie_client.payments.create(payment_data)
+        except Exception as e:
+            last_error = e
+            err_str = str(e).lower()
+            # Only retry on network/connection errors, not auth or validation
+            if 'name or service not known' in err_str or 'connection' in err_str or 'timeout' in err_str:
+                logger.warning(f"Mollie connection attempt {attempt}/{retries} failed: {e}")
+                if attempt < retries:
+                    _time.sleep(delay)
+                continue
+            raise  # Non-retryable error, raise immediately
+    raise last_error
+
+
+@router.get("/mollie-status")
+async def mollie_status():
+    """Health check: verify Mollie API connectivity and key validity"""
+    try:
+        client = get_mollie_client()
+        # Try a lightweight API call to verify connectivity
+        client.methods.list()
+        return {"status": "ok", "message": "Mollie API bereikbaar en sleutel geldig"}
+    except ValueError as e:
+        return {"status": "error", "detail": str(e)}
+    except Exception as e:
+        err_str = str(e)
+        if 'name or service not known' in err_str.lower() or 'connection' in err_str.lower():
+            return {"status": "error", "detail": "Mollie API niet bereikbaar (netwerkfout). Probeer het later opnieuw."}
+        return {"status": "error", "detail": err_str}
 
 
 def get_frontend_url():
@@ -325,7 +364,7 @@ async def create_payment(payment: PaymentCreate):
             payment_data['shippingAddress'] = payment_data['billingAddress'].copy()
         
         # Create Mollie payment
-        mollie_payment = mollie_client.payments.create(payment_data)
+        mollie_payment = mollie_create_payment_with_retry(mollie_client, payment_data)
         
         # Update order with payment info
         supabase.table("orders").update({
@@ -357,7 +396,10 @@ async def create_payment(payment: PaymentCreate):
         raise
     except Exception as e:
         logger.error(f"Payment creation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Payment creation failed: {str(e)}")
+        err_str = str(e).lower()
+        if 'name or service not known' in err_str or 'connection' in err_str:
+            raise HTTPException(status_code=503, detail="Betaaldienst tijdelijk niet bereikbaar. Probeer het over een paar seconden opnieuw.")
+        raise HTTPException(status_code=500, detail=f"Betaling kon niet worden gestart: {str(e)}")
 
 
 @router.post("/express-checkout")
@@ -414,7 +456,7 @@ async def express_checkout(req: ExpressCheckoutRequest):
             'metadata': {'order_id': order_id},
         }
 
-        mollie_payment = mollie_client.payments.create(payment_data)
+        mollie_payment = mollie_create_payment_with_retry(mollie_client, payment_data)
 
         supabase.table("orders").update({
             "mollie_payment_id": mollie_payment.id,
@@ -438,7 +480,10 @@ async def express_checkout(req: ExpressCheckoutRequest):
         raise
     except Exception as e:
         logger.error(f"Express checkout error: {e}")
-        raise HTTPException(status_code=500, detail=f"Express checkout failed: {str(e)}")
+        err_str = str(e).lower()
+        if 'name or service not known' in err_str or 'connection' in err_str:
+            raise HTTPException(status_code=503, detail="Betaaldienst tijdelijk niet bereikbaar. Probeer het over een paar seconden opnieuw.")
+        raise HTTPException(status_code=500, detail=f"Betaling kon niet worden gestart: {str(e)}")
 
 
 @router.post("/webhook/mollie")

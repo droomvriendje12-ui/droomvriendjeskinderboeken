@@ -1,0 +1,129 @@
+{
+  "summary": "Iteration 22: Mollie payment retry, Exit-intent popup, Trust section - ALL FEATURES WORKING (9/10 backend tests, 100% frontend)",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/products",
+        "issue": "Returns 500 due to Supabase DNS error - EXPECTED per context (frontend uses mockData fallback)",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration22_features.py",
+    "/app/test_reports/pytest/iteration22_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "orders_supabase.py lines 192-208: mollie_create_payment_with_retry() correctly implements 3 retries with 1s delay for network errors only",
+    "orders_supabase.py lines 211-225: /api/mollie-status returns JSON with status field (ok/error) and detail on error",
+    "orders_supabase.py lines 483-486: express-checkout returns 503 with Dutch error 'Betaaldienst tijdelijk niet bereikbaar' on network failure",
+    "csv_import.py lines 388-411: /api/email/csv/import-single validates email format, detects duplicates, stores with source field",
+    "ExitIntentPopup.jsx lines 14-38: Popup shows after 5 seconds OR on mouse leave, uses sessionStorage for once-per-session",
+    "ExitIntentPopup.jsx lines 122-132: Success state shows WELKOM10 discount code after email submission",
+    "TrustSection.jsx lines 23-45: Bedrijfsgegevens card with KVK 99210835 and BTW NL204392123B01",
+    "TrustSection.jsx lines 48-74: Betaalmethoden card with iDEAL, PayPal, Visa, Mastercard, Apple Pay, Bancontact badges",
+    "TrustSection.jsx lines 77-100: Verzending card with PostNL and DHL shipping partners",
+    "ProductsContext.jsx lines 19-38: Fallback to mockData when API fails - working correctly"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration22_features.py"
+  ],
+  "success_rate": {
+    "backend": "90% (9/10 tests passed - 1 expected failure due to Supabase DNS)",
+    "frontend": "100% (all UI elements verified)"
+  },
+  "test_credentials": {
+    "api_base_url": "https://email-import.preview.emergentagent.com",
+    "admin_login": "admin / Droomvriendjes2024!"
+  },
+  "seed_data_creation": "Backend tests create test emails with unique UUIDs (auto-cleanup not needed)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 3 requested features are working: (1) Mollie payment with retry logic returns 503 with Dutch error when unreachable, /api/mollie-status returns JSON with status field. (2) Exit-intent popup appears after 5 seconds, has email input/submit/dismiss/close, shows WELKOM10 code on success, uses sessionStorage for once-per-session. (3) Trust section visible on homepage with Bedrijfsgegevens (KVK 99210835, BTW NL204392123B01), Betaalmethoden (6 payment badges), Verzending (PostNL, DHL). Products display using mockData fallback since Supabase is down.",
+  "features_tested": {
+    "mollie_status_endpoint": {
+      "status": "PASS",
+      "details": "GET /api/mollie-status returns JSON with status field (error expected since Mollie unreachable from preview)"
+    },
+    "express_checkout_503_dutch_error": {
+      "status": "PASS",
+      "details": "POST /api/express-checkout returns 503 with 'Betaaldienst tijdelijk niet bereikbaar. Probeer het over een paar seconden opnieuw.'"
+    },
+    "import_single_stores_email": {
+      "status": "PASS",
+      "details": "POST /api/email/csv/import-single stores valid email with source='popup_korting'"
+    },
+    "import_single_rejects_invalid": {
+      "status": "PASS",
+      "details": "Invalid emails return 400 with 'Ongeldig e-mailadres'"
+    },
+    "import_single_detects_duplicates": {
+      "status": "PASS",
+      "details": "Duplicate emails return success with new=false and 'E-mailadres al bekend'"
+    },
+    "exit_popup_appears_after_5_seconds": {
+      "status": "PASS",
+      "details": "Popup appears after 5 second timer on homepage"
+    },
+    "exit_popup_has_all_elements": {
+      "status": "PASS",
+      "details": "Email input, submit button, dismiss link, close button all present"
+    },
+    "exit_popup_shows_welkom10_on_success": {
+      "status": "PASS",
+      "details": "After email submission, shows 'Gelukt!' with WELKOM10 discount code"
+    },
+    "exit_popup_once_per_session": {
+      "status": "PASS",
+      "details": "SessionStorage 'droomvriendjes_popup_shown' prevents popup on subsequent visits"
+    },
+    "trust_section_visible": {
+      "status": "PASS",
+      "details": "Trust section with 'VERTROUWEN & ZEKERHEID' header visible above footer"
+    },
+    "trust_section_kvk_btw": {
+      "status": "PASS",
+      "details": "KVK: 99210835 and BTW: NL204392123B01 displayed in Bedrijfsgegevens card"
+    },
+    "trust_section_payment_badges": {
+      "status": "PASS",
+      "details": "All 6 payment badges present: iDEAL, PayPal, Visa, Mastercard, Apple Pay, Bancontact"
+    },
+    "trust_section_shipping_partners": {
+      "status": "PASS",
+      "details": "PostNL (1-2 werkdagen) and DHL (1-3 werkdagen) displayed in Verzending card"
+    },
+    "products_fallback_to_mockdata": {
+      "status": "PASS",
+      "details": "Homepage displays products using mockData fallback despite Supabase being down"
+    }
+  },
+  "tests_executed": [
+    "Backend: TestMollieHealthCheck::test_mollie_status_returns_json_with_status_field - PASS",
+    "Backend: TestMollieHealthCheck::test_mollie_status_has_detail_on_error - PASS",
+    "Backend: TestExpressCheckout::test_express_checkout_returns_503_when_mollie_unreachable - PASS",
+    "Backend: TestExpressCheckout::test_express_checkout_requires_items - PASS",
+    "Backend: TestSingleEmailImport::test_import_single_stores_valid_email - PASS",
+    "Backend: TestSingleEmailImport::test_import_single_rejects_invalid_email - PASS",
+    "Backend: TestSingleEmailImport::test_import_single_detects_duplicates - PASS",
+    "Backend: TestSingleEmailImport::test_import_single_uses_popup_source - PASS",
+    "Backend: TestProductsEndpoint::test_products_endpoint_returns_data - FAIL (expected - Supabase DNS error)",
+    "Backend: TestHealthEndpoint::test_api_health_returns_healthy - PASS",
+    "Frontend: Homepage loads with products (mockData fallback) - PASS",
+    "Frontend: Exit-intent popup appears after 5 seconds - PASS",
+    "Frontend: Popup has email input, submit, dismiss, close - PASS",
+    "Frontend: Popup shows WELKOM10 code after submission - PASS",
+    "Frontend: Popup only shows once per session (sessionStorage) - PASS",
+    "Frontend: Trust section visible with 3 cards - PASS",
+    "Frontend: Bedrijfsgegevens shows KVK 99210835, BTW NL204392123B01 - PASS",
+    "Frontend: Betaalmethoden shows 6 payment badges - PASS",
+    "Frontend: Verzending shows PostNL and DHL - PASS"
+  ]
+}

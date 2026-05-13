@@ -11,6 +11,8 @@ import { Star, ShoppingCart, Moon, Heart, Sparkles, Monitor, ShieldCheck, Truck,
 import CartSidebar from '../components/CartSidebar';
 import Header from '../components/Header';
 import SchemaMarkup from '../components/SchemaMarkup';
+import ExitIntentPopup from '../components/ExitIntentPopup';
+import TrustSection from '../components/TrustSection';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { trackViewItemList, trackSelectItem } from '../utils/analytics';
@@ -77,6 +79,9 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-cream">
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup />
+
       {/* Header */}
       <Header />
 
@@ -892,6 +897,9 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Vertrouwen & Zekerheid */}
+      <TrustSection />
 
       {/* Footer - Warm Brown Theme */}
       <footer className="bg-warm-brown-900 text-warm-brown-100 pt-16 pb-10">
