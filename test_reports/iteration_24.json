@@ -1,0 +1,36 @@
+{
+  "summary": "Phase 3 admin backend tests: 19/19 pytest cases pass. Verified admin orders endpoints (list/detail/status update/tracking) work with defensive _safe_order_update (no 42703 errors despite missing tracking_number/shipped_at/delivered_at columns), new /api/admin/customers (list, search, pagination, detail, 404, 401) returns correct aggregated data (2 unique customers from 5 orders: express@pending.nl 4 orders/1 paid, test@droomvriendjes.nl 1 order/0 paid), and regressions on /api/products and /api/inbox auth still work. No MongoDB _id leaks detected in any response.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/admin/orders/{id}/tracking", "issue": "Returns 200 but tracking_number/tracking_carrier silently NOT persisted because cols missing in Supabase schema (expected behaviour per spec until migration is run). Frontend will not see tracking_code on subsequent GET. User must run /app/supabase_phase3_migration.sql to actually persist tracking + shipped_at/delivered_at/admin_notes."},
+      {"endpoint": "PUT /api/admin/orders/{id}/status -> 'delivered'", "issue": "send_review_request_email will silently fail (TransIP SMTP creds invalid per agent note). Logged-only, does not break request."},
+      {"endpoint": "GET /api/admin/customers", "issue": "Fetches ALL orders into memory (no server-side pagination via Supabase range). Acceptable for current 5-row dataset, but will not scale beyond a few thousand orders. Consider pushing search+pagination into Supabase query."},
+      {"endpoint": "GET /api/admin/customers", "issue": "_get_order_columns cache is process-global with no TTL; after the user runs the migration, backend must be restarted to pick up new columns."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_phase3_admin_customers.py",
+    "/app/test_reports/pytest/phase3_results.xml"
+  ],
+  "action_items": [
+    "User should run /app/supabase_phase3_migration.sql in Supabase SQL editor to actually persist tracking + shipped_at/delivered_at/admin_notes. After that, restart backend so _ORDERS_COLUMN_CACHE refreshes.",
+    "(Optional) Push customers search/pagination into Supabase query rather than in-memory aggregation for future scale.",
+    "(Optional) Add column cache invalidation/TTL so backend auto-picks up schema changes without restart."
+  ],
+  "critical_code_review_comments": [
+    "server.py is 4219 lines - should be split into routers (admin_orders, admin_customers, products, inbox, email).",
+    "_safe_order_update returns updates as-is when cols cache is empty (fallback) - this could cause 42703 if Supabase ever returns 0 rows from the probe; consider failing closed or logging a warning.",
+    "Customer aggregation uses '< ' string comparison on ISO timestamps to compute first/last order - works because ISO 8601 is lexicographically sortable, but a comment would help future maintainers.",
+    "GET /api/admin/orders does NOT require admin auth (no Depends(security)) - this is a pre-existing issue (not introduced by this iteration) but should be flagged: only customers endpoints enforce auth."
+  ],
+  "updated_files": ["/app/backend/tests/test_phase3_admin_customers.py"],
+  "success_rate": {"backend": "100%", "frontend": "not-tested"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login",
+  "seed_data_creation": "None - used existing 5 orders / 2 customers in Supabase",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Phase 3 admin backend (orders + customers + tracking + regressions) verified green. Test file: /app/backend/tests/test_phase3_admin_customers.py (19 tests). Existing Supabase data: 5 orders across 2 customers; status_counts={'pending':4,'paid':1}. Tracking POST works but doesn't persist until SQL migration is run. /admin/orders endpoint currently has no auth dependency (pre-existing).",
+  "rca of the issue": "N/A - all tests passed. The previous 500 on /admin/orders (tracking_number column missing) is fully resolved because the endpoint reads o.get('tracking_number') which returns None for missing columns rather than raising. The PUT/POST endpoints use _safe_order_update to strip unknown keys, preventing Postgres error 42703."
+}

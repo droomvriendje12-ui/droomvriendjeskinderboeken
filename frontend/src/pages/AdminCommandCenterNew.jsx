@@ -193,6 +193,7 @@ const AdminCommandCenterNew = () => {
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'orders', icon: ShoppingCart, label: 'Bestellingen', link: '/admin/orders' },
     { id: 'products', icon: Package, label: 'Producten', link: '/admin/products' },
+    { id: 'customers-link', icon: Users, label: 'Klanten', link: '/admin/customers' },
     { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
     { id: 'divider-marketing', label: 'Marketing', divider: true },
     { id: 'inbox-link', icon: Inbox, label: 'Inbox', link: '/admin/inbox' },

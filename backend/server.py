@@ -1927,6 +1927,135 @@ class TrackingUpdate(BaseModel):
     send_email: bool = True
 
 
+_ORDERS_COLUMN_CACHE = None
+
+def _get_order_columns():
+    """Return set of column names that exist on Supabase orders table."""
+    global _ORDERS_COLUMN_CACHE
+    if _ORDERS_COLUMN_CACHE is not None:
+        return _ORDERS_COLUMN_CACHE
+    cols = set()
+    try:
+        if USE_SUPABASE and supabase_client:
+            r = supabase_client.table("orders").select("*").limit(1).execute()
+            if r.data:
+                cols = set(r.data[0].keys())
+    except Exception as e:
+        logger.warning(f"Cannot inspect orders columns: {e}")
+    _ORDERS_COLUMN_CACHE = cols
+    return cols
+
+
+def _safe_order_update(updates: dict) -> dict:
+    """Strip keys not present in orders schema (avoids 42703 errors)."""
+    cols = _get_order_columns()
+    if not cols:
+        return updates  # fallback - send everything
+    return {k: v for k, v in updates.items() if k in cols}
+
+
+@api_router.get("/admin/customers")
+async def get_admin_customers(search: Optional[str] = None, page: int = 1, limit: int = 50,
+                              credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Aggregate customer overview from orders table."""
+    admin = verify_admin_token(credentials)
+    if not admin:
+        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
+    if not (USE_SUPABASE and supabase_client):
+        return {"customers": [], "total": 0, "page": page, "limit": limit}
+
+    try:
+        # Fetch all orders (small dataset for now)
+        r = supabase_client.table("orders").select(
+            "customer_email, customer_name, customer_phone, total_amount, status, created_at"
+        ).execute()
+        rows = r.data or []
+
+        agg = {}
+        for o in rows:
+            email = (o.get("customer_email") or "").lower()
+            if not email:
+                continue
+            c = agg.setdefault(email, {
+                "email": email, "name": "", "phone": "",
+                "total_orders": 0, "paid_orders": 0, "total_spent": 0.0,
+                "first_order_at": None, "last_order_at": None,
+            })
+            if o.get("customer_name"):
+                c["name"] = o["customer_name"]
+            if o.get("customer_phone"):
+                c["phone"] = o["customer_phone"]
+            c["total_orders"] += 1
+            if o.get("status") in ("paid", "shipped", "delivered"):
+                c["paid_orders"] += 1
+                c["total_spent"] += float(o.get("total_amount") or 0)
+            created = o.get("created_at")
+            if created:
+                if not c["first_order_at"] or created < c["first_order_at"]:
+                    c["first_order_at"] = created
+                if not c["last_order_at"] or created > c["last_order_at"]:
+                    c["last_order_at"] = created
+
+        customers = list(agg.values())
+        if search:
+            s = search.lower()
+            customers = [c for c in customers if s in c["email"] or s in (c["name"] or "").lower() or s in (c["phone"] or "").lower()]
+        customers.sort(key=lambda x: x.get("last_order_at") or "", reverse=True)
+
+        total = len(customers)
+        start = (page - 1) * limit
+        return {
+            "customers": customers[start:start + limit],
+            "total": total,
+            "page": page,
+            "limit": limit,
+        }
+    except Exception as e:
+        logger.error(f"Admin customers error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/admin/customers/{email}")
+async def get_admin_customer_detail(email: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Customer detail with all their orders."""
+    admin = verify_admin_token(credentials)
+    if not admin:
+        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
+    if not (USE_SUPABASE and supabase_client):
+        raise HTTPException(status_code=500, detail="Database not configured")
+
+    try:
+        email_lc = email.lower()
+        r = supabase_client.table("orders").select("*").ilike("customer_email", email_lc).order("created_at", desc=True).execute()
+        orders = r.data or []
+        if not orders:
+            raise HTTPException(status_code=404, detail="Klant niet gevonden")
+
+        latest = orders[0]
+        total_spent = sum(float(o.get("total_amount") or 0) for o in orders if o.get("status") in ("paid", "shipped", "delivered"))
+        return {
+            "customer": {
+                "email": email_lc,
+                "name": latest.get("customer_name"),
+                "phone": latest.get("customer_phone"),
+                "shipping_address": latest.get("shipping_address"),
+                "shipping_city": latest.get("shipping_city"),
+                "shipping_zipcode": latest.get("shipping_zipcode"),
+                "total_orders": len(orders),
+                "total_spent": total_spent,
+                "first_order_at": orders[-1].get("created_at"),
+                "last_order_at": orders[0].get("created_at"),
+            },
+            "orders": orders,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Customer detail error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.get("/admin/orders")
 async def get_admin_orders(
     status: Optional[str] = None,
@@ -1937,12 +2066,7 @@ async def get_admin_orders(
     """Get all orders for admin panel - Supabase optimized"""
     try:
         if USE_SUPABASE and supabase_client:
-            query = supabase_client.table("orders").select(
-                "id, order_number, customer_email, customer_name, customer_phone, "
-                "total_amount, status, tracking_number, tracking_url, "
-                "shipping_address, shipping_city, shipping_zipcode, "
-                "created_at, shipped_at, customer_notes, admin_notes"
-            ).order("created_at", desc=True)
+            query = supabase_client.table("orders").select("*").order("created_at", desc=True)
             
             if status and status != 'all':
                 query = query.eq("status", status)
@@ -2081,8 +2205,8 @@ async def update_order_status(order_id: str, data: dict):
                 updates["shipped_at"] = datetime.now(timezone.utc).isoformat()
             if new_status == "delivered":
                 updates["delivered_at"] = datetime.now(timezone.utc).isoformat()
-            
-            result = supabase_client.table("orders").update(updates).eq("id", order_id).execute()
+
+            result = supabase_client.table("orders").update(_safe_order_update(updates)).eq("id", order_id).execute()
             if not result.data:
                 raise HTTPException(status_code=404, detail="Bestelling niet gevonden")
             
@@ -2119,12 +2243,13 @@ async def update_order_tracking(order_id: str, tracking: TrackingUpdate):
             
             order = order_result.data[0]
             
-            supabase_client.table("orders").update({
+            supabase_client.table("orders").update(_safe_order_update({
                 "tracking_number": tracking.tracking_code,
+                "tracking_carrier": tracking.carrier,
                 "status": "shipped",
                 "shipped_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
-            }).eq("id", order_id).execute()
+            })).eq("id", order_id).execute()
             
             logger.info(f"Tracking added to order {order_id}: {tracking.carrier} - {tracking.tracking_code}")
             

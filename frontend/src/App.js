@@ -66,6 +66,7 @@ import AdminReviewsToolAdvanced from "./pages/AdminReviewsToolAdvanced";
 import AdminDatabasePage from "./pages/AdminDatabasePage";
 import EmailTemplatesAdmin from "./pages/admin/EmailTemplates";
 import InboxPage from "./pages/admin/InboxPage";
+import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
 import PresentationPage from "./pages/PresentationPage";
 import { Toaster } from "./components/ui/toaster";
@@ -169,6 +170,7 @@ function App() {
               <Route path="/admin/database" element={<ProtectedAdminRoute><AdminDatabasePage /></ProtectedAdminRoute>} />
               <Route path="/admin/email-templates" element={<ProtectedAdminRoute><EmailTemplatesAdmin /></ProtectedAdminRoute>} />
               <Route path="/admin/inbox" element={<ProtectedAdminRoute><InboxPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomersPage /></ProtectedAdminRoute>} />
             </Routes>
             <Toaster />
           </AdminAuthProvider>
