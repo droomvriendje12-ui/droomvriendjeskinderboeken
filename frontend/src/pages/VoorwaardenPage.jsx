@@ -102,9 +102,7 @@ const VoorwaardenPage = () => {
                 <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">iDEAL</span>
                 <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">iDEAL</span>
                 <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">PayPal</span>
-                <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">PayPal</span>
                 <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">Creditcard</span>
-                <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">Apple Pay</span>
                 <span className="bg-white px-3 py-1 rounded border border-warm-brown-200 text-sm">Bancontact</span>
               </div>
             </div>

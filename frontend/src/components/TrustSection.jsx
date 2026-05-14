@@ -59,7 +59,6 @@ const TrustSection = () => {
                 { name: 'PayPal', bg: 'bg-[#003087]/10', text: 'text-[#003087]' },
                 { name: 'Visa', bg: 'bg-[#1A1F71]/10', text: 'text-[#1A1F71]' },
                 { name: 'Mastercard', bg: 'bg-[#EB001B]/10', text: 'text-[#EB001B]' },
-                { name: 'Apple Pay', bg: 'bg-black/5', text: 'text-black' },
                 { name: 'Bancontact', bg: 'bg-[#005498]/10', text: 'text-[#005498]' },
               ].map(m => (
                 <span key={m.name} className={`${m.bg} ${m.text} px-3 py-1.5 rounded-lg text-xs font-bold`}>

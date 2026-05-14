@@ -333,7 +333,7 @@ export const megaFAQs = {
   betaling: [
     {
       q: "Welke betaalmethoden accepteren jullie?",
-      a: "We accepteren: iDEAL, creditcard (Visa, Mastercard, Amex), Bancontact, PayPal, Klarna (achteraf betalen), en Apple Pay. Kies wat voor jou het makkelijkst is."
+      a: "We accepteren: iDEAL, creditcard (Visa, Mastercard, Amex), Bancontact, PayPal en Klarna (achteraf betalen). Kies wat voor jou het makkelijkst is."
     },
     {
       q: "Kan ik achteraf betalen?",

@@ -125,7 +125,6 @@ const Footer = () => {
                 <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">PayPal</div>
                 <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">Visa</div>
                 <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">Mastercard</div>
-                <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">Apple Pay</div>
                 <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">Bancontact</div>
               </div>
             </div>
