@@ -27,7 +27,7 @@
     "frontend": "100% (10/10 features passed)"
   },
   "test_credentials": {
-    "api_base_url": "https://email-import.preview.emergentagent.com"
+    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com"
   },
   "seed_data_creation": "None - tested with product added to cart from homepage",
   "retest_needed": false,

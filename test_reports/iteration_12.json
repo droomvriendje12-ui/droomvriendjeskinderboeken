@@ -29,7 +29,7 @@
   },
   "test_credentials": {
     "active_test_gift_card_code": "DV-TEST0001",
-    "api_base_url": "https://email-import.preview.emergentagent.com"
+    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com"
   },
   "seed_data_creation": "DV-TEST0001 gift card exists in Supabase gift_cards table with status=active",
   "retest_needed": false,

@@ -85,7 +85,7 @@ Found and updated references to old preview domain:
 #### Changes:
 **Before:**
 ```
-https://email-import.preview.emergentagent.com
+https://ecommerce-dashboard-25.preview.emergentagent.com
 ```
 
 **After:**

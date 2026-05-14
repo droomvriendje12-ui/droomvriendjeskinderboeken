@@ -37,7 +37,7 @@
     "frontend": "100% (all features verified via Playwright)"
   },
   "test_credentials": {
-    "api_base_url": "https://email-import.preview.emergentagent.com",
+    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!"
   },
   "seed_data_creation": "Created test CSV imports during UI testing (source: playwright_test). Previous test iterations may have created test orders visible in LIVE FEED.",

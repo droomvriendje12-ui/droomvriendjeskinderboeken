@@ -65,7 +65,32 @@ class ProductUpdate(BaseModel):
     dimensions_image: Optional[str] = None
 
 
-def format_product_response(product: dict) -> dict:
+def get_review_stats_map() -> dict:
+    """Fetch all visible reviews and compute {product_id: {count, avg_rating}}"""
+    stats = {}
+    if supabase is None:
+        return stats
+    try:
+        result = supabase.table("reviews").select("product_id,rating,visible").execute()
+        from collections import defaultdict
+        agg = defaultdict(lambda: {"count": 0, "sum": 0})
+        for r in result.data or []:
+            if r.get("visible") is False:
+                continue
+            pid = str(r.get("product_id")) if r.get("product_id") is not None else None
+            if not pid:
+                continue
+            agg[pid]["count"] += 1
+            agg[pid]["sum"] += r.get("rating") or 0
+        for pid, v in agg.items():
+            avg = round(v["sum"] / v["count"], 1) if v["count"] > 0 else 0
+            stats[pid] = {"count": v["count"], "avg": avg}
+    except Exception as e:
+        logger.warning(f"Could not load review stats: {e}")
+    return stats
+
+
+def format_product_response(product: dict, review_stats: dict = None) -> dict:
     """Format Supabase product to match frontend expectations (camelCase)"""
     if not product:
         return None
@@ -127,6 +152,12 @@ def format_product_response(product: dict) -> dict:
         if isinstance(images_raw, list) and len(images_raw) > 0:
             image_url = images_raw[0]
 
+    # Inject review stats if provided
+    pid_key = str(product.get("id"))
+    stats = (review_stats or {}).get(pid_key, {})
+    rating_value = stats.get("avg", product.get("rating", 0))
+    review_count_value = stats.get("count", product.get("review_count", 0))
+
     return {
         "id": product.get("id"),
         "name": product.get("name"),
@@ -145,8 +176,8 @@ def format_product_response(product: dict) -> dict:
         "customSections": custom_sections,
         "specs": specs,
         "quickFeatures": quick_features,
-        "rating": product.get("rating", 0),
-        "reviews": product.get("review_count", 0),
+        "rating": rating_value,
+        "reviews": review_count_value,
         "badge": product.get("badge"),
         "inStock": product.get("in_stock", True),
         "stock": product.get("stock", 0),
@@ -171,7 +202,8 @@ async def get_all_products():
     
     try:
         result = supabase.table("products").select("*").execute()
-        products = [format_product_response(p) for p in result.data]
+        stats_map = get_review_stats_map()
+        products = [format_product_response(p, stats_map) for p in result.data]
         return products
     except Exception as e:
         logger.error(f"Error fetching products: {e}")
@@ -190,7 +222,7 @@ async def get_product(product_id: str):
         if not result.data or len(result.data) == 0:
             raise HTTPException(status_code=404, detail="Product not found")
         
-        return format_product_response(result.data[0])
+        return format_product_response(result.data[0], get_review_stats_map())
     except HTTPException:
         raise
     except Exception as e:
