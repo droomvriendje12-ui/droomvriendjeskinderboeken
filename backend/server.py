@@ -174,6 +174,7 @@ from routes import database_info as database_info_route
 from routes import gift_cards_supabase as gift_cards_supabase_route
 from routes import csv_import as csv_import_route
 from routes import inbox as inbox_route
+from routes import admin_customers as admin_customers_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -238,6 +239,11 @@ inbox_route.set_database(db)
 # admin verifier is wired after verify_admin_token is defined (lambda resolves lazily)
 inbox_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(inbox_route.router)
+
+# Admin customers (aggregated from orders)
+admin_customers_route.set_supabase_client(supabase_client)
+admin_customers_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(admin_customers_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)
@@ -1952,108 +1958,6 @@ def _safe_order_update(updates: dict) -> dict:
     if not cols:
         return updates  # fallback - send everything
     return {k: v for k, v in updates.items() if k in cols}
-
-
-@api_router.get("/admin/customers")
-async def get_admin_customers(search: Optional[str] = None, page: int = 1, limit: int = 50,
-                              credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Aggregate customer overview from orders table."""
-    admin = verify_admin_token(credentials)
-    if not admin:
-        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
-    if not (USE_SUPABASE and supabase_client):
-        return {"customers": [], "total": 0, "page": page, "limit": limit}
-
-    try:
-        # Fetch all orders (small dataset for now)
-        r = supabase_client.table("orders").select(
-            "customer_email, customer_name, customer_phone, total_amount, status, created_at"
-        ).execute()
-        rows = r.data or []
-
-        agg = {}
-        for o in rows:
-            email = (o.get("customer_email") or "").lower()
-            if not email:
-                continue
-            c = agg.setdefault(email, {
-                "email": email, "name": "", "phone": "",
-                "total_orders": 0, "paid_orders": 0, "total_spent": 0.0,
-                "first_order_at": None, "last_order_at": None,
-            })
-            if o.get("customer_name"):
-                c["name"] = o["customer_name"]
-            if o.get("customer_phone"):
-                c["phone"] = o["customer_phone"]
-            c["total_orders"] += 1
-            if o.get("status") in ("paid", "shipped", "delivered"):
-                c["paid_orders"] += 1
-                c["total_spent"] += float(o.get("total_amount") or 0)
-            created = o.get("created_at")
-            if created:
-                if not c["first_order_at"] or created < c["first_order_at"]:
-                    c["first_order_at"] = created
-                if not c["last_order_at"] or created > c["last_order_at"]:
-                    c["last_order_at"] = created
-
-        customers = list(agg.values())
-        if search:
-            s = search.lower()
-            customers = [c for c in customers if s in c["email"] or s in (c["name"] or "").lower() or s in (c["phone"] or "").lower()]
-        customers.sort(key=lambda x: x.get("last_order_at") or "", reverse=True)
-
-        total = len(customers)
-        start = (page - 1) * limit
-        return {
-            "customers": customers[start:start + limit],
-            "total": total,
-            "page": page,
-            "limit": limit,
-        }
-    except Exception as e:
-        logger.error(f"Admin customers error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@api_router.get("/admin/customers/{email}")
-async def get_admin_customer_detail(email: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Customer detail with all their orders."""
-    admin = verify_admin_token(credentials)
-    if not admin:
-        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
-    if not (USE_SUPABASE and supabase_client):
-        raise HTTPException(status_code=500, detail="Database not configured")
-
-    try:
-        email_lc = email.lower()
-        r = supabase_client.table("orders").select("*").ilike("customer_email", email_lc).order("created_at", desc=True).execute()
-        orders = r.data or []
-        if not orders:
-            raise HTTPException(status_code=404, detail="Klant niet gevonden")
-
-        latest = orders[0]
-        total_spent = sum(float(o.get("total_amount") or 0) for o in orders if o.get("status") in ("paid", "shipped", "delivered"))
-        return {
-            "customer": {
-                "email": email_lc,
-                "name": latest.get("customer_name"),
-                "phone": latest.get("customer_phone"),
-                "shipping_address": latest.get("shipping_address"),
-                "shipping_city": latest.get("shipping_city"),
-                "shipping_zipcode": latest.get("shipping_zipcode"),
-                "total_orders": len(orders),
-                "total_spent": total_spent,
-                "first_order_at": orders[-1].get("created_at"),
-                "last_order_at": orders[0].get("created_at"),
-            },
-            "orders": orders,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Customer detail error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 
 @api_router.get("/admin/orders")
