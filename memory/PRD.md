@@ -51,6 +51,25 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Automatische review-verzoek emails bij status "delivered"
 - [x] Schema markup voor SEO
 
+### Inbox / Email Management (NIEUW - Feb 2026)
+- [x] `/admin/inbox` 3-pane Gmail-style interface
+- [x] Cloudflare Email Worker webhook: `POST /api/inbox/webhook` (Bearer token auth)
+- [x] Folders: Inbox / Verzonden / Concepten / Spam / Prullenbak met counters & unread badges
+- [x] Labels (custom, multi)
+- [x] Zoeken op subject/from/snippet/body
+- [x] Lezen (HTML rendering in sandbox iframe + plain text fallback)
+- [x] Beantwoorden met In-Reply-To/References threading (RFC compliant)
+- [x] Nieuw bericht (compose) via TransIP SMTP outbound
+- [x] Mark read/unread, star, move folder, soft delete + hard delete
+- [x] MIME parsing met UTF-8 / emoji ondersteuning
+- [x] Admin auth guard op alle inbox endpoints (Bearer token)
+- [x] Setup gids: `/app/INBOX_SETUP.md`
+
+### Domain Migratie .nl → .com (Feb 2026)
+- [x] Alle code-referenties van `droomvriendjes.nl` → `droomvriendjes.com` (32 bestanden)
+- [x] SMTP / FRONTEND_URL / API_URL geüpdatet in `.env`
+- [x] Schema.org / sitemap.xml / OG tags / canonical URLs aangepast
+
 ## Bekende Issues
 - Supabase URL (qoykbhocordugtbvpvsl.supabase.co) is momenteel niet bereikbaar (DNS fout). Frontend valt terug op mockData.
 - Mollie live key werkt alleen in productie, niet in preview-omgeving.

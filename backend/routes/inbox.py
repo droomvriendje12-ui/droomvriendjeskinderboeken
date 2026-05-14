@@ -16,7 +16,8 @@ from email.message import EmailMessage
 from email.utils import parseaddr, parsedate_to_datetime, formataddr, make_msgid
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Header, Query, Body
+from fastapi import APIRouter, HTTPException, Header, Query, Body, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/inbox", tags=["inbox"])
 
 # State (set by server.py)
 _db = None
+_admin_verifier = None  # callable(credentials) -> admin dict or None
 INBOX_WEBHOOK_TOKEN = os.environ.get("INBOX_WEBHOOK_TOKEN", "")
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.transip.email")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
@@ -33,10 +35,27 @@ SMTP_FROM = os.environ.get("SMTP_FROM", "info@droomvriendjes.com")
 
 FOLDERS = ["inbox", "sent", "drafts", "trash", "spam"]
 
+_security = HTTPBearer(auto_error=False)
+
 
 def set_database(database):
     global _db
     _db = database
+
+
+def set_admin_verifier(verifier):
+    """Inject admin token verifier from server.py"""
+    global _admin_verifier
+    _admin_verifier = verifier
+
+
+def _require_admin(credentials: HTTPAuthorizationCredentials = Depends(_security)):
+    if _admin_verifier is None:
+        raise HTTPException(status_code=500, detail="Admin verifier not configured")
+    admin = _admin_verifier(credentials)
+    if not admin:
+        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
+    return admin
 
 
 def _decode_str(s) -> str:
@@ -276,7 +295,7 @@ async def webhook(payload: WebhookPayload, authorization: Optional[str] = Header
 # =========== List / Get / Mutate ===========
 
 @router.get("/folders")
-async def list_folders():
+async def list_folders(admin=Depends(_require_admin)):
     """Counts per folder + unread count + labels."""
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
@@ -300,6 +319,7 @@ async def list_messages(
     starred: Optional[bool] = None,
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=200),
+    admin=Depends(_require_admin),
 ):
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
@@ -335,7 +355,7 @@ async def list_messages(
 
 
 @router.get("/{message_id}")
-async def get_message(message_id: str):
+async def get_message(message_id: str, admin=Depends(_require_admin)):
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
     doc = await _db.inbox_messages.find_one({"id": message_id})
@@ -345,7 +365,7 @@ async def get_message(message_id: str):
 
 
 @router.patch("/{message_id}")
-async def patch_message(message_id: str, patch: PatchMessage):
+async def patch_message(message_id: str, patch: PatchMessage, admin=Depends(_require_admin)):
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
     doc = await _db.inbox_messages.find_one({"id": message_id})
@@ -376,7 +396,7 @@ async def patch_message(message_id: str, patch: PatchMessage):
 
 
 @router.delete("/{message_id}")
-async def delete_message(message_id: str, hard: bool = False):
+async def delete_message(message_id: str, hard: bool = False, admin=Depends(_require_admin)):
     """Move to trash; if hard=true and already in trash, delete permanently."""
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
@@ -394,7 +414,7 @@ async def delete_message(message_id: str, hard: bool = False):
 # =========== Send / Reply / Compose ===========
 
 @router.post("/{message_id}/reply")
-async def reply_message(message_id: str, payload: ReplyPayload):
+async def reply_message(message_id: str, payload: ReplyPayload, admin=Depends(_require_admin)):
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
     original = await _db.inbox_messages.find_one({"id": message_id})
@@ -454,7 +474,7 @@ async def reply_message(message_id: str, payload: ReplyPayload):
 
 
 @router.post("/compose")
-async def compose_message(payload: ComposePayload):
+async def compose_message(payload: ComposePayload, admin=Depends(_require_admin)):
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
     if not payload.to:
@@ -498,7 +518,7 @@ async def compose_message(payload: ComposePayload):
 # =========== Dev helper: ingest raw email (admin only, no token) ===========
 
 @router.post("/dev/ingest-raw")
-async def dev_ingest_raw(raw: str = Body(..., embed=True)):
+async def dev_ingest_raw(raw: str = Body(..., embed=True), admin=Depends(_require_admin)):
     """For testing: paste a raw RFC822 email; stores it as if received via webhook."""
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")

@@ -235,6 +235,8 @@ api_router.include_router(csv_import_route.router)
 
 # Inbox (email management)
 inbox_route.set_database(db)
+# admin verifier is wired after verify_admin_token is defined (lambda resolves lazily)
+inbox_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(inbox_route.router)
 
 # Include marketing router (already has /api prefix in route)

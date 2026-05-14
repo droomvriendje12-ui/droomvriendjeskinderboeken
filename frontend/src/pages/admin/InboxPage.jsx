@@ -8,6 +8,11 @@ import {
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
+const authHeaders = () => {
+  const token = localStorage.getItem('admin_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 const FOLDER_DEFS = [
   { id: 'inbox', label: 'Inbox', icon: Inbox },
   { id: 'sent', label: 'Verzonden', icon: Send },
@@ -44,7 +49,7 @@ const InboxPage = () => {
 
   const fetchFolders = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/inbox/folders`);
+      const r = await fetch(`${API}/api/inbox/folders`, { headers: authHeaders() });
       const d = await r.json();
       setFolders(d.folders || {});
       setLabels(d.labels || []);
@@ -57,7 +62,7 @@ const InboxPage = () => {
       const params = new URLSearchParams({ folder });
       if (activeLabel) params.append('label', activeLabel);
       if (search) params.append('q', search);
-      const r = await fetch(`${API}/api/inbox?${params}`);
+      const r = await fetch(`${API}/api/inbox?${params}`, { headers: authHeaders() });
       const d = await r.json();
       setMessages(d.items || []);
       setTotal(d.total || 0);
@@ -78,13 +83,13 @@ const InboxPage = () => {
   const openMessage = async (msg) => {
     setSelected({ ...msg, _loading: true });
     try {
-      const r = await fetch(`${API}/api/inbox/${msg.id}`);
+      const r = await fetch(`${API}/api/inbox/${msg.id}`, { headers: authHeaders() });
       const full = await r.json();
       setSelected(full);
       if (!msg.read) {
         await fetch(`${API}/api/inbox/${msg.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify({ read: true }),
         });
         setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m)));
@@ -96,7 +101,7 @@ const InboxPage = () => {
   const patchMessage = async (id, patch) => {
     const r = await fetch(`${API}/api/inbox/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(patch),
     });
     const d = await r.json();
@@ -107,7 +112,7 @@ const InboxPage = () => {
 
   const deleteMessage = async (id) => {
     const hard = folder === 'trash';
-    await fetch(`${API}/api/inbox/${id}?hard=${hard}`, { method: 'DELETE' });
+    await fetch(`${API}/api/inbox/${id}?hard=${hard}`, { method: 'DELETE', headers: authHeaders() });
     setMessages((prev) => prev.filter((m) => m.id !== id));
     if (selected?.id === id) setSelected(null);
     fetchFolders();
@@ -422,7 +427,7 @@ const ReplyModal = ({ original, onClose, onSent }) => {
     try {
       const r = await fetch(`${API}/api/inbox/${original.id}/reply`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ body_html: body.replace(/\n/g, '<br/>') }),
       });
       if (!r.ok) {
@@ -478,7 +483,7 @@ const ComposeModal = ({ onClose, onSent }) => {
       const recipients = to.split(',').map((s) => s.trim()).filter(Boolean);
       const r = await fetch(`${API}/api/inbox/compose`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           to: recipients,
           subject,
