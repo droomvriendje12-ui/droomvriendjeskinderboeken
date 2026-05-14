@@ -312,11 +312,11 @@ export const shoppingCampaigns = [
     bidStrategy: "Target Impression Share",
     targetImpressionShare: 95,
     keywords: {
-      exact: ["droomvriendjes", "droomvriendje", "droomvriendjes.nl"],
+      exact: ["droomvriendjes", "droomvriendje", "droomvriendjes.com"],
       phrase: ["droomvriendjes knuffel", "droomvriendjes kopen"]
     },
     seoKeywords: [
-      "droomvriendjes", "droomvriendjes.nl", "droomvriendjes review"
+      "droomvriendjes", "droomvriendjes.com", "droomvriendjes review"
     ],
     adCopy: {
       headlines: [

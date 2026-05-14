@@ -16,17 +16,17 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://droomvriendjes.nl/#organization",
+    "@id": "https://droomvriendjes.com/#organization",
     "name": "Droomvriendjes",
     "alternateName": ["Droomvriendjes.nl", "Droom Vriendjes"],
-    "url": "https://droomvriendjes.nl",
+    "url": "https://droomvriendjes.com",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://droomvriendjes.nl/logo.svg",
+      "url": "https://droomvriendjes.com/logo.svg",
       "width": 200,
       "height": 60
     },
-    "image": "https://droomvriendjes.nl/products/panda/Panda_Side_product_02.png",
+    "image": "https://droomvriendjes.com/products/panda/Panda_Side_product_02.png",
     "description": "Droomvriendjes® - Premium slaapknuffels met sterrenprojectie, white noise en rustgevende melodieën. Helpt baby's en peuters beter slapen. Gratis verzending in Nederland en België.",
     "slogan": "Meer dan een knuffel, de beste vriend van je kind in het donker",
     "foundingDate": "2023",
@@ -49,7 +49,7 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
       {
         "@type": "ContactPoint",
         "contactType": "customer service",
-        "email": "info@droomvriendjes.nl",
+        "email": "info@droomvriendjes.com",
         "availableLanguage": ["Dutch", "English"],
         "hoursAvailable": {
           "@type": "OpeningHoursSpecification",
@@ -70,12 +70,12 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "Store",
-    "@id": "https://droomvriendjes.nl/#localbusiness",
+    "@id": "https://droomvriendjes.com/#localbusiness",
     "name": "Droomvriendjes - Slaapknuffels Webshop",
-    "image": "https://droomvriendjes.nl/products/panda/Panda_Side_product_02.png",
-    "url": "https://droomvriendjes.nl",
+    "image": "https://droomvriendjes.com/products/panda/Panda_Side_product_02.png",
+    "url": "https://droomvriendjes.com",
     "telephone": "+31-6-00000000",
-    "email": "info@droomvriendjes.nl",
+    "email": "info@droomvriendjes.com",
     "priceRange": "€€",
     "currenciesAccepted": "EUR",
     "paymentAccepted": ["iDEAL", "Credit Card", "Bancontact", "PayPal", "Klarna"],
@@ -166,18 +166,18 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://droomvriendjes.nl/#website",
-    "url": "https://droomvriendjes.nl",
+    "@id": "https://droomvriendjes.com/#website",
+    "url": "https://droomvriendjes.com",
     "name": "Droomvriendjes",
     "description": "Premium slaapknuffels met sterrenprojectie voor baby's en peuters",
     "publisher": {
-      "@id": "https://droomvriendjes.nl/#organization"
+      "@id": "https://droomvriendjes.com/#organization"
     },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://droomvriendjes.nl/search?q={search_term_string}"
+        "urlTemplate": "https://droomvriendjes.com/search?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     },
@@ -267,17 +267,17 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
     "@type": "VideoObject",
     "name": "Droomvriendjes Slaapknuffel - Hoe het werkt",
     "description": "Bekijk hoe de Droomvriendjes slaapknuffel met sterrenprojectie en white noise je baby helpt om beter te slapen.",
-    "thumbnailUrl": "https://droomvriendjes.nl/products/panda/Panda_Side_product_02.png",
+    "thumbnailUrl": "https://droomvriendjes.com/products/panda/Panda_Side_product_02.png",
     "uploadDate": "2024-01-15",
     "duration": "PT2M30S",
-    "contentUrl": "https://droomvriendjes.nl/video/demo",
-    "embedUrl": "https://droomvriendjes.nl/video/demo/embed",
+    "contentUrl": "https://droomvriendjes.com/video/demo",
+    "embedUrl": "https://droomvriendjes.com/video/demo/embed",
     "publisher": {
       "@type": "Organization",
       "name": "Droomvriendjes",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://droomvriendjes.nl/logo.svg"
+        "url": "https://droomvriendjes.com/logo.svg"
       }
     }
   };
@@ -354,31 +354,31 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
         "@type": "ListItem",
         "position": 1,
         "name": "Droomvriendjes® Slaapknuffel Panda",
-        "url": "https://droomvriendjes.nl/product/3"
+        "url": "https://droomvriendjes.com/product/3"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Droomvriendjes® Eenhoorn Knuffel",
-        "url": "https://droomvriendjes.nl/product/5"
+        "url": "https://droomvriendjes.com/product/5"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": "Droomvriendjes® Dino Slaaptrainer",
-        "url": "https://droomvriendjes.nl/product/4"
+        "url": "https://droomvriendjes.com/product/4"
       },
       {
         "@type": "ListItem",
         "position": 4,
         "name": "Droomvriendjes® Slaapbeer",
-        "url": "https://droomvriendjes.nl/product/7"
+        "url": "https://droomvriendjes.com/product/7"
       },
       {
         "@type": "ListItem",
         "position": 5,
         "name": "Droomvriendjes® Pinguïn Slaaphulp",
-        "url": "https://droomvriendjes.nl/product/9"
+        "url": "https://droomvriendjes.com/product/9"
       }
     ]
   };

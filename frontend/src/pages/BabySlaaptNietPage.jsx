@@ -28,14 +28,14 @@ const BabySlaaptNietPage = () => {
       "name": "Droomvriendjes",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://droomvriendjes.nl/logo.svg"
+        "url": "https://droomvriendjes.com/logo.svg"
       }
     },
     "datePublished": "2024-06-01",
     "dateModified": "2025-01-15",
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": "https://droomvriendjes.nl/baby-slaapt-niet"
+      "@id": "https://droomvriendjes.com/baby-slaapt-niet"
     }
   };
 
@@ -84,13 +84,13 @@ const BabySlaaptNietPage = () => {
         <title>Baby Slaapt Niet? 7 Bewezen Tips + De Ultieme Slaaphulp | Droomvriendjes</title>
         <meta name="description" content="Baby slaapt niet door? Ontdek 7 wetenschappelijk bewezen tips en de #1 slaapknuffel met white noise en sterrenprojectie. Gratis verzending." />
         <meta name="keywords" content="baby slaapt niet, baby valt niet in slaap, slaapproblemen baby, baby doorslapen, white noise baby, slaapknuffel baby" />
-        <link rel="canonical" href="https://droomvriendjes.nl/baby-slaapt-niet" />
+        <link rel="canonical" href="https://droomvriendjes.com/baby-slaapt-niet" />
         
         {/* Open Graph */}
         <meta property="og:title" content="Baby Slaapt Niet? Dit is de Oplossing die 10.000+ Ouders Helpt" />
         <meta property="og:description" content="Ontdek de slaapknuffel met white noise en sterrenprojectie die baby's helpt om sneller en langer te slapen." />
-        <meta property="og:image" content="https://droomvriendjes.nl/products/panda/Panda_Side_product_02.png" />
-        <meta property="og:url" content="https://droomvriendjes.nl/baby-slaapt-niet" />
+        <meta property="og:image" content="https://droomvriendjes.com/products/panda/Panda_Side_product_02.png" />
+        <meta property="og:url" content="https://droomvriendjes.com/baby-slaapt-niet" />
         
         {/* Schema */}
         <script type="application/ld+json">{JSON.stringify(pageSchema)}</script>

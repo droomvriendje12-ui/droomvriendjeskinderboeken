@@ -68,7 +68,7 @@ class TestOrderCreation:
     def test_create_order_endpoint(self):
         """POST /api/orders creates order in Supabase"""
         order_data = {
-            "customer_email": "test@droomvriendjes.nl",
+            "customer_email": "test@droomvriendjes.com",
             "customer_name": "Test Klant",
             "customer_phone": "0612345678",
             "customer_address": "Teststraat 123",
@@ -103,7 +103,7 @@ class TestOrderCreation:
         """GET /api/orders/{id} retrieves order from Supabase"""
         # First create an order
         order_data = {
-            "customer_email": "test2@droomvriendjes.nl",
+            "customer_email": "test2@droomvriendjes.com",
             "customer_name": "Test Klant 2",
             "customer_address": "Testweg 456",
             "customer_city": "Rotterdam",
@@ -129,7 +129,7 @@ class TestOrderCreation:
         
         order = get_response.json()
         assert order.get("id") == order_id or order.get("order_id") == order_id
-        assert order.get("customer_email") == "test2@droomvriendjes.nl"
+        assert order.get("customer_email") == "test2@droomvriendjes.com"
         assert order.get("status") == "pending"
         
         print(f"PASS: Order retrieved successfully: {order.get('order_number', order_id)}")

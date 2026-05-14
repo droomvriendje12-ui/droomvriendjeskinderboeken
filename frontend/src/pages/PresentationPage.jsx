@@ -977,11 +977,11 @@ const PresentationPage = () => {
             <div className="space-y-4 text-left text-lg">
               <div className="flex items-center gap-4">
                 <span className="text-2xl">🌐</span>
-                <span>www.droomvriendjes.nl</span>
+                <span>www.droomvriendjes.com</span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-2xl">📧</span>
-                <span>info@droomvriendjes.nl</span>
+                <span>info@droomvriendjes.com</span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-2xl">📍</span>

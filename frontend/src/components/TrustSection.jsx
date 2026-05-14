@@ -35,7 +35,7 @@ const TrustSection = () => {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#8B7355] flex-shrink-0" />
-                <a href="mailto:info@droomvriendjes.nl" className="hover:text-[#8B7355] transition">info@droomvriendjes.nl</a>
+                <a href="mailto:info@droomvriendjes.com" className="hover:text-[#8B7355] transition">info@droomvriendjes.com</a>
               </p>
               <div className="pt-2 border-t border-stone-100 text-xs text-stone-400 space-y-1">
                 <p>KVK: 99210835</p>

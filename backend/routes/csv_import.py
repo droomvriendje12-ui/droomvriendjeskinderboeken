@@ -694,7 +694,7 @@ async def track_open(email_id: str):
 
 
 @router.get("/track/click/{email_id}")
-async def track_click(email_id: str, url: str = "https://droomvriendjes.nl"):
+async def track_click(email_id: str, url: str = "https://droomvriendjes.com"):
     """Track email link click and redirect to the target URL."""
     if db is not None:
         try:
@@ -787,7 +787,7 @@ def _unsub_page(title: str, success: bool, email: str = "") -> str:
         <h1>{title}</h1>
         {"<p>Het e-mailadres <span class='email'>" + email + "</span> ontvangt geen marketing emails meer van ons.</p>" if success and email else ""}
         {"<p>Mocht je je vergist hebben, neem dan contact met ons op via onze website.</p>" if success else "<p>Deze link is ongeldig of verlopen. Neem contact met ons op als je je wilt uitschrijven.</p>"}
-        <a href="https://droomvriendjes.nl" class="home-link">Naar Droomvriendjes</a>
+        <a href="https://droomvriendjes.com" class="home-link">Naar Droomvriendjes</a>
         <p class="footer">Droomvriendjes &mdash; Slaapknuffels met liefde gemaakt</p>
     </div>
 </body>

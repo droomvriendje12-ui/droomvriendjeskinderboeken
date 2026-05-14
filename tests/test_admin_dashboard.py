@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://droomvriendjes.nl')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://droomvriendjes.com')
 
 # Admin credentials from the request
 ADMIN_USERNAME = "admin"

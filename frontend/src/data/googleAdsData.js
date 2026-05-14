@@ -132,7 +132,7 @@ export const keywordLists = {
       { keyword: "droomvriendjes knuffel", bid: 1.20, priority: "HIGH" },
       { keyword: "droomvriendjes slaapknuffel", bid: 1.20, priority: "HIGH" },
       { keyword: "droomvriendjes nachtlampje", bid: 1.00, priority: "MEDIUM" },
-      { keyword: "droomvriendjes.nl", bid: 1.50, priority: "HIGH" },
+      { keyword: "droomvriendjes.com", bid: 1.50, priority: "HIGH" },
       { keyword: "droom vriendjes", bid: 1.00, priority: "MEDIUM" },
       { keyword: "lotgenootje", bid: 1.50, priority: "HIGH" },
       { keyword: "lotgenootje knuffel", bid: 1.30, priority: "HIGH" },
@@ -1149,7 +1149,7 @@ export const exportAdsToCSV = () => {
     }
     
     // Final URL and Status
-    row.push("https://droomvriendjes.nl");
+    row.push("https://droomvriendjes.com");
     row.push("Enabled");
     
     rows.push(row);
@@ -1208,7 +1208,7 @@ export const exportSitelinksToCSV = () => {
           campaign.name,
           link.text,
           link.description,
-          `https://droomvriendjes.nl${link.url}`
+          `https://droomvriendjes.com${link.url}`
         ]);
       });
     });

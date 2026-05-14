@@ -408,7 +408,7 @@ const ProductPage = () => {
     },
     "offers": {
       "@type": "Offer",
-      "url": `https://droomvriendjes.nl/product/${product.id}`,
+      "url": `https://droomvriendjes.com/product/${product.id}`,
       "priceCurrency": "EUR",
       "price": product.price.toFixed(2),
       "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -417,7 +417,7 @@ const ProductPage = () => {
       "seller": {
         "@type": "Organization",
         "name": "Droomvriendjes",
-        "url": "https://droomvriendjes.nl"
+        "url": "https://droomvriendjes.com"
       },
       "shippingDetails": {
         "@type": "OfferShippingDetails",

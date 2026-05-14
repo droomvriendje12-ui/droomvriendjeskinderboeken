@@ -48,7 +48,7 @@ class TestEmailTemplatesAPI:
             "content": "<html><body><h1>Hoi {{firstname}}!</h1><p>Check out {{product_name}} voor €{{product_price}}!</p><a href='{{cart_link}}'>Bestel nu</a></body></html>",
             "description": "Test template for automated testing",
             "category": "marketing",
-            "cartLink": "https://droomvriendjes.nl/checkout?product=test",
+            "cartLink": "https://droomvriendjes.com/checkout?product=test",
             "active": True
         }
         response = requests.post(

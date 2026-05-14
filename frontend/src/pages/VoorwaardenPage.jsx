@@ -29,7 +29,7 @@ const VoorwaardenPage = () => {
                 <p className="text-sm italic text-slate-500">(Dit is geen bezoekadres)</p>
               </div>
               <div className="mt-4 pt-4 border-t border-warm-brown-200 space-y-1">
-                <p><strong>E-mailadres:</strong> info@droomvriendjes.nl</p>
+                <p><strong>E-mailadres:</strong> info@droomvriendjes.com</p>
                 <p><strong>KVK-nummer:</strong> 99210835</p>
                 <p><strong>BTW-nummer:</strong> NL204392123B01</p>
               </div>
@@ -80,7 +80,7 @@ const VoorwaardenPage = () => {
             </div>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>De herroepingstermijn verstrijkt 14 dagen na de dag waarop u of een door u aangewezen derde, die niet de vervoerder is, het goed fysiek in bezit krijgt.</li>
-              <li>Om het herroepingsrecht uit te oefenen, moet u ons (Droomvriendjes, Schaesbergerweg 103, 6415 AD Heerlen, info@droomvriendjes.nl) via een ondubbelzinnige verklaring op de hoogte stellen van uw beslissing de overeenkomst te herroepen.</li>
+              <li>Om het herroepingsrecht uit te oefenen, moet u ons (Droomvriendjes, Schaesbergerweg 103, 6415 AD Heerlen, info@droomvriendjes.com) via een ondubbelzinnige verklaring op de hoogte stellen van uw beslissing de overeenkomst te herroepen.</li>
               <li>Om de herroepingstermijn na te leven volstaat het om uw mededeling betreffende uw uitoefening van het herroepingsrecht te verzenden voordat de herroepingstermijn is verstreken.</li>
             </ul>
           </section>
@@ -138,7 +138,7 @@ const VoorwaardenPage = () => {
             </ul>
             <div className="mt-4 bg-warm-brown-50 rounded-xl p-6 border border-warm-brown-100">
               <p className="font-bold text-slate-900 mb-2">Contact voor klachten:</p>
-              <p className="text-slate-700">E-mail: info@droomvriendjes.nl</p>
+              <p className="text-slate-700">E-mail: info@droomvriendjes.com</p>
               <p className="text-slate-700">Wij reageren binnen 24-48 uur op werkdagen.</p>
             </div>
           </section>

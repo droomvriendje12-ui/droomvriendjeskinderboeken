@@ -62,6 +62,6 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - Refactoring: grote componenten opsplitsen (MarketingCommandCenter, CheckoutPage)
 
 ## Credentials
-- Admin: admin@droomvriendjes.nl / Droomvriendjes2024!
+- Admin: admin@droomvriendjes.com / Droomvriendjes2024!
 - Productie: https://droomvriendjes.com
 - Preview: https://ecommerce-dashboard-25.preview.emergentagent.com

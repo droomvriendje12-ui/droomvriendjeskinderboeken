@@ -62,7 +62,7 @@ const ContactPage = () => {
       console.error('Contact form error:', error);
       toast({
         title: "❌ Fout",
-        description: "Er ging iets mis bij het verzenden. Probeer het opnieuw of mail naar info@droomvriendjes.nl",
+        description: "Er ging iets mis bij het verzenden. Probeer het opnieuw of mail naar info@droomvriendjes.com",
         variant: "destructive"
       });
     } finally {
@@ -91,7 +91,7 @@ const ContactPage = () => {
             <CardContent className="pt-6 text-center">
               <Mail className="w-12 h-12 text-warm-brown-500 mx-auto mb-4" />
               <h3 className="font-bold text-slate-900 mb-2">Email</h3>
-              <p className="text-slate-600">info@droomvriendjes.nl</p>
+              <p className="text-slate-600">info@droomvriendjes.com</p>
             </CardContent>
           </Card>
 
@@ -224,7 +224,7 @@ const ContactPage = () => {
             <div className="text-slate-700 space-y-1">
               <p><strong>Bedrijfsnaam:</strong> Droomvriendjes</p>
               <p><strong>KVK-nummer:</strong> 99210835</p>
-              <p><strong>E-mailadres:</strong> info@droomvriendjes.nl</p>
+              <p><strong>E-mailadres:</strong> info@droomvriendjes.com</p>
               <p><strong>Adres:</strong> Schaesbergerweg 103, 6415 AD Heerlen</p>
               <p className="text-sm italic">(Dit is geen bezoekadres)</p>
             </div>

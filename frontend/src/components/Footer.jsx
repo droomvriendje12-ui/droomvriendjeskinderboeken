@@ -60,8 +60,8 @@ const Footer = () => {
               <p className="text-xs italic opacity-60">(Dit is geen bezoekadres)</p>
               <p className="opacity-80 flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                <a href="mailto:info@droomvriendjes.nl" className="hover:text-warm-brown-300 transition">
-                  info@droomvriendjes.nl
+                <a href="mailto:info@droomvriendjes.com" className="hover:text-warm-brown-300 transition">
+                  info@droomvriendjes.com
                 </a>
               </p>
             </div>

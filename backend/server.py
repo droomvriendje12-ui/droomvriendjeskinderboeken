@@ -125,14 +125,14 @@ else:
 # URL configuration - load from environment for production support
 def get_frontend_url():
     """Get frontend URL from environment"""
-    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
 
 def get_api_url():
     """Get API URL from environment"""
-    return os.environ.get('API_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('API_URL', 'https://droomvriendjes.com')
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
-API_URL = os.environ.get('API_URL', 'https://droomvriendjes.nl')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
+API_URL = os.environ.get('API_URL', 'https://droomvriendjes.com')
 
 # Sendcloud API configuration
 SENDCLOUD_PUBLIC_KEY = os.environ.get('SENDCLOUD_PUBLIC_KEY', '')
@@ -149,10 +149,10 @@ SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
 SMTP_USER = os.environ.get('SMTP_USER', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.nl')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.com')
 
 # Owner notification email
-OWNER_EMAIL = "info@droomvriendjes.nl"
+OWNER_EMAIL = "info@droomvriendjes.com"
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -239,7 +239,7 @@ app.include_router(marketing_route.router)
 app.include_router(database_info_route.router)
 
 # ============== GOOGLE SHOPPING FEED CONSTANTS ==============
-SHOP_URL = os.environ.get('SHOP_URL', 'https://droomvriendjes.nl')
+SHOP_URL = os.environ.get('SHOP_URL', 'https://droomvriendjes.com')
 MERCHANT_CENTER_ID = os.environ.get('GOOGLE_MERCHANT_CENTER_ID', '5713316340')
 
 # Product data for Google Shopping Feed
@@ -407,7 +407,7 @@ csv_import_route.set_email_sender(send_email)
 
 
 def send_contact_form_email(contact_data: dict):
-    """Send contact form submission to owner (info@droomvriendjes.nl)"""
+    """Send contact form submission to owner (info@droomvriendjes.com)"""
     naam = contact_data.get('naam', 'Onbekend')
     email = contact_data.get('email', 'Onbekend')
     telefoon = contact_data.get('telefoon', 'Niet opgegeven')
@@ -811,7 +811,7 @@ def send_order_confirmation_email(order_data: dict):
                 <!-- Footer -->
                 <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999;">
                     <p>Vragen over je bestelling?<br>
-                    Neem contact op via <a href="mailto:info@droomvriendjes.nl" style="color: #7c3aed;">info@droomvriendjes.nl</a></p>
+                    Neem contact op via <a href="mailto:info@droomvriendjes.com" style="color: #7c3aed;">info@droomvriendjes.com</a></p>
                     
                     <p style="font-size: 12px; margin-top: 20px;">
                         Droomvriendjes<br>
@@ -837,7 +837,7 @@ def send_order_confirmation_email(order_data: dict):
         Je bestelling wordt zo snel mogelijk verzonden.
         Gratis verzending - Voor 23:00 besteld, morgen in huis!
         
-        Vragen? Mail naar info@droomvriendjes.nl
+        Vragen? Mail naar info@droomvriendjes.com
         
         Met vriendelijke groet,
         Droomvriendjes
@@ -2191,7 +2191,7 @@ def send_tracking_email(order: dict, tracking_code: str, carrier: str):
                 
                 <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 14px;">
                     <p>Vragen over je bestelling?<br>
-                    Neem contact op via <a href="mailto:info@droomvriendjes.nl" style="color: #7c3aed;">info@droomvriendjes.nl</a></p>
+                    Neem contact op via <a href="mailto:info@droomvriendjes.com" style="color: #7c3aed;">info@droomvriendjes.com</a></p>
                     
                     <p style="margin-top: 20px;">
                         Droomvriendjes 🧸<br>
@@ -2217,7 +2217,7 @@ def send_tracking_email(order: dict, tracking_code: str, carrier: str):
         
         Je pakket wordt meestal binnen 1-2 werkdagen bezorgd.
         
-        Vragen? Mail naar info@droomvriendjes.nl
+        Vragen? Mail naar info@droomvriendjes.com
         
         Droomvriendjes
         """
@@ -2297,7 +2297,7 @@ def send_review_request_email(order: dict, items: list):
                 </div>
 
                 <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px; text-align: center; color: #999; font-size: 14px;">
-                    <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.nl" style="color: #8B7355;">info@droomvriendjes.nl</a></p>
+                    <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.com" style="color: #8B7355;">info@droomvriendjes.com</a></p>
                     <p style="margin-top: 15px;">
                         Droomvriendjes<br>
                         <span style="font-size: 12px;">Slaapknuffels voor een betere nachtrust</span>
@@ -2321,7 +2321,7 @@ Schrijf een review: {review_url}
 
 Als dank krijg je 10% korting op je volgende bestelling!
 
-Vragen? Mail naar info@droomvriendjes.nl
+Vragen? Mail naar info@droomvriendjes.com
 
 Droomvriendjes
         """
@@ -2596,7 +2596,7 @@ async def get_payment_methods():
 
 
 @api_router.post("/test-email")
-async def test_email(email: str = "info@droomvriendjes.nl"):
+async def test_email(email: str = "info@droomvriendjes.com"):
     """Test email sending (for debugging only)"""
     test_order = {
         "_id": "TEST123456",
@@ -3289,7 +3289,7 @@ async def track_email_click(email_id: str, url: str = ""):
         email_service = EmailService(db)
     await email_service.track_email_click(email_id, url)
     from fastapi.responses import RedirectResponse
-    redirect_url = url if url else os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
+    redirect_url = url if url else os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
     return RedirectResponse(url=redirect_url)
 
 @api_router.get("/email/subscribers")
@@ -3532,7 +3532,7 @@ def create_15_percent_email_html(firstname: str, gender: str = "") -> str:
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://droomvriendjes.nl/knuffels" 
+                <a href="https://droomvriendjes.com/knuffels" 
                    style="display: inline-block; background-color: #A26A49; color: #ffffff; padding: 16px 40px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px;">
                     Shop Nu met 15% Korting →
                 </a>
@@ -3559,8 +3559,8 @@ def create_15_percent_email_html(firstname: str, gender: str = "") -> str:
                 Droomvriendjes | Schaesbergerweg 103, 6415 AD Heerlen
             </p>
             <p style="color: #888; margin: 0; font-size: 12px;">
-                <a href="https://droomvriendjes.nl" style="color: #A26A49;">Website</a> | 
-                <a href="mailto:info@droomvriendjes.nl" style="color: #A26A49;">Contact</a>
+                <a href="https://droomvriendjes.com" style="color: #A26A49;">Website</a> | 
+                <a href="mailto:info@droomvriendjes.com" style="color: #A26A49;">Contact</a>
             </p>
             <p style="color: #666; margin: 15px 0 0 0; font-size: 11px;">
                 Je ontvangt deze email omdat je interesse hebt getoond in producten voor een betere nachtrust.
@@ -3588,7 +3588,7 @@ Onze Droomvriendjes helpen meer dan 10.000+ gezinnen aan betere nachten!
 JOUW KORTINGSCODE: WELKOM15
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👉 Shop nu: https://droomvriendjes.nl/knuffels
+👉 Shop nu: https://droomvriendjes.com/knuffels
 
 Waarom kiezen voor Droomvriendjes?
 ✅ Rustgevende sterrenprojectie & muziek
@@ -3601,7 +3601,7 @@ Team Droomvriendjes
 
 ---
 Droomvriendjes | Schaesbergerweg 103, 6415 AD Heerlen
-info@droomvriendjes.nl | https://droomvriendjes.nl
+info@droomvriendjes.com | https://droomvriendjes.com
 '''
 
 

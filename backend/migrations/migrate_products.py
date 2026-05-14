@@ -1,6 +1,6 @@
 """
 Product Migration Script - Migrate mockData.js products to MongoDB
-Run this script to populate the database with all live products from droomvriendjes.nl
+Run this script to populate the database with all live products from droomvriendjes.com
 """
 import asyncio
 import os

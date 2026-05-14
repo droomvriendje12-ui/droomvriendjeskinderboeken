@@ -309,7 +309,7 @@ export const megaFAQs = {
     },
     {
       q: "Hoe werkt retourneren?",
-      a: "Stuur een e-mail naar info@droomvriendjes.nl met je ordernummer. We sturen een gratis retourlabel. Na ontvangst van de retour wordt je geld binnen 5 werkdagen teruggestort."
+      a: "Stuur een e-mail naar info@droomvriendjes.com met je ordernummer. We sturen een gratis retourlabel. Na ontvangst van de retour wordt je geld binnen 5 werkdagen teruggestort."
     },
     {
       q: "Krijg ik mijn verzendkosten terug bij retour?",
@@ -321,7 +321,7 @@ export const megaFAQs = {
     },
     {
       q: "Mijn Droomvriendje doet het niet meer, wat nu?",
-      a: "Neem contact op via info@droomvriendjes.nl met je ordernummer en een beschrijving van het probleem. Binnen de garantieperiode sturen we een vervangende knuffel."
+      a: "Neem contact op via info@droomvriendjes.com met je ordernummer en een beschrijving van het probleem. Binnen de garantieperiode sturen we een vervangende knuffel."
     },
     {
       q: "Kan ik een kapotte Droomvriendje laten repareren?",
@@ -453,7 +453,7 @@ export const megaFAQs = {
   overOns: [
     {
       q: "Waar kan ik Droomvriendjes kopen?",
-      a: "Je kunt Droomvriendjes direct kopen op onze webshop droomvriendjes.nl. We bieden gratis verzending in Nederland en België, veilig betalen en 14 dagen bedenktijd."
+      a: "Je kunt Droomvriendjes direct kopen op onze webshop droomvriendjes.com. We bieden gratis verzending in Nederland en België, veilig betalen en 14 dagen bedenktijd."
     },
     {
       q: "Hebben jullie een fysieke winkel?",
@@ -461,7 +461,7 @@ export const megaFAQs = {
     },
     {
       q: "Zijn Droomvriendjes te koop bij Bol.com?",
-      a: "Nee, Droomvriendjes zijn exclusief verkrijgbaar via onze eigen webshop droomvriendjes.nl. Zo garanderen we de beste service en authentieke producten."
+      a: "Nee, Droomvriendjes zijn exclusief verkrijgbaar via onze eigen webshop droomvriendjes.com. Zo garanderen we de beste service en authentieke producten."
     },
     {
       q: "Is Droomvriendjes een Nederlands bedrijf?",
@@ -469,11 +469,11 @@ export const megaFAQs = {
     },
     {
       q: "Hoe kan ik contact opnemen met Droomvriendjes?",
-      a: "Je kunt ons bereiken via e-mail: info@droomvriendjes.nl. We reageren binnen 24 uur op werkdagen. Je kunt ook het contactformulier op de website gebruiken."
+      a: "Je kunt ons bereiken via e-mail: info@droomvriendjes.com. We reageren binnen 24 uur op werkdagen. Je kunt ook het contactformulier op de website gebruiken."
     },
     {
       q: "Heeft Droomvriendjes een klantenservice?",
-      a: "Ja! Onze Nederlandse klantenservice is bereikbaar via info@droomvriendjes.nl. We helpen je graag met vragen over producten, bestellingen of retourzendingen."
+      a: "Ja! Onze Nederlandse klantenservice is bereikbaar via info@droomvriendjes.com. We helpen je graag met vragen over producten, bestellingen of retourzendingen."
     },
     {
       q: "Kan ik Droomvriendjes volgen op social media?",

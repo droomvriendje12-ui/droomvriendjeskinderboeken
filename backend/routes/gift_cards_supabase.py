@@ -27,7 +27,7 @@ SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
 SMTP_USER = os.environ.get('SMTP_USER', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.nl')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.com')
 
 
 def set_supabase_client(client):
@@ -65,11 +65,11 @@ def _get_mollie_client():
 
 
 def _get_frontend_url():
-    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
 
 
 def _get_api_url():
-    return os.environ.get('API_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('API_URL', 'https://droomvriendjes.com')
 
 
 # Pydantic models
@@ -265,7 +265,7 @@ def _send_gift_card_email(gift_card: dict):
                 {f'<div style="background: #fdf8f3; padding: 20px; border-radius: 10px; margin-bottom: 20px;"><p style="margin: 0; color: #8B7355; font-style: italic;">"{message}"</p></div>' if message else ''}
                 
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="https://droomvriendjes.nl" style="display: inline-block; background: #8B7355; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    <a href="https://droomvriendjes.com" style="display: inline-block; background: #8B7355; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                         Nu Besteden
                     </a>
                 </div>
@@ -290,7 +290,7 @@ Jouw kortingscode: {code}
 
 {f'Bericht: "{message}"' if message else ''}
 
-Gebruik deze code bij het afrekenen op droomvriendjes.nl
+Gebruik deze code bij het afrekenen op droomvriendjes.com
         """
 
         return _send_email(recipient_email, subject, html_content, text_content)

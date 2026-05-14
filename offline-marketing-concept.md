@@ -77,7 +77,7 @@ Een zachte knuffel met:
 
 📦 Gratis verzending | 14 dagen retour
 
-www.droomvriendjes.nl
+www.droomvriendjes.com
 ```
 
 ---
@@ -104,7 +104,7 @@ www.droomvriendjes.nl
 ║    Scan voor 15% korting               ║
 ║    Code: WELKOM15                      ║
 ║                                        ║
-║    www.droomvriendjes.nl               ║
+║    www.droomvriendjes.com               ║
 ╚════════════════════════════════════════╝
 ```
 

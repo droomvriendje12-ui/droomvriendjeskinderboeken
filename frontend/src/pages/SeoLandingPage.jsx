@@ -140,7 +140,7 @@ const SeoLandingPage = () => {
         <meta property="og:title" content={page.title} />
         <meta property="og:description" content={page.description} />
         <meta property="og:type" content="website" />
-        <link rel="canonical" href={`https://droomvriendjes.nl/${keyword}`} />
+        <link rel="canonical" href={`https://droomvriendjes.com/${keyword}`} />
       </Helmet>
       
       <Layout showPromoBanner={true}>

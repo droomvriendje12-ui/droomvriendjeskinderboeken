@@ -20,7 +20,7 @@ from datetime import datetime
 import time
 
 # Configuration
-BASE_URL = "https://droomvriendjes.nl/api"
+BASE_URL = "https://droomvriendjes.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class DroomvriendjesAPITester:
@@ -315,7 +315,7 @@ class DroomvriendjesAPITester:
         
         # 1. Test POST /api/orders - Create order with discount calculation
         order_data = {
-            "customer_email": "priority.test@droomvriendjes.nl",
+            "customer_email": "priority.test@droomvriendjes.com",
             "customer_name": "Priority Test Customer",
             "customer_phone": "0612345678",
             "customer_address": "Test Priority Street 123",
@@ -353,7 +353,7 @@ class DroomvriendjesAPITester:
                 
                 # Test calculation with coupon
                 order_with_coupon = {
-                    "customer_email": "coupon.test@droomvriendjes.nl",
+                    "customer_email": "coupon.test@droomvriendjes.com",
                     "customer_name": "Coupon Test Customer",
                     "customer_address": "Coupon Street 456",
                     "customer_city": "Rotterdam",
@@ -677,7 +677,7 @@ class DroomvriendjesAPITester:
         
         # Test order creation with both automatic and manual discounts
         order_data = {
-            "customer_email": "test.klant@droomvriendjes.nl",
+            "customer_email": "test.klant@droomvriendjes.com",
             "customer_name": "Test Klant",
             "customer_phone": "0612345678",
             "customer_address": "Teststraat 123",
@@ -718,7 +718,7 @@ class DroomvriendjesAPITester:
                 
                 # Test edge case: Order with only automatic discount
                 order_data_auto_only = {
-                    "customer_email": "auto.discount@droomvriendjes.nl",
+                    "customer_email": "auto.discount@droomvriendjes.com",
                     "customer_name": "Auto Discount Test",
                     "customer_address": "Autostraat 1",
                     "customer_city": "Utrecht",
@@ -745,7 +745,7 @@ class DroomvriendjesAPITester:
                 
                 # Test edge case: Order with only manual coupon
                 order_data_coupon_only = {
-                    "customer_email": "coupon.only@droomvriendjes.nl", 
+                    "customer_email": "coupon.only@droomvriendjes.com", 
                     "customer_name": "Coupon Only Test",
                     "customer_address": "Couponlaan 5",
                     "customer_city": "Rotterdam",

@@ -239,7 +239,7 @@ const EmailTemplatesAdmin = () => {
       content: getDefaultTemplate(),
       description: '',
       category: 'marketing',
-      cartLink: 'https://droomvriendjes.nl/checkout?product=leeuw&quantity=1',
+      cartLink: 'https://droomvriendjes.com/checkout?product=leeuw&quantity=1',
       active: true
     });
     setIsEditing(true);
@@ -342,8 +342,8 @@ const EmailTemplatesAdmin = () => {
           lastname: 'de Vries',
           discount_code: 'FAMILIE20',
           discount_percentage: '20%',
-          cart_link: formData.cartLink || 'https://droomvriendjes.nl/checkout',
-          unsubscribe_link: 'https://droomvriendjes.nl/unsubscribe'
+          cart_link: formData.cartLink || 'https://droomvriendjes.com/checkout',
+          unsubscribe_link: 'https://droomvriendjes.com/unsubscribe'
         };
         
         Object.entries(testData).forEach(([key, value]) => {
@@ -859,23 +859,23 @@ const EmailTemplatesAdmin = () => {
                     <Input
                       value={formData.cartLink}
                       onChange={(e) => setFormData({ ...formData, cartLink: e.target.value })}
-                      placeholder="https://droomvriendjes.nl/checkout?product=leeuw&quantity=1"
+                      placeholder="https://droomvriendjes.com/checkout?product=leeuw&quantity=1"
                     />
                     <div className="flex flex-wrap gap-2 mt-2">
                       <button 
-                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.nl/checkout?product=leeuw&quantity=1' })}
+                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.com/checkout?product=leeuw&quantity=1' })}
                         className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
                       >
                         Leeuw
                       </button>
                       <button 
-                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.nl/checkout?product=schaap&quantity=1' })}
+                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.com/checkout?product=schaap&quantity=1' })}
                         className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
                       >
                         Schaap
                       </button>
                       <button 
-                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.nl/checkout?bundle=family&quantity=3&code=FAMILIE20' })}
+                        onClick={() => setFormData({ ...formData, cartLink: 'https://droomvriendjes.com/checkout?bundle=family&quantity=3&code=FAMILIE20' })}
                         className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
                       >
                         Familie Bundle + Korting

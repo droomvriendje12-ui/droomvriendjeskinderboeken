@@ -112,7 +112,7 @@ const UitproberenPage = () => {
 
               <div>
                 <h3 className="font-bold text-gray-900 mb-2">Hoe meld ik een retour aan?</h3>
-                <p className="text-gray-600">Stuur een email naar info@droomvriendjes.nl met je bestelnummer. Je ontvangt dan direct een gratis retourlabel.</p>
+                <p className="text-gray-600">Stuur een email naar info@droomvriendjes.com met je bestelnummer. Je ontvangt dan direct een gratis retourlabel.</p>
               </div>
 
               <div>

@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 # SMTP Configuration
 SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
-SMTP_USER = os.environ.get('SMTP_USER', 'info@droomvriendjes.nl')
+SMTP_USER = os.environ.get('SMTP_USER', 'info@droomvriendjes.com')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.nl')
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
-API_URL = os.environ.get('API_URL', 'https://droomvriendjes.nl')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.com')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
+API_URL = os.environ.get('API_URL', 'https://droomvriendjes.com')
 
 # Email Templates
 EMAIL_TEMPLATES = {

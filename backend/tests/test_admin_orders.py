@@ -103,12 +103,12 @@ class TestAdminOrdersSearch:
 
     def test_search_by_email(self):
         """Search orders by email"""
-        response = requests.get(f"{BASE_URL}/api/admin/orders?search=droomvriendjes.nl")
+        response = requests.get(f"{BASE_URL}/api/admin/orders?search=droomvriendjes.com")
         assert response.status_code == 200
         data = response.json()
         
         assert isinstance(data["orders"], list)
-        print(f"PASS: Search 'droomvriendjes.nl' returned {len(data['orders'])} results")
+        print(f"PASS: Search 'droomvriendjes.com' returned {len(data['orders'])} results")
 
 
 class TestAdminOrderDetail:

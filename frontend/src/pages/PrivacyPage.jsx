@@ -23,7 +23,7 @@ const PrivacyPage = () => {
               <p>6415 AD Heerlen</p>
               <p>KVK: 99210835</p>
               <p>BTW: NL204392123B01</p>
-              <p>Email: info@droomvriendjes.nl</p>
+              <p>Email: info@droomvriendjes.com</p>
             </div>
           </section>
 
@@ -69,7 +69,7 @@ const PrivacyPage = () => {
           <section>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Gegevens inzien, aanpassen of verwijderen</h2>
             <p className="mb-4">Je hebt het recht om je persoonsgegevens in te zien, te corrigeren of te verwijderen. Daarnaast heb je het recht om je eventuele toestemming voor de gegevensverwerking in te trekken of bezwaar te maken tegen de verwerking van jouw persoonsgegevens.</p>
-            <p>Je kunt een verzoek tot inzage, correctie, verwijdering sturen naar info@droomvriendjes.nl</p>
+            <p>Je kunt een verzoek tot inzage, correctie, verwijdering sturen naar info@droomvriendjes.com</p>
           </section>
 
           <section>
@@ -80,7 +80,7 @@ const PrivacyPage = () => {
           <section className="bg-warm-brown-50 rounded-xl p-6 border border-warm-brown-100">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Contact</h2>
             <p>Als je vragen hebt over deze privacyverklaring, neem dan contact met ons op:</p>
-            <p className="mt-2">Email: info@droomvriendjes.nl</p>
+            <p className="mt-2">Email: info@droomvriendjes.com</p>
             <p>KVK: 99210835</p>
             <p>BTW: NL204392123B01</p>
           </section>

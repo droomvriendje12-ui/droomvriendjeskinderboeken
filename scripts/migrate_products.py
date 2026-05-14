@@ -1,5 +1,5 @@
 """
-Full Product Migration Script - All products from droomvriendjes.nl
+Full Product Migration Script - All products from droomvriendjes.com
 """
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient

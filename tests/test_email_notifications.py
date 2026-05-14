@@ -9,11 +9,11 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://droomvriendjes.nl')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://droomvriendjes.com')
 
 
 class TestContactFormAPI:
-    """Test /api/contact endpoint - sends email to info@droomvriendjes.nl"""
+    """Test /api/contact endpoint - sends email to info@droomvriendjes.com"""
     
     def test_contact_form_success(self):
         """Test successful contact form submission"""
@@ -23,7 +23,7 @@ class TestContactFormAPI:
             "telefoon": "06-12345678",
             "onderwerp": "Test Vraag",
             "bericht": "Dit is een test bericht voor de email notificatie.",
-            "page_url": "https://droomvriendjes.nl/contact"
+            "page_url": "https://droomvriendjes.com/contact"
         }
         
         response = requests.post(f"{BASE_URL}/api/contact", json=payload)

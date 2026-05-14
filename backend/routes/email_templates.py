@@ -70,10 +70,10 @@ AVAILABLE_VARIABLES = {
 
 # Pre-built cart link templates
 CART_LINK_TEMPLATES = {
-    "single_product": "https://droomvriendjes.nl/checkout?product={{product_id}}&quantity=1",
-    "with_discount": "https://droomvriendjes.nl/checkout?product={{product_id}}&quantity=1&code={{discount_code}}",
-    "bundle_deal": "https://droomvriendjes.nl/checkout?bundle=family&quantity=3",
-    "custom": "https://droomvriendjes.nl/checkout?{{custom_params}}",
+    "single_product": "https://droomvriendjes.com/checkout?product={{product_id}}&quantity=1",
+    "with_discount": "https://droomvriendjes.com/checkout?product={{product_id}}&quantity=1&code={{discount_code}}",
+    "bundle_deal": "https://droomvriendjes.com/checkout?bundle=family&quantity=3",
+    "custom": "https://droomvriendjes.com/checkout?{{custom_params}}",
 }
 
 
@@ -310,9 +310,9 @@ async def preview_template(template_id: str, test_data: dict = {}):
             "product_image": "/email-assets/leeuw.jpg",
             "discount_code": "FAMILIE20",
             "discount_percentage": "20%",
-            "cart_link": "https://droomvriendjes.nl/checkout?product=leeuw",
-            "shop_url": "https://droomvriendjes.nl",
-            "unsubscribe_link": "https://droomvriendjes.nl/unsubscribe",
+            "cart_link": "https://droomvriendjes.com/checkout?product=leeuw",
+            "shop_url": "https://droomvriendjes.com",
+            "unsubscribe_link": "https://droomvriendjes.com/unsubscribe",
         }
         
         # Merge with provided test data
@@ -494,7 +494,7 @@ async def upload_template_zip(
             "description": f"Geïmporteerd uit {file.filename}",
             "category": category,
             "variables": json.dumps(detected_variables),
-            "cart_link": "https://droomvriendjes.nl/checkout",
+            "cart_link": "https://droomvriendjes.com/checkout",
             "active": True,
         }
         

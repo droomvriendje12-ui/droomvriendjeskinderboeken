@@ -29,7 +29,7 @@ const RetournerenPage = () => {
                     <span className="text-2xl font-bold text-warm-brown-600">1</span>
                   </div>
                   <h3 className="font-bold text-slate-900 mb-2">Meld je retour</h3>
-                  <p className="text-sm text-slate-600">Stuur een email naar info@droomvriendjes.nl</p>
+                  <p className="text-sm text-slate-600">Stuur een email naar info@droomvriendjes.com</p>
                 </CardContent>
               </Card>
 
@@ -96,7 +96,7 @@ const RetournerenPage = () => {
                 <Mail className="w-6 h-6 text-warm-brown-500 mt-1" />
                 <div>
                   <h3 className="font-bold text-slate-900">Contact opnemen</h3>
-                  <p className="text-slate-600">Stuur een email naar <a href="mailto:info@droomvriendjes.nl" className="text-warm-brown-600 hover:underline">info@droomvriendjes.nl</a> met je bestelnummer en de reden van retour.</p>
+                  <p className="text-slate-600">Stuur een email naar <a href="mailto:info@droomvriendjes.com" className="text-warm-brown-600 hover:underline">info@droomvriendjes.com</a> met je bestelnummer en de reden van retour.</p>
                 </div>
               </div>
             </div>
@@ -115,14 +115,14 @@ const RetournerenPage = () => {
               <Card className="border-2 border-warm-brown-100">
                 <CardContent className="pt-6">
                   <h3 className="font-bold text-slate-900 mb-2">Kan ik ruilen voor een ander product?</h3>
-                  <p className="text-slate-600">Ja, dat kan! Stuur een email naar info@droomvriendjes.nl en geef aan welk product je wilt ruilen.</p>
+                  <p className="text-slate-600">Ja, dat kan! Stuur een email naar info@droomvriendjes.com en geef aan welk product je wilt ruilen.</p>
                 </CardContent>
               </Card>
 
               <Card className="border-2 border-warm-brown-100">
                 <CardContent className="pt-6">
                   <h3 className="font-bold text-slate-900 mb-2">Wat als het product beschadigd is?</h3>
-                  <p className="text-slate-600">Neem direct contact met ons op via info@droomvriendjes.nl. We lossen dit zo snel mogelijk voor je op!</p>
+                  <p className="text-slate-600">Neem direct contact met ons op via info@droomvriendjes.com. We lossen dit zo snel mogelijk voor je op!</p>
                 </CardContent>
               </Card>
 

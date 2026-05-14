@@ -36,8 +36,8 @@ SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
 SMTP_USER = os.environ.get('SMTP_USER', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.nl')
-OWNER_EMAIL = "info@droomvriendjes.nl"
+SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.com')
+OWNER_EMAIL = "info@droomvriendjes.com"
 
 
 def _send_email(to_email: str, subject: str, html_content: str, text_content: str):
@@ -105,7 +105,7 @@ def _send_order_confirmation(order_data: dict, items: list):
             <p style="margin:0;color:#2e7d32;">Gratis verzending - Voor 23:00 besteld, morgen in huis!</p>
         </div>
         <div style="border-top:1px solid #eee;margin-top:30px;padding-top:20px;text-align:center;color:#999;">
-            <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.nl" style="color:#8B7355;">info@droomvriendjes.nl</a></p>
+            <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.com" style="color:#8B7355;">info@droomvriendjes.com</a></p>
         </div>
     </div></body></html>"""
 
@@ -237,12 +237,12 @@ async def mollie_status():
 
 def get_frontend_url():
     """Get frontend URL for redirects"""
-    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com')
 
 
 def get_api_url():
     """Get API URL for webhooks"""
-    return os.environ.get('API_URL', 'https://droomvriendjes.nl')
+    return os.environ.get('API_URL', 'https://droomvriendjes.com')
 
 
 def _supabase_available():
