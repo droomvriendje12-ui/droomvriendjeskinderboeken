@@ -7,7 +7,7 @@ import {
   Megaphone, Gift, Star, Layers, LogOut, ChevronRight,
   DollarSign, ShoppingCart, Eye, Mail, TrendingUp, Plus,
   Download, Activity, Package, Settings, Zap, Target, Clock,
-  Bell, Wifi, WifiOff
+  Bell, Wifi, WifiOff, Inbox
 } from 'lucide-react';
 
 
@@ -195,6 +195,7 @@ const AdminCommandCenterNew = () => {
     { id: 'products', icon: Package, label: 'Producten', link: '/admin/products' },
     { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
     { id: 'divider-marketing', label: 'Marketing', divider: true },
+    { id: 'inbox-link', icon: Inbox, label: 'Inbox', link: '/admin/inbox' },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },

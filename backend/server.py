@@ -173,6 +173,7 @@ from routes import marketing as marketing_route
 from routes import database_info as database_info_route
 from routes import gift_cards_supabase as gift_cards_supabase_route
 from routes import csv_import as csv_import_route
+from routes import inbox as inbox_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -231,6 +232,10 @@ except Exception:
 api_router.include_router(discount_codes_route.router)
 api_router.include_router(uploads_route.router)
 api_router.include_router(csv_import_route.router)
+
+# Inbox (email management)
+inbox_route.set_database(db)
+api_router.include_router(inbox_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)
