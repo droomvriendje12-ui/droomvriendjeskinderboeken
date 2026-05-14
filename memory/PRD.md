@@ -51,6 +51,15 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Automatische review-verzoek emails bij status "delivered"
 - [x] Schema markup voor SEO
 
+### Phase 3: Admin → New Supabase (Feb 2026)
+- [x] Fixed `/api/admin/orders` 500 error (tracking_number column missing) - now uses `select *` + safe field access
+- [x] Added `_safe_order_update()` helper - filters keys to only existing schema columns (no more 42703 errors)
+- [x] NEW: `GET /api/admin/customers` - aggregated customer list from orders (email, name, orders, paid_orders, total_spent, last_order)
+- [x] NEW: `GET /api/admin/customers/{email}` - customer detail with order history
+- [x] NEW frontend `/admin/customers` - searchable table + detail modal with order list
+- [x] Klanten link toegevoegd aan admin sidebar
+- [x] Tested: 19/19 admin backend tests pass
+
 ### Inbox / Email Management (NIEUW - Feb 2026)
 - [x] `/admin/inbox` 3-pane Gmail-style interface
 - [x] Cloudflare Email Worker webhook: `POST /api/inbox/webhook` (Bearer token auth)
