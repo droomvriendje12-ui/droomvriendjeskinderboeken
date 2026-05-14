@@ -115,14 +115,26 @@ def format_product_response(product: dict) -> dict:
         except:
             quick_features = []
     
+    # Get image from 'image' column or first item of 'images' JSON array
+    image_url = product.get("image")
+    if not image_url:
+        images_raw = product.get("images", "[]")
+        if isinstance(images_raw, str):
+            try:
+                images_raw = json.loads(images_raw)
+            except:
+                images_raw = []
+        if isinstance(images_raw, list) and len(images_raw) > 0:
+            image_url = images_raw[0]
+
     return {
         "id": product.get("id"),
         "name": product.get("name"),
         "shortName": product.get("short_name"),
         "slug": product.get("slug"),
         "price": product.get("price"),
-        "originalPrice": product.get("original_price"),
-        "image": product.get("image"),
+        "originalPrice": product.get("original_price") or product.get("compare_price"),
+        "image": image_url,
         "macroImage": product.get("macro_image"),
         "dimensionsImage": product.get("dimensions_image"),
         "description": product.get("description"),
