@@ -63,6 +63,18 @@ def send_email(
     else:
         recipients = list(to_email)
 
+    # Test-mode short-circuit: if using onboarding@resend.dev sender and TEST_RECIPIENT
+    # is configured, refuse to send to anyone else (saves Resend quota and avoids API errors).
+    if SENDER_EMAIL == "onboarding@resend.dev" and TEST_RECIPIENT:
+        non_test = [r for r in recipients if r.lower() != TEST_RECIPIENT.lower()]
+        if non_test:
+            logger.warning(
+                f"⚠️ Resend test-mode: skipping send to {non_test} (only {TEST_RECIPIENT} allowed). "
+                f"Verify droomvriendjes.com at https://resend.com/domains to send to anyone."
+            )
+            return {"success": False, "id": None,
+                    "error": f"Verzending alleen toegestaan naar geverifieerd test-adres ({TEST_RECIPIENT}) tot domein-verificatie."}
+
     headers = {}
     msg_id = message_id or make_msgid(domain="droomvriendjes.com")
     headers["Message-ID"] = msg_id

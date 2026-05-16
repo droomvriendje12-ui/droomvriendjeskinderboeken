@@ -51,6 +51,15 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Automatische review-verzoek emails bij status "delivered"
 - [x] Schema markup voor SEO
 
+### Resend Email Integration (NIEUW - Feb 2026, vervangt TransIP SMTP)
+- [x] Resend SDK geïnstalleerd, RESEND_API_KEY in .env
+- [x] `/app/backend/services/email_sender.py` - unified send_email() met Resend
+- [x] `server.py` send_email + order confirmation gerouteerd via Resend
+- [x] `inbox.py` reply/compose gebruikt nu Resend (met In-Reply-To threading)
+- [x] Test-mode short-circuit: bespaart quota, geeft NL foutmelding
+- [x] Sender: `onboarding@resend.dev` (test mode - alleen droomvriendje12@gmail.com tot domein-verificatie)
+- [x] 16/16 backend tests passing
+
 ### Phase 3: Admin → New Supabase (Feb 2026)
 - [x] Fixed `/api/admin/orders` 500 error (tracking_number column missing) - now uses `select *` + safe field access
 - [x] Added `_safe_order_update()` helper - filters keys to only existing schema columns (no more 42703 errors)

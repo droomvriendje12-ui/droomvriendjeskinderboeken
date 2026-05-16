@@ -231,7 +231,7 @@ def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: st
         references=references,
     )
     if not result["success"]:
-        raise HTTPException(status_code=502, detail=f"E-mail verzenden mislukt: {result.get('error', 'unknown')}")
+        raise HTTPException(status_code=502, detail=f"E-mail verzenden mislukt: {result.get('error', 'onbekende fout')}")
     return {"message_id": result.get("message_id") or result.get("id") or ""}
 
 
