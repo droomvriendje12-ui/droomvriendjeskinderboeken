@@ -1,0 +1,38 @@
+{
+  "summary": "Resend email integration (replacing TransIP SMTP) tested end-to-end: 16/16 pytest cases pass. Verified (a) /api/inbox/compose to droomvriendje12@gmail.com returns 200 with real Resend email id and persisted sent doc, (b) compose to random@example.com returns 502 with clear Resend test-mode error (no SMTP/SSL leakage), (c) /api/inbox/{id}/reply preserves In-Reply-To and References threading headers, (d) GET /api/inbox/folders, /api/inbox, /api/inbox/{id} regress green, (e) inbox webhook ingest still works, (f) /api/admin/orders/{id}/tracking with send_email=true returns 200 and routes through Resend (test-mode warn for non-verified customer is logged-only, no 500), (g) /api/admin/orders and /api/admin/customers regress green, (h) services.email_sender.send_email returns success=True for verified and success=False (no exception) for unverified, (i) smtplib.SMTP_SSL is NEVER invoked when sending via Resend (monkeypatched spy never tripped).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "services.email_sender.send_email", "issue": "When SENDER_EMAIL=onboarding@resend.dev (test mode) AND TEST_RECIPIENT is set, the helper does NOT short-circuit unverified recipients client-side — every send attempt counts against the Resend quota even though it will be rejected. Consider checking `if SENDER_EMAIL=='onboarding@resend.dev' and to_email != TEST_RECIPIENT: return success=False locally` to save quota during the test-mode window."},
+      {"endpoint": "routes/inbox.py _send_smtp", "issue": "Function name '_send_smtp' is misleading now that it delegates to Resend. Rename to _send_email for clarity (purely cosmetic)."},
+      {"endpoint": "server.py line 18", "issue": "`import smtplib` is still present at top of server.py but no longer used by send_email shim. Safe to remove for cleanliness, but kept for any legacy code paths. Not a functional issue."},
+      {"endpoint": "Resend test-mode error mapping", "issue": "Test-mode rejection currently bubbles up as 502 with the raw Resend SDK message. UI-friendly translation (e.g., 'Verzending alleen toegestaan naar geverifieerd test-adres') would help; current copy is English-only."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_resend_email.py",
+    "/app/test_reports/pytest/resend_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Add domain droomvriendjes.com at https://resend.com/domains so non-test recipients can receive emails. Until then, ALL non-droomvriendje12@gmail.com sends will return 502 (compose) or be silently dropped with a warning (transactional flows like delivered/tracking).",
+    "(Optional) Short-circuit unverified recipients in services/email_sender.py when running in onboarding@resend.dev sender mode to save Resend quota.",
+    "(Optional) Rename routes/inbox.py::_send_smtp -> _send_email; remove unused `import smtplib` from server.py top.",
+    "(Optional) Localise the 502 error detail in routes/inbox.py to Dutch for UI consistency."
+  ],
+  "critical_code_review_comments": [
+    "services/email_sender.py is clean, well-documented and correctly threads In-Reply-To / References. Good use of asyncio.to_thread for the sync SDK.",
+    "server.py send_email shim correctly delegates to Resend and preserves the boolean return contract used by csv_import_route and campaign sender — no API surface change.",
+    "routes/inbox.py compose/reply now correctly surface Resend failures as 502 (not 500), so the admin UI can render the test-mode error.",
+    "smtplib import remains at server.py:18 but is functionally unused — recommend removing for clarity (low priority).",
+    "server.py still 4113 lines; previous reviews recommend modularisation. Email migration is unrelated to that issue."
+  ],
+  "updated_files": ["/app/backend/tests/test_resend_email.py"],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "not-tested"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login. Verified Resend recipient: droomvriendje12@gmail.com.",
+  "seed_data_creation": "Inbox seeded one TEST_resend_reply message via /api/inbox/dev/ingest-raw; produced 2 successful Resend sends (verified recipient) + 1 test-mode rejection + 1 reply. Total Resend quota used this run: ~3 successful sends, well under daily test-mode budget.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Resend integration is green. Test file: /app/backend/tests/test_resend_email.py (16 tests). Backend logs confirm '✅ EMAIL SENT via Resend' for verified recipient and '⚠️ Resend test-mode restriction' for unverified — no SMTP/SSL/TransIP errors anywhere in the call path. Tracking POST currently triggers Resend send_review_request which is logged-only on test-mode rejection (does not 500). When user verifies droomvriendjes.com domain in Resend, change SENDER_EMAIL in /app/backend/.env to noreply@droomvriendjes.com (or similar) and re-run this suite — the 'unverified -> 502' test will then need updating (it would succeed).",
+  "rca of the issue": "N/A — this iteration is a migration validation, not a bug fix. All 16 tests pass against the live deployment URL https://ecommerce-dashboard-25.preview.emergentagent.com. Two initial test failures were test-only issues (pytest didn't load backend/.env into os.environ → fixed by loading env into os.environ; tracking endpoint uses field name 'tracking_code'/'carrier' not 'tracking_number'/'tracking_carrier' → fixed in test). No product code changes were needed."
+}

@@ -144,12 +144,15 @@ if SENDCLOUD_PUBLIC_KEY:
 else:
     logger.warning("⚠️ Sendcloud API keys not configured")
 
-# SMTP Email configuration
+# SMTP Email configuration (LEGACY - kept for env-var compatibility, no longer used)
 SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.transip.email')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
 SMTP_USER = os.environ.get('SMTP_USER', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 SMTP_FROM = os.environ.get('SMTP_FROM', 'info@droomvriendjes.com')
+
+# Email sender (Resend)
+from services.email_sender import send_email as _resend_send
 
 # Owner notification email
 OWNER_EMAIL = "info@droomvriendjes.com"
@@ -388,31 +391,15 @@ async def api_health_check():
 # ============== EMAIL FUNCTIONS ==============
 
 def send_email(to_email: str, subject: str, html_content: str, text_content: str, reply_to: str = None):
-    """Generic email sending function with logging"""
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f'Droomvriendjes <{SMTP_FROM}>'
-        msg['To'] = to_email
-        
-        if reply_to:
-            msg['Reply-To'] = reply_to
-        
-        msg.attach(MIMEText(text_content, 'plain'))
-        msg.attach(MIMEText(html_content, 'html'))
-        
-        # Send email via SMTP SSL
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_FROM, to_email, msg.as_string())
-        
-        logger.info(f"✅ EMAIL SENT: To={to_email}, Subject={subject}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"❌ EMAIL FAILED: To={to_email}, Subject={subject}, Error={str(e)}")
-        return False
+    """Generic email sending function - delegates to Resend."""
+    result = _resend_send(
+        to_email=to_email,
+        subject=subject,
+        html_content=html_content,
+        text_content=text_content,
+        reply_to=reply_to,
+    )
+    return result.get("success", False)
 
 
 # Set email sender for CSV import route
@@ -859,12 +846,15 @@ def send_order_confirmation_email(order_data: dict):
         msg.attach(MIMEText(text_content, 'plain'))
         msg.attach(MIMEText(html_content, 'html'))
         
-        # Send email via SMTP SSL
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_FROM, customer_email, msg.as_string())
-        
+        # Send via Resend
+        result = _resend_send(
+            to_email=customer_email,
+            subject=f'🧸 Bedankt voor je bestelling bij Droomvriendjes! #{order_id}',
+            html_content=html_content,
+            text_content=text_content,
+        )
+        if not result["success"]:
+            return False
         logger.info(f"✅ Order confirmation email sent to {customer_email}")
         return True
         

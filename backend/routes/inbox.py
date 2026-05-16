@@ -217,36 +217,22 @@ def _doc_to_dict(doc) -> dict:
 def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: str,
                cc_emails: List[str] = None, bcc_emails: List[str] = None,
                in_reply_to: str = None, references: str = None) -> dict:
-    if not SMTP_PASSWORD:
-        raise HTTPException(status_code=500, detail="SMTP not configured")
+    """Send via Resend (function name kept for backwards compat)."""
+    from services.email_sender import send_email as resend_send
 
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = formataddr(("Droomvriendjes", SMTP_FROM))
-    msg["To"] = ", ".join(to_emails)
-    if cc_emails:
-        msg["Cc"] = ", ".join(cc_emails)
-    msg_id = make_msgid(domain="droomvriendjes.com")
-    msg["Message-ID"] = msg_id
-    if in_reply_to:
-        msg["In-Reply-To"] = in_reply_to
-    if references:
-        msg["References"] = references
-    elif in_reply_to:
-        msg["References"] = in_reply_to
-
-    msg.set_content(body_text or _strip_html(body_html))
-    if body_html:
-        msg.add_alternative(body_html, subtype="html")
-
-    recipients = list(to_emails) + list(cc_emails or []) + list(bcc_emails or [])
-
-    ctx = ssl.create_default_context()
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=ctx) as s:
-        s.login(SMTP_USER, SMTP_PASSWORD)
-        s.send_message(msg, from_addr=SMTP_FROM, to_addrs=recipients)
-
-    return {"message_id": msg_id}
+    result = resend_send(
+        to_email=to_emails,
+        subject=subject,
+        html_content=body_html,
+        text_content=body_text or _strip_html(body_html),
+        cc=cc_emails,
+        bcc=bcc_emails,
+        in_reply_to=in_reply_to,
+        references=references,
+    )
+    if not result["success"]:
+        raise HTTPException(status_code=502, detail=f"E-mail verzenden mislukt: {result.get('error', 'unknown')}")
+    return {"message_id": result.get("message_id") or result.get("id") or ""}
 
 
 # =========== Webhook ===========
