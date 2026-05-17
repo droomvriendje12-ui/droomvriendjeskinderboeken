@@ -32,7 +32,7 @@
     "frontend": "100% (all UI elements and unsubscribe pages verified)"
   },
   "test_credentials": {
-    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com",
+    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!",
     "test_unsubscribe_email": "juul.crompvoets@gmail.com",
     "test_unsubscribe_token": "0e6f86bd2829e352b15f1017ada9c6b0"

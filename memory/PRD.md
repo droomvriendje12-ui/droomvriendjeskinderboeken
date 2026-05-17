@@ -120,4 +120,4 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 ## Credentials
 - Admin: admin@droomvriendjes.com / Droomvriendjes2024!
 - Productie: https://droomvriendjes.com
-- Preview: https://ecommerce-dashboard-25.preview.emergentagent.com
+- Preview: https://mollie-payments-test.preview.emergentagent.com

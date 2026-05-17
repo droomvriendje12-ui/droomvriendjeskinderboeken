@@ -101,7 +101,7 @@ In je worker:
 1. **Settings → Variables and Secrets**
 2. Voeg toe als **Secret** (encrypted):
    - `INBOX_WEBHOOK_TOKEN` = `hc361jl3yl7-eTlrscpQWjRak9HcYusEJ0srgNPztT4`
-   - `BACKEND_URL` = `https://droomvriendjes.com` (of `https://ecommerce-dashboard-25.preview.emergentagent.com` voor testen)
+   - `BACKEND_URL` = `https://droomvriendjes.com` (of `https://mollie-payments-test.preview.emergentagent.com` voor testen)
 
 ---
 

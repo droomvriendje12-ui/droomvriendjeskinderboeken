@@ -36,7 +36,7 @@
     "frontend": "100% (all features verified)"
   },
   "test_credentials": {
-    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com",
+    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!"
   },
   "seed_data_creation": "Created test funnel events (product_view, add_to_cart, checkout_start) via API during testing",

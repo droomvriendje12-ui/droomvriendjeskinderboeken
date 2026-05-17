@@ -40,7 +40,7 @@
     "frontend": "100% (all UI elements verified)"
   },
   "test_credentials": {
-    "api_base_url": "https://ecommerce-dashboard-25.preview.emergentagent.com",
+    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!"
   },
   "seed_data_creation": "Backend tests create test emails with unique UUIDs (auto-cleanup not needed)",
