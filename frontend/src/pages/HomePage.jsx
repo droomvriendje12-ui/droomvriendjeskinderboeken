@@ -13,6 +13,7 @@ import Header from '../components/Header';
 import SchemaMarkup from '../components/SchemaMarkup';
 import ExitIntentPopup from '../components/ExitIntentPopup';
 import TrustSection from '../components/TrustSection';
+import TrendingQuestions from '../components/TrendingQuestions';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { trackViewItemList, trackSelectItem } from '../utils/analytics';
@@ -900,6 +901,9 @@ const HomePage = () => {
 
       {/* Vertrouwen & Zekerheid */}
       <TrustSection />
+
+      {/* Trending FAQ questions widget */}
+      <TrendingQuestions />
 
       {/* Footer - Warm Brown Theme */}
       <footer className="bg-warm-brown-900 text-warm-brown-100 pt-16 pb-10">
