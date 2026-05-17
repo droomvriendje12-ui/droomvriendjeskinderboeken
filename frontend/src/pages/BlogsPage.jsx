@@ -17,7 +17,7 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "9 min",
       category: "Babyslaap",
-      image: "https://droomvriendjes.com/products/Sheep/Sheep_Side_product_02.png",
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/sheep-main.png",
       featured: true
     },
     {
@@ -29,7 +29,7 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "6 min",
       category: "Productgids",
-      image: "https://droomvriendjes.com/products/Bear/Bear_Side_product_02.png"
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
     },
     {
       id: 12,
@@ -40,18 +40,18 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "8 min",
       category: "Productgids",
-      image: "https://droomvriendjes.com/products/Panda/Panda_Side_product_02.png"
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/panda-main.png"
     },
     {
       id: 7,
       slug: "droomvriendjes-mondriaan-samenwerking",
-      title: "Droomvriendjes.nl x Mondriaan: samen werken aan rust in de avond",
-      excerpt: "In een druk gezinsleven is tot rust komen niet altijd vanzelfsprekend. Daarom werken Droomvriendjes.nl en Mondriaan samen om gezinnen te ondersteunen met praktische rustmomenten.",
+      title: "Rust in de avond: hoe slaap bijdraagt aan mentale veerkracht bij kinderen",
+      excerpt: "In een druk gezinsleven is tot rust komen niet altijd vanzelfsprekend. Praktische rustmomenten en een slaapritueel dat haalbaar blijft maken een groot verschil voor kinderen én ouders.",
       author: "Team Droomvriendjes",
       date: "19 januari 2025",
       readTime: "8 min",
-      category: "Samenwerking",
-      image: "https://i.imgur.com/rjvMgGO.png"
+      category: "Mentale rust",
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
     },
     {
       id: 1,
@@ -134,7 +134,7 @@ const BlogsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-stone-50 to-orange-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,17 +149,17 @@ const BlogsPage = () => {
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-6">
-              <Link to="/" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Home</Link>
-              <Link to="/knuffels" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Producten</Link>
-              <Link to="/blogs" className="text-purple-600 font-medium">Blog</Link>
-              <Link to="/contact" className="text-gray-700 hover:text-purple-600 font-medium transition-colors">Contact</Link>
+              <Link to="/" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Home</Link>
+              <Link to="/knuffels" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Producten</Link>
+              <Link to="/blogs" className="text-amber-700 font-medium">Blog</Link>
+              <Link to="/contact" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Contact</Link>
             </nav>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16">
+      <div className="bg-gradient-to-r from-amber-700 to-orange-700 text-white py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Droomvriendjes Blog</h1>
           <p className="text-base sm:text-lg md:text-xl opacity-90 max-w-3xl mx-auto px-4">
@@ -175,7 +175,7 @@ const BlogsPage = () => {
         {featuredBlog && (
           <div className="mb-8 sm:mb-12">
             <Link to={getBlogLink(featuredBlog)}>
-              <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-purple-200 group cursor-pointer">
+              <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-amber-200 group cursor-pointer">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                   <div className="relative h-48 sm:h-64 lg:h-auto overflow-hidden">
                     <img 
@@ -183,15 +183,15 @@ const BlogsPage = () => {
                       alt={featuredBlog.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <Badge className="absolute top-4 left-4 bg-purple-600 text-white shadow-lg">
+                    <Badge className="absolute top-4 left-4 bg-amber-700 text-white shadow-lg">
                       {featuredBlog.category}
                     </Badge>
                   </div>
-                  <CardContent className="p-6 sm:p-8 flex flex-col justify-center bg-gradient-to-br from-purple-50 to-white">
-                    <Badge variant="outline" className="mb-3 sm:mb-4 w-fit border-purple-200 bg-purple-100 text-purple-800">
+                  <CardContent className="p-6 sm:p-8 flex flex-col justify-center bg-gradient-to-br from-amber-50 to-white">
+                    <Badge variant="outline" className="mb-3 sm:mb-4 w-fit border-amber-200 bg-amber-100 text-amber-800">
                       Uitgelicht
                     </Badge>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-900 mb-3 sm:mb-4">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-900 mb-3 sm:mb-4">
                       {featuredBlog.title}
                     </h2>
                     <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
@@ -222,14 +222,14 @@ const BlogsPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12">
           {regularBlogs.map((blog) => (
             <Link key={blog.id} to={getBlogLink(blog)}>
-              <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 group cursor-pointer h-full hover:-translate-y-1">
+              <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-stone-100 group cursor-pointer h-full hover:-translate-y-1">
                 <div className="relative h-40 sm:h-48 overflow-hidden">
                   <img 
                     src={blog.image} 
                     alt={blog.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <Badge className="absolute top-4 left-4 bg-purple-600 text-white shadow-lg text-xs">
+                  <Badge className="absolute top-4 left-4 bg-amber-700 text-white shadow-lg text-xs">
                     {blog.category}
                   </Badge>
                 </div>
@@ -244,7 +244,7 @@ const BlogsPage = () => {
                       {blog.readTime}
                     </span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-purple-900 mb-2 sm:mb-3 line-clamp-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-amber-900 mb-2 sm:mb-3 line-clamp-2">
                     {blog.title}
                   </h3>
                   <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">
@@ -255,7 +255,7 @@ const BlogsPage = () => {
                       <User className="w-3.5 h-3.5" />
                       {blog.author}
                     </span>
-                    <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50 text-xs sm:text-sm whitespace-nowrap ml-2">
+                    <Button variant="outline" size="sm" className="text-amber-700 border-amber-700 hover:bg-amber-50 text-xs sm:text-sm whitespace-nowrap ml-2">
                       Lees Meer
                     </Button>
                   </div>
@@ -266,7 +266,7 @@ const BlogsPage = () => {
         </div>
 
         {/* Newsletter Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16 rounded-2xl">
+        <div className="bg-gradient-to-r from-amber-700 to-orange-700 text-white py-12 sm:py-16 rounded-2xl">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <Mail className="w-12 h-12 mx-auto mb-4 opacity-90" />
             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Blijf Op De Hoogte</h2>
@@ -277,9 +277,9 @@ const BlogsPage = () => {
               <input 
                 type="email" 
                 placeholder="Je email adres"
-                className="flex-1 px-4 py-2.5 sm:py-3 rounded-lg text-gray-900 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="flex-1 px-4 py-2.5 sm:py-3 rounded-lg text-gray-900 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-amber-300"
               />
-              <Button className="bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base whitespace-nowrap font-medium">
+              <Button className="bg-white text-amber-700 hover:bg-amber-50 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base whitespace-nowrap font-medium">
                 Inschrijven
               </Button>
             </div>
@@ -288,7 +288,7 @@ const BlogsPage = () => {
 
       </main>
 
-      <Footer variant="purple" />
+      <Footer variant="amber" />
     </div>
   );
 };

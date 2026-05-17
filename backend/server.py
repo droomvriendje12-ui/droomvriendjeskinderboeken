@@ -179,6 +179,7 @@ from routes import csv_import as csv_import_route
 from routes import inbox as inbox_route
 from routes import admin_customers as admin_customers_route
 from routes import faq_tracking as faq_tracking_route
+from routes import blogs as blogs_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -252,6 +253,10 @@ api_router.include_router(admin_customers_route.router)
 # FAQ click tracking (lightweight Mongo counter)
 faq_tracking_route.set_database(db)
 api_router.include_router(faq_tracking_route.router)
+
+# Blog posts (Supabase-backed, public)
+blogs_route.set_supabase_client(supabase_client)
+api_router.include_router(blogs_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

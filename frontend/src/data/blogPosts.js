@@ -12,7 +12,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-rose-100 text-rose-800",
     date: "18 mei 2026",
     readMinutes: 9,
-    image: "https://droomvriendjes.com/products/Sheep/Sheep_Side_product_02.png",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/sheep-main.png",
     tags: ["slaap", "baby", "huilen", "tips"],
   },
   {
@@ -23,7 +23,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-sky-100 text-sky-800",
     date: "18 mei 2026",
     readMinutes: 6,
-    image: "https://droomvriendjes.com/products/Bear/Bear_Side_product_02.png",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png",
     tags: ["knuffel", "vergelijking", "kopen", "angst"],
   },
   {
@@ -34,7 +34,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-emerald-100 text-emerald-800",
     date: "18 mei 2026",
     readMinutes: 8,
-    image: "https://droomvriendjes.com/products/Panda/Panda_Side_product_02.png",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/panda-main.png",
     tags: ["knuffel", "kopen", "review", "kraamcadeau"],
   },
   {
@@ -61,14 +61,14 @@ export const BLOG_POSTS = [
   },
   {
     slug: "droomvriendjes-mondriaan-samenwerking",
-    title: "Droomvriendjes x Mondriaan: samen werken aan rust in de avond",
-    excerpt: "In een druk gezinsleven is tot rust komen niet altijd vanzelfsprekend. Daarom werken Droomvriendjes en Mondriaan samen.",
-    category: "Samenwerking",
-    categoryColor: "bg-orange-100 text-orange-800",
+    title: "Rust in de avond: hoe slaap bijdraagt aan mentale veerkracht bij kinderen",
+    excerpt: "In een druk gezinsleven is tot rust komen niet altijd vanzelfsprekend. Praktische rustmomenten en een slaapritueel dat haalbaar blijft maken een groot verschil.",
+    category: "Mentale rust",
+    categoryColor: "bg-amber-100 text-amber-900",
     date: "19 januari 2025",
     readMinutes: 8,
-    image: "https://i.imgur.com/rjvMgGO.png",
-    tags: ["samenwerking", "rust", "gezin"],
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png",
+    tags: ["rust", "gezin", "mentale gezondheid", "slaap"],
   },
 ];
 
