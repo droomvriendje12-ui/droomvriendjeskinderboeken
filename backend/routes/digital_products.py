@@ -272,6 +272,25 @@ async def download_via_token(token: str):
     if not file_path:
         raise HTTPException(status_code=500, detail="Bestand niet gekoppeld aan entitlement")
 
+    # Atomair de counter ophogen via optimistic concurrency (filter op huidige waarde).
+    # Als een tweede gelijktijdig verzoek hetzelfde probeert, raakt het 0 rows.
+    try:
+        upd = supabase.table("digital_downloads").update({
+            "downloads_used": used + 1,
+            "last_downloaded_at": _now().isoformat(),
+        }).eq("id", ent["id"]).eq("downloads_used", used).execute()
+        if not upd.data:
+            raise HTTPException(
+                status_code=409,
+                detail="Download bezig - probeer het over een paar seconden opnieuw."
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning(f"Counter increment faalde: {exc}")
+        # Bij echte DB fouten geven we de download niet vrij
+        raise HTTPException(status_code=500, detail="Server fout bij counter")
+
     # Generate signed URL (short-lived)
     try:
         signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(
@@ -288,18 +307,18 @@ async def download_via_token(token: str):
         if signed_url.startswith("/"):
             base = os.environ.get("SUPABASE_URL", "").rstrip("/")
             signed_url = f"{base}{signed_url}"
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.exception("Signed URL genereren faalde")
+        # Rollback: counter terugzetten zodat de klant geen download verliest
+        try:
+            supabase.table("digital_downloads").update({
+                "downloads_used": used,
+            }).eq("id", ent["id"]).execute()
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=f"Download URL fout: {exc}")
-
-    # Increment usage (best-effort, niet kritiek als het faalt)
-    try:
-        supabase.table("digital_downloads").update({
-            "downloads_used": used + 1,
-            "last_downloaded_at": _now().isoformat(),
-        }).eq("id", ent["id"]).execute()
-    except Exception as exc:
-        logger.warning(f"Counter increment faalde: {exc}")
 
     filename = file_path.split("/")[-1]
     return DownloadResponse(
@@ -376,6 +395,25 @@ def create_entitlements_for_order(order_id: str, items: List[dict], customer_ema
 
         if product.get("product_type") != "digital" or not product.get("digital_file_path"):
             continue
+
+        # Idempotency: bij Mollie webhook retries niet nogmaals een entitlement aanmaken
+        try:
+            existing = supabase.table("digital_downloads").select(
+                "id,download_token,expires_at,max_downloads"
+            ).eq("order_id", order_id).eq("product_id", str(product_id)).limit(1).execute()
+            if existing.data:
+                e = existing.data[0]
+                logger.info(f"Entitlement bestond al voor order {order_id} + product {product_id}")
+                created.append({
+                    "product_name": product.get("name"),
+                    "product_id": str(product_id),
+                    "token": e.get("download_token"),
+                    "expires_at": e.get("expires_at"),
+                    "max_downloads": e.get("max_downloads") or MAX_DOWNLOADS,
+                })
+                continue
+        except Exception as exc:
+            logger.warning(f"Idempotency check faalde, ga door met aanmaken: {exc}")
 
         token = secrets.token_urlsafe(32)
         ent_id = str(uuid.uuid4())

@@ -88,6 +88,25 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] SMTP / FRONTEND_URL / API_URL geüpdatet in `.env`
 - [x] Schema.org / sitemap.xml / OG tags / canonical URLs aangepast
 
+### Digitale Producten / PDF Downloads (Feb 2026 - NIEUW)
+- [x] Supabase Storage private bucket `digital-products` (max 25MB, only PDFs)
+- [x] Migratie: kolommen `product_type`, `digital_file_path`, `digital_pages` op `products` + nieuwe tabel `digital_downloads`
+- [x] 5 professionele PDF placeholders gegenereerd (op basis van top-verkopende Etsy-niches):
+  - Slaapritueel Schema (€4,95) - 7-staps bedtime routine
+  - Slaaplog 30 Dagen (€3,95) - tracker tabel
+  - 12 Slaap Affirmatiekaartjes (€5,95) - knip-uit kaartjes
+  - Slaap Kleurplaten Pakket (€2,95) - 4 kleurplaten
+  - Visueel Slaapschema Peuters (€4,95) - 8 stappen in plaatjes
+- [x] Backend route `/api/digital-products/*` (6 endpoints, Bearer admin auth voor mgmt)
+- [x] Mollie webhook hook (`orders_supabase.py`) → maakt entitlement bij `paid` + stuurt downloads email
+- [x] Idempotency: webhook retries maken geen dubbele tokens
+- [x] Atomic counter increment (optimistic concurrency op `downloads_used` veld)
+- [x] Strict beveiliging: 24u geldig, max 3 downloads, signed URLs 5 min geldig
+- [x] Admin UI `/admin/digital-products` - upload, lijst, tokens beheren
+- [x] Customer UI `/mijn-download/{token}` - brand-aligned download pagina
+- [x] Resend email template "Jouw downloads - bestelling #X" met directe link
+- [x] Tests: 15/15 backend pytest pass + frontend E2E verified (iteration 26)
+
 ## Bekende Issues
 - Supabase URL (qoykbhocordugtbvpvsl.supabase.co) is momenteel niet bereikbaar (DNS fout). Frontend valt terug op mockData.
 - Mollie live key werkt alleen in productie, niet in preview-omgeving.
