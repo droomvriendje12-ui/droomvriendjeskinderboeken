@@ -4,6 +4,7 @@ import { Calendar, User, Clock, ArrowLeft, Heart, Brain, Moon, Sparkles, Baby, S
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
+import RelatedArticles from '../components/RelatedArticles';
 
 const BlogStressKnuffelsPage = () => {
   return (
@@ -368,6 +369,10 @@ const BlogStressKnuffelsPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <RelatedArticles currentSlug="hoe-helpen-kalmerende-knuffels-bij-stress" />
       </div>
 
       <Footer />

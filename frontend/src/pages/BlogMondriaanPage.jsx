@@ -4,6 +4,7 @@ import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
+import RelatedArticles from '../components/RelatedArticles';
 
 const BlogMondriaanPage = () => {
   return (
@@ -236,6 +237,10 @@ const BlogMondriaanPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <RelatedArticles currentSlug="droomvriendjes-mondriaan-samenwerking" />
       </div>
 
       <Footer />

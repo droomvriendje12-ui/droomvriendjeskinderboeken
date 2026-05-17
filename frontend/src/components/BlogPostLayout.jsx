@@ -4,6 +4,7 @@ import { Calendar, User, Clock, ArrowLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
+import RelatedArticles from './RelatedArticles';
 
 /**
  * Reusable blog post layout for SEO-optimised posts.
@@ -188,6 +189,9 @@ const BlogPostLayout = ({
             </div>
           </section>
         )}
+
+        {/* Related articles (auto from blogPosts data) */}
+        <RelatedArticles currentSlug={slug} />
 
         {/* Newsletter / Conversion CTA */}
         <section className="mt-12 bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
