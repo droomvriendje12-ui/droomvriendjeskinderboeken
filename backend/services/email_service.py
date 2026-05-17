@@ -870,32 +870,29 @@ class EmailService:
     
     async def send_email(self, to_email: str, subject: str, html_content: str, 
                          email_id: str = None, track_opens: bool = True) -> bool:
-        """Send an email via SMTP"""
+        """Send an email via Resend (with tracking pixel for opens)."""
         try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"Droomvriendjes <{self.smtp_from}>"
-            msg['To'] = to_email
-            
             # Add tracking pixel if email_id provided
             if email_id and track_opens:
                 tracking_pixel = f"{self.api_url}/api/email/track/open/{email_id}"
                 html_content = html_content.replace("{{tracking_pixel}}", tracking_pixel)
             else:
                 html_content = html_content.replace("{{tracking_pixel}}", "")
-            
-            html_part = MIMEText(html_content, 'html')
-            msg.attach(html_part)
-            
-            # Send via SSL
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context) as server:
-                server.login(self.smtp_user, self.smtp_password)
-                server.sendmail(self.smtp_from, to_email, msg.as_string())
-            
-            logger.info(f"Email sent successfully to {to_email}")
-            return True
-            
+
+            # Delegate to unified Resend sender
+            from services.email_sender import send_email_async
+            result = await send_email_async(
+                to_email=to_email,
+                subject=subject,
+                html_content=html_content,
+                text_content=None,
+            )
+            if result["success"]:
+                logger.info(f"Email sent successfully to {to_email}")
+                return True
+            logger.warning(f"Email send did not succeed to {to_email}: {result.get('error')}")
+            return False
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False

@@ -41,20 +41,20 @@ OWNER_EMAIL = "info@droomvriendjes.com"
 
 
 def _send_email(to_email: str, subject: str, html_content: str, text_content: str):
-    """Send email via TransIP SMTP"""
+    """Send email via Resend."""
     try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f'Droomvriendjes <{SMTP_FROM}>'
-        msg['To'] = to_email
-        msg.attach(MIMEText(text_content, 'plain'))
-        msg.attach(MIMEText(html_content, 'html'))
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context) as server:
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_FROM, to_email, msg.as_string())
-        logger.info(f"Email sent to {to_email}: {subject}")
-        return True
+        from services.email_sender import send_email as resend_send
+        result = resend_send(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content,
+        )
+        if result["success"]:
+            logger.info(f"Email sent to {to_email}: {subject}")
+            return True
+        logger.warning(f"Email send to {to_email} did not succeed: {result.get('error')}")
+        return False
     except Exception as e:
         logger.error(f"Email failed to {to_email}: {e}")
         return False

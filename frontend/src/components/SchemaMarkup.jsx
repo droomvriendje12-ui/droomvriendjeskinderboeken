@@ -60,9 +60,9 @@ const SchemaMarkup = ({ pageType = 'home', product = null, breadcrumbs = [] }) =
       }
     ],
     "sameAs": [
-      "https://www.instagram.com/droomvriendjes",
-      "https://www.facebook.com/droomvriendjes",
-      "https://www.tiktok.com/@droomvriendjes"
+      "https://www.instagram.com/droom_vriendjes/",
+      "https://www.tiktok.com/@droomvriendjes",
+      "https://www.facebook.com/droomvriendjes"
     ]
   };
 

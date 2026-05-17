@@ -136,6 +136,46 @@ const Footer = () => {
                 <div className="bg-white/10 px-3 py-1.5 rounded text-xs font-medium">DHL</div>
               </div>
             </div>
+
+            <div className="mt-6">
+              <p className="font-semibold text-white text-sm mb-3">Volg ons:</p>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.instagram.com/droom_vriendjes/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Droomvriendjes op Instagram"
+                  data-testid="footer-instagram"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-warm-brown-500 transition flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+                <a
+                  href="https://www.tiktok.com/@droomvriendjes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Droomvriendjes op TikTok"
+                  data-testid="footer-tiktok"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-warm-brown-500 transition flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.55a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-0z"/>
+                  </svg>
+                </a>
+                <a
+                  href="mailto:info@droomvriendjes.com"
+                  aria-label="E-mail Droomvriendjes"
+                  data-testid="footer-email"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-warm-brown-500 transition flex items-center justify-center"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
