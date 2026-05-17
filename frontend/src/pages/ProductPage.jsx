@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProducts } from '../context/ProductsContext';
 import { faqs } from '../mockData';
 import { useCart } from '../context/CartContext';
+import TrendingQuestions from '../components/TrendingQuestions';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -1441,6 +1442,16 @@ const ProductPage = () => {
         onAddToCart={handleAddToCart}
         isCartOpen={isCartOpen}
       />
+
+      {/* Trending FAQ - monthly */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-stone-200">
+        <TrendingQuestions
+          variant="compact"
+          window="month"
+          limit={3}
+          title="Meest gestelde vragen deze maand"
+        />
+      </div>
     </Layout>
   );
 };

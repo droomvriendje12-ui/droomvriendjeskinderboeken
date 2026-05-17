@@ -6,37 +6,54 @@ import { TRENDING_QUESTIONS } from '../data/trendingQuestions';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 /**
- * Homepage widget: shows the top 3 trending FAQ-style questions.
- * Order is driven by backend click counts (most-clicked first).
- * Each click is recorded so the list self-improves over time.
- * Also emits FAQPage JSON-LD for Google rich snippets.
+ * Reusable trending FAQ widget.
+ * Props:
+ *  - window: 'all' | 'month'                  default 'all'
+ *  - limit: number of cards                   default 3
+ *  - excludeIds: array of ids to skip         default []
+ *  - title: heading                            default 'Wat ouders ons nu vragen'
+ *  - subtitle: subheading
+ *  - eyebrow: small uppercase line
+ *  - variant: 'hero' | 'compact'              default 'hero'
  */
-const TrendingQuestions = () => {
-  const [trending, setTrending] = useState(TRENDING_QUESTIONS.slice(0, 3));
+const TrendingQuestions = ({
+  window = 'all',
+  limit = 3,
+  excludeIds = [],
+  title = 'Wat ouders ons nu vragen',
+  subtitle = 'De top 3 vragen die andere ouders deze week aan ons stelden — inclusief het volledige antwoord.',
+  eyebrow,
+  variant = 'hero',
+}) => {
+  const defaultEyebrow = window === 'month' ? 'Meest gestelde vragen deze maand' : 'Veelgestelde vragen deze week';
+  const eyebrowText = eyebrow || defaultEyebrow;
+
+  // Filter out excluded ids and pick initial fallback
+  const pool = useMemo(
+    () => TRENDING_QUESTIONS.filter((q) => !excludeIds.includes(q.id)),
+    [excludeIds]
+  );
+  const [trending, setTrending] = useState(pool.slice(0, limit));
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     let mounted = true;
-    fetch(`${API}/api/faq/trending?limit=3`)
+    fetch(`${API}/api/faq/trending?limit=${limit + excludeIds.length}&window=${window}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!mounted || !data?.trending) return;
-        // Merge ranked ids with our local data
         const ordered = data.trending
-          .map((row) => TRENDING_QUESTIONS.find((q) => q.id === row.id))
+          .map((row) => pool.find((q) => q.id === row.id))
           .filter(Boolean);
-        // Backfill if fewer than 3 ranked yet
         const ids = new Set(ordered.map((o) => o.id));
-        const fallback = TRENDING_QUESTIONS.filter((q) => !ids.has(q.id));
-        const final = [...ordered, ...fallback].slice(0, 3);
-        setTrending(final);
+        const fallback = pool.filter((q) => !ids.has(q.id));
+        setTrending([...ordered, ...fallback].slice(0, limit));
       })
       .catch(() => {});
     return () => { mounted = false; };
-  }, []);
+  }, [window, limit, pool, excludeIds]);
 
   const recordClick = (id) => {
-    // Fire-and-forget click counter
     try {
       fetch(`${API}/api/faq/click`, {
         method: 'POST',
@@ -46,7 +63,6 @@ const TrendingQuestions = () => {
     } catch (e) { /* ignore */ }
   };
 
-  // FAQPage schema for Google rich snippets
   const faqSchema = useMemo(() => ({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -59,28 +75,35 @@ const TrendingQuestions = () => {
 
   if (trending.length === 0) return null;
 
+  const isCompact = variant === 'compact';
+  const containerClass = isCompact
+    ? 'py-8'
+    : 'py-16 sm:py-20 bg-gradient-to-br from-amber-50 via-stone-50 to-orange-50';
+
   return (
     <section
-      className="py-16 sm:py-20 bg-gradient-to-br from-amber-50 via-stone-50 to-orange-50"
-      data-testid="trending-questions"
+      className={containerClass}
+      data-testid={`trending-questions-${variant}`}
     >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={isCompact ? '' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'}>
         <div className="flex items-center justify-center gap-2 text-amber-700 text-sm font-medium mb-3">
           <TrendingUp className="w-4 h-4" />
-          <span className="uppercase tracking-wider">Veelgestelde vragen deze week</span>
+          <span className="uppercase tracking-wider">{eyebrowText}</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 text-center mb-3">
-          Wat ouders ons nu vragen
+        <h2 className={`${isCompact ? 'text-2xl' : 'text-3xl sm:text-4xl lg:text-5xl'} font-bold text-stone-900 text-center mb-3`}>
+          {title}
         </h2>
-        <p className="text-base sm:text-lg text-stone-600 text-center max-w-2xl mx-auto mb-12">
-          De top 3 vragen die andere ouders deze week aan ons stelden — inclusief het volledige antwoord.
-        </p>
+        {!isCompact && (
+          <p className="text-base sm:text-lg text-stone-600 text-center max-w-2xl mx-auto mb-12">
+            {subtitle}
+          </p>
+        )}
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className={`grid md:grid-cols-${limit >= 3 ? 3 : limit} gap-5 ${isCompact ? 'mt-6' : ''}`}>
           {trending.map((t, i) => {
             const isOpen = expanded === t.id;
             return (
@@ -124,15 +147,17 @@ const TrendingQuestions = () => {
           })}
         </div>
 
-        <div className="text-center mt-10">
-          <Link
-            to="/blogs"
-            className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 font-medium border-b-2 border-amber-700/30 hover:border-amber-700 pb-0.5"
-            data-testid="trending-see-all"
-          >
-            Bekijk alle blogartikelen en gidsen <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+        {!isCompact && (
+          <div className="text-center mt-10">
+            <Link
+              to="/blogs"
+              className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 font-medium border-b-2 border-amber-700/30 hover:border-amber-700 pb-0.5"
+              data-testid="trending-see-all"
+            >
+              Bekijk alle blogartikelen en gidsen <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

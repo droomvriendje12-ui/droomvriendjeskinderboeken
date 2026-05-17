@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
 import RelatedArticles from './RelatedArticles';
+import TrendingQuestions from './TrendingQuestions';
 
 /**
  * Reusable blog post layout for SEO-optimised posts.
@@ -192,6 +193,14 @@ const BlogPostLayout = ({
 
         {/* Related articles (auto from blogPosts data) */}
         <RelatedArticles currentSlug={slug} />
+
+        {/* Trending FAQs - monthly window */}
+        <TrendingQuestions
+          variant="compact"
+          window="month"
+          limit={3}
+          title="Meest gestelde vragen deze maand"
+        />
 
         {/* Newsletter / Conversion CTA */}
         <section className="mt-12 bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
