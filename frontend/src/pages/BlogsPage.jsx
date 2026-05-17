@@ -9,6 +9,40 @@ import Footer from '../components/Footer';
 const BlogsPage = () => {
   const blogs = [
     {
+      id: 10,
+      slug: "waarom-huilt-baby-s-nachts",
+      title: "Waarom huilt mijn baby 's nachts? 10 oorzaken en wat je eraan kunt doen",
+      excerpt: "Je baby huilt elke nacht en je weet niet meer wat je moet doen? 10 oorzaken én praktische slaaptips waar je vanavond mee kunt beginnen.",
+      author: "Team Droomvriendjes",
+      date: "18 mei 2026",
+      readTime: "9 min",
+      category: "Babyslaap",
+      image: "https://droomvriendjes.com/products/Sheep/Sheep_Side_product_02.png",
+      featured: true
+    },
+    {
+      id: 11,
+      slug: "verschil-verzwaringsknuffel-nachtlampje",
+      title: "Verzwaringsknuffel vs nachtlampje-knuffel: welke past bij jouw kind?",
+      excerpt: "Beide knuffels helpen bij beter slapen, maar werken totaal anders. We leggen het verschil uit en helpen je kiezen welke past bij jouw kind.",
+      author: "Team Droomvriendjes",
+      date: "18 mei 2026",
+      readTime: "6 min",
+      category: "Productgids",
+      image: "https://droomvriendjes.com/products/Bear/Bear_Side_product_02.png"
+    },
+    {
+      id: 12,
+      slug: "beste-slaapknuffel-2026",
+      title: "Wat is de beste slaapknuffel voor je kind in 2026? Complete koopgids",
+      excerpt: "Ouders kiezen tussen tientallen slaapknuffels. Maar welke is écht de beste? Een eerlijke koopgids met onze top 5.",
+      author: "Team Droomvriendjes",
+      date: "18 mei 2026",
+      readTime: "8 min",
+      category: "Productgids",
+      image: "https://droomvriendjes.com/products/Panda/Panda_Side_product_02.png"
+    },
+    {
       id: 7,
       slug: "droomvriendjes-mondriaan-samenwerking",
       title: "Droomvriendjes.nl x Mondriaan: samen werken aan rust in de avond",
@@ -17,8 +51,7 @@ const BlogsPage = () => {
       date: "19 januari 2025",
       readTime: "8 min",
       category: "Samenwerking",
-      image: "https://i.imgur.com/rjvMgGO.png",
-      featured: true
+      image: "https://i.imgur.com/rjvMgGO.png"
     },
     {
       id: 1,
