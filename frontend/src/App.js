@@ -71,6 +71,8 @@ import EmailTemplatesAdmin from "./pages/admin/EmailTemplates";
 import InboxPage from "./pages/admin/InboxPage";
 import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
 import AdminFaqStatsPage from "./pages/admin/AdminFaqStatsPage";
+import AdminDigitalProductsPage from "./pages/admin/AdminDigitalProductsPage";
+import CustomerDownloadPage from "./pages/CustomerDownloadPage";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
 import PresentationPage from "./pages/PresentationPage";
 import { Toaster } from "./components/ui/toaster";
@@ -179,6 +181,8 @@ function App() {
               <Route path="/admin/inbox" element={<ProtectedAdminRoute><InboxPage /></ProtectedAdminRoute>} />
               <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomersPage /></ProtectedAdminRoute>} />
               <Route path="/admin/faq-stats" element={<ProtectedAdminRoute><AdminFaqStatsPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/digital-products" element={<ProtectedAdminRoute><AdminDigitalProductsPage /></ProtectedAdminRoute>} />
+              <Route path="/mijn-download/:token" element={<CustomerDownloadPage />} />
             </Routes>
             <Toaster />
           </AdminAuthProvider>

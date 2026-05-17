@@ -191,6 +191,11 @@ def format_product_response(product: dict, review_stats: dict = None) -> dict:
         "itemVariant": product.get("item_variant"),
         "createdAt": product.get("created_at"),
         "updatedAt": product.get("updated_at"),
+        # Digital product fields
+        "productType": product.get("product_type", "physical"),
+        "digitalPages": product.get("digital_pages"),
+        "digitalFileSize": product.get("digital_file_size"),
+        "digitalPreviewUrl": product.get("digital_preview_url"),
     }
 
 

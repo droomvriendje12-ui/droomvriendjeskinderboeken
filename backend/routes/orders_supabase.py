@@ -137,6 +137,57 @@ def _send_order_notification(order_data: dict, items: list, event_type: str):
     text = f"{title}: {order_number} - {customer_name} - EUR {total:.2f}"
     return _send_email(OWNER_EMAIL, f"{title} - #{order_number}", html, text)
 
+
+def _send_digital_downloads_email(order_data: dict, entitlements: list):
+    """Stuur een aparte mail met directe download links voor digitale producten."""
+    customer_email = order_data.get('customer_email')
+    if not customer_email or not entitlements:
+        return False
+    customer_name = order_data.get('customer_name', 'Klant')
+    order_number = order_data.get('order_number', order_data.get('id', '')[:8].upper())
+
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://droomvriendjes.com').rstrip('/')
+
+    rows = ""
+    for ent in entitlements:
+        link = f"{frontend_url}/mijn-download/{ent['token']}"
+        rows += f"""
+        <tr>
+            <td style="padding:14px;border-bottom:1px solid #f1ede8;">
+                <strong style="color:#44403c;">{ent.get('product_name','PDF Download')}</strong><br>
+                <span style="color:#78716c;font-size:13px;">Geldig 24 uur · max {ent.get('max_downloads',3)} downloads</span>
+            </td>
+            <td style="padding:14px;border-bottom:1px solid #f1ede8;text-align:right;">
+                <a href="{link}" style="background:#f59e0b;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;display:inline-block;">Download PDF</a>
+            </td>
+        </tr>"""
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+    <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#fafaf9;">
+    <div style="background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+        <div style="text-align:center;margin-bottom:24px;">
+            <h1 style="color:#f59e0b;margin:0;letter-spacing:0.5px;">DROOMVRIENDJES</h1>
+            <p style="color:#78716c;margin:6px 0 0;font-size:13px;">Jouw digitale download is klaar</p>
+        </div>
+        <h2 style="color:#44403c;font-size:20px;">Bedankt {customer_name}!</h2>
+        <p style="color:#57534e;line-height:1.6;">Hieronder vind je je downloads voor bestelling <strong>#{order_number}</strong>.
+        Klik op de knop om direct te downloaden. De links zijn 24 uur geldig.</p>
+        <table style="width:100%;border-collapse:collapse;margin:24px 0;background:#fffdf7;border-radius:10px;overflow:hidden;">
+            {rows}
+        </table>
+        <div style="background:#fef3c7;border-radius:10px;padding:14px 18px;color:#78350f;font-size:13px;">
+            <strong>Tip:</strong> Sla het bestand direct op je apparaat op. Je kunt het maximaal 3x downloaden binnen 24 uur.
+        </div>
+        <div style="border-top:1px solid #f1ede8;margin-top:28px;padding-top:18px;text-align:center;color:#a8a29e;font-size:12px;">
+            <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.com" style="color:#f59e0b;">info@droomvriendjes.com</a></p>
+        </div>
+    </div></body></html>"""
+    text = f"Bedankt {customer_name}! Je downloads voor bestelling #{order_number}: " + " | ".join(
+        [f"{e.get('product_name')}: {frontend_url}/mijn-download/{e['token']}" for e in entitlements]
+    )
+    return _send_email(customer_email, f"Jouw downloads - bestelling #{order_number}", html, text)
+
+
 def set_supabase_client(client):
     """Set the Supabase client"""
     global supabase
@@ -560,6 +611,19 @@ async def mollie_webhook(request: Request):
                 if new_status == 'paid':
                     _send_order_confirmation(order, items)
                     _send_order_notification(order, items, 'payment_success')
+                    # Digital products: maak entitlements + stuur download mail
+                    try:
+                        from routes.digital_products import create_entitlements_for_order
+                        ents = create_entitlements_for_order(
+                            order_id=order_id,
+                            items=items,
+                            customer_email=order.get('customer_email', ''),
+                        )
+                        if ents:
+                            _send_digital_downloads_email(order, ents)
+                            logger.info(f"Aangemaakt: {len(ents)} digital entitlement(s) voor order {order_id}")
+                    except Exception as dig_err:
+                        logger.error(f"Digital entitlement creatie faalde: {dig_err}")
                     if order.get('discount_code'):
                         try:
                             from routes.discount_codes import use_discount_code

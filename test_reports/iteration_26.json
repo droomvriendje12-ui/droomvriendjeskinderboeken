@@ -1,0 +1,49 @@
+{
+  "summary": "Full E2E validation of new Digital Products (PDF) feature. 15/15 pytest pass + admin & customer UI verified end-to-end on the public preview URL. Backend: all 11 endpoints work (admin upload/list/delete/entitlements, customer info/download), enforce 24h window (410 on expired), 3-download cap (403 on 4th), reject non-PDF (400), and properly authenticate via Bearer admin token (401 without token). create_entitlements_for_order helper correctly resolves product_sku→product_id, filters digital-only items, and inserts a row in digital_downloads with secure token. Regression: GET /api/products still returns ≥15 items (5 with productType='digital') and /api/mollie-status returns 'ok'. Frontend: /admin/digital-products renders Upload form, file list (5 files) and Token table; /mijn-download/{token} shows product name, '3 / 3 over' counter, expiry date '18-05-2026', and clicking 'Download PDF' triggers signed-URL fetch + decrements counter to '2 / 3 over' with 'Download gestart!' confirmation.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "routes/digital_products.py::download_via_token", "issue": "Counter increment is NOT atomic (read-then-write). Under concurrent requests on the same token the same value (used+1) could be written twice, effectively allowing a 4th download in a tight race. Use Supabase RPC or SQL UPDATE ... SET downloads_used = downloads_used + 1 WHERE downloads_used < max_downloads RETURNING * to make it atomic."},
+      {"endpoint": "routes/digital_products.py::admin_list_files", "issue": "Recursive listing assumes max 2-level folder depth (root/library or root/products/<id>/file). Files placed in deeper subfolders would be invisible. Acceptable for current layout but document or enforce."},
+      {"endpoint": "routes/digital_products.py::create_entitlements_for_order", "issue": "If insert into digital_downloads fails for one item, others still attempt — but the partial state is silently logged. Webhook returns 200 regardless. For idempotency consider also de-duplicating on (order_id, product_id) so a Mollie webhook retry does not create duplicate tokens / duplicate emails."},
+      {"endpoint": "routes/orders_supabase.py:11-13", "issue": "Unused imports: smtplib, ssl, MIMEText, MIMEMultipart (all email now via Resend through _send_email shim). Cosmetic."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Header product dropdown elsewhere in app", "issue": "Multiple console errors 'Error fetching products, using fallback: TypeError: Failed to fetch' appeared during /admin/digital-products load. The admin page itself works (uses REACT_APP_BACKEND_URL correctly); the noise originates from a different component that still fetches from an unreachable URL. Not blocking, but should be traced and fixed.", "affected_selectors": []}
+    ],
+    "design_issues": [
+      {"screen": "/mijn-download/{token}", "issues": ["Looks clean and on-brand; counter, expiry date and download CTA are clearly visible. No issues."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_digital_products.py",
+    "/app/test_reports/pytest/digital_products_results.xml"
+  ],
+  "action_items": [
+    "(Recommend) Make downloads_used increment atomic to close the race-condition window described above.",
+    "(Recommend) De-duplicate entitlements in create_entitlements_for_order on (order_id, product_id) so Mollie webhook retries don't duplicate tokens/emails.",
+    "(Optional) Trace and silence 'Error fetching products, using fallback' console errors that fire on the admin page from an unrelated component.",
+    "(Optional) Remove unused smtplib/ssl/MIMEText/MIMEMultipart imports from routes/orders_supabase.py."
+  ],
+  "critical_code_review_comments": [
+    "digital_products.py: clean ~400-line module with clear separation of admin vs customer endpoints; good use of HTTPBearer dependency. Async signatures are correct, no _id leakage.",
+    "Token generation uses secrets.token_urlsafe(32) → 256 bits of entropy, OK.",
+    "Signed-URL lifetime is 5 minutes which is appropriate for direct-download UX; not exposed to URL guessing.",
+    "Bucket name 'digital-products' assumed PRIVATE — verified via signed-URL flow returning a `token=` parameter; direct public access would not be possible.",
+    "Webhook handler in orders_supabase.py correctly calls create_entitlements_for_order only on new_status=='paid', and emails the customer with one download link per entitlement. Good UX.",
+    "Race condition on counter increment is the only meaningful concern; everything else is cosmetic."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_digital_products.py (new)"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% (admin + customer pages verified)"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login (returns {token}). Admin UI reads from localStorage key 'admin_token'.",
+  "seed_data_creation": "Test inserted ~6 TEST_-prefixed rows into digital_downloads during the run (3 token-counter test, 1 expired test, 1 helper-flow test, 1 frontend test). All cleaned up after the run via DELETE WHERE download_token LIKE 'TEST_%' — 0 leftovers. The smoke-test PDF uploaded to Supabase Storage was also deleted via the admin delete endpoint.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All Digital Products endpoints under /api/digital-products/* are green. Pytest suite lives at /app/backend/tests/test_digital_products.py and uses BASE_URL from REACT_APP_BACKEND_URL + reads SUPABASE_SERVICE_KEY from /app/backend/.env directly. To re-test, run: pytest /app/backend/tests/test_digital_products.py -v. Important: tests insert rows into digital_downloads with TEST_ prefixed download_token and TEST_ prefixed order_id; the test_zzz_cleanup_test_entitlements step removes them in-session. If the test is aborted mid-flight, run the same cleanup snippet from test_reports/iteration_26 (DELETE FROM digital_downloads WHERE download_token LIKE 'TEST_%'). Frontend admin route /admin/digital-products requires localStorage.setItem('admin_token', <token from /api/admin/login>) — there is no automatic redirect to login on the page itself.",
+  "rca of the issue": "N/A — this is feature validation, not a bug-fix iteration. No product code was modified."
+}
