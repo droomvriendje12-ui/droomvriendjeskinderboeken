@@ -162,7 +162,10 @@ const CheckoutPage = () => {
       const res = await fetch(`/api/discount-codes/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponInput.trim().toUpperCase() })
+        body: JSON.stringify({
+          code: couponInput.trim().toUpperCase(),
+          cart_total: getSubtotal()
+        })
       });
       const data = await res.json();
       if (res.ok && data.valid) {
