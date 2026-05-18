@@ -67,7 +67,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-amber-100 text-amber-900",
     date: "19 januari 2025",
     readMinutes: 8,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png",
+    image: "https://images.unsplash.com/photo-1564429097439-e09bdbf28f86?w=800",
     tags: ["rust", "gezin", "mentale gezondheid", "slaap"],
   },
 ];

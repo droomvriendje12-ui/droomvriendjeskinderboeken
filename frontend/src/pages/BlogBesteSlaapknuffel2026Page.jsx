@@ -79,7 +79,7 @@ const BlogBesteSlaapknuffel2026Page = () => {
     <ul>
       <li>Meerdere geluiden (hartslag, regen, slaapliedjes)</li>
       <li>Bluetooth om eigen muziek af te spelen</li>
-      <li>AI huilsensor die automatisch reageert (zie onze <Link to="/product/14">Slimme Leeuw</Link>)</li>
+      <li>AI huilsensor die automatisch reageert (zie onze top-5 hieronder)</li>
       <li>Wisselbare licht-kleuren</li>
     </ul>
     <h3>Skip dit</h3>

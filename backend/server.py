@@ -218,6 +218,7 @@ else:
 
 # Set database for other routes (still using MongoDB for non-migrated routes)
 discount_codes_route.set_supabase_client(supabase_client)
+discount_codes_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)

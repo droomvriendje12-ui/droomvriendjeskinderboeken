@@ -6,7 +6,8 @@ CartSidebar /api/discount/validate endpoint. This eliminates the old
 MongoDB/Supabase split that caused codes created in admin to not appear
 on the storefront.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timezone
 import logging
 import uuid
@@ -15,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/discount-codes", tags=["discount-codes"])
 
-# Supabase client - will be set by main app
+# Supabase client + admin verifier - set by server.py at startup
 supabase = None
+_admin_verifier = None
+_security = HTTPBearer(auto_error=False)
 
 
 def set_supabase_client(client):
@@ -24,6 +27,21 @@ def set_supabase_client(client):
     global supabase
     supabase = client
     logger.info("✅ Supabase client set for discount_codes route")
+
+
+def set_admin_verifier(verifier):
+    """Inject admin token verifier (callable(credentials) -> admin dict or None)."""
+    global _admin_verifier
+    _admin_verifier = verifier
+
+
+def _require_admin(credentials: HTTPAuthorizationCredentials = Depends(_security)):
+    if _admin_verifier is None:
+        raise HTTPException(status_code=500, detail="Admin verifier not configured")
+    admin = _admin_verifier(credentials)
+    if not admin:
+        raise HTTPException(status_code=401, detail="Niet geautoriseerd")
+    return admin
 
 
 # ----- Helpers -----
@@ -110,7 +128,7 @@ async def get_discount_code(code_id: str):
 
 
 @router.post("")
-async def create_discount_code(payload: dict):
+async def create_discount_code(payload: dict, admin=Depends(_require_admin)):
     """Create a new discount code (admin)."""
     if supabase is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -148,7 +166,7 @@ async def create_discount_code(payload: dict):
 
 
 @router.put("/{code_id}")
-async def update_discount_code(code_id: str, payload: dict):
+async def update_discount_code(code_id: str, payload: dict, admin=Depends(_require_admin)):
     """Update a discount code (admin)."""
     if supabase is None:
         raise HTTPException(status_code=500, detail="Database not configured")
@@ -169,7 +187,7 @@ async def update_discount_code(code_id: str, payload: dict):
 
 
 @router.delete("/{code_id}")
-async def delete_discount_code(code_id: str):
+async def delete_discount_code(code_id: str, admin=Depends(_require_admin)):
     """Delete a discount code (admin)."""
     if supabase is None:
         raise HTTPException(status_code=500, detail="Database not configured")

@@ -26,6 +26,12 @@ const AdminDiscountCodesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCode, setEditingCode] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Authorized fetch — sends the admin JWT for mutating endpoints
+  const authHeaders = () => {
+    const token = localStorage.getItem('admin_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
   
   // Form state
   const [formData, setFormData] = useState({
@@ -82,7 +88,7 @@ const AdminDiscountCodesPage = () => {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(payload)
       });
 
@@ -104,7 +110,8 @@ const AdminDiscountCodesPage = () => {
     
     try {
       const response = await fetch(`/api/discount-codes/${codeId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: authHeaders()
       });
       
       if (!response.ok) throw new Error('Failed to delete discount code');
@@ -154,7 +161,7 @@ const AdminDiscountCodesPage = () => {
     try {
       const response = await fetch(`/api/discount-codes/${code.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ active: !code.active })
       });
       
