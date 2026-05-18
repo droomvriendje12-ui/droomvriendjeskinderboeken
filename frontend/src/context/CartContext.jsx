@@ -105,12 +105,16 @@ export const CartProvider = ({ children }) => {
   };
 
   // Bereken korting: 2e knuffel 50% korting
-  // Voor elke 2 items (ongeacht of het dezelfde of verschillende producten zijn)
-  // krijg je 50% korting op het goedkoopste item van elk paar
+  // Geldt UITSLUITEND voor fysieke knuffels — digitale PDFs doen niet mee aan
+  // de "buy 2 get 50% off"-promo (label = "2e knuffel ...").
   const getDiscount = () => {
-    // Maak een array van alle individuele items met hun prijzen
+    const isDigital = (item) =>
+      item.productType === 'digital' ||
+      (typeof item.id === 'string' && item.id.startsWith('digital-'));
+
     let allItems = [];
     cart.forEach(item => {
+      if (isDigital(item)) return;
       for (let i = 0; i < item.quantity; i++) {
         allItems.push(item.price);
       }
@@ -122,7 +126,6 @@ export const CartProvider = ({ children }) => {
     // Voor elk paar: volle prijs voor de eerste, 50% korting op de tweede
     let discount = 0;
     for (let i = 1; i < allItems.length; i += 2) {
-      // Item op positie 1, 3, 5, etc. krijgt 50% korting (de goedkopere van elk paar)
       discount += allItems[i] * 0.5;
     }
     

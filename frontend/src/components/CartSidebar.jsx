@@ -21,10 +21,16 @@ const CartSidebar = () => {
   const [codeError, setCodeError] = useState('');
   const [codeSuccess, setCodeSuccess] = useState('');
 
-  // Get cross-sell products (exclude items already in cart)
+  // Get cross-sell products (exclude items already in cart AND digital products)
+  // Digital PDFs zijn geen logische cross-sell binnen de cart drawer — die
+  // worden alleen via blogs gepromoot, niet als "2e knuffel 50%" upsell.
   const cartProductIds = cart.map(item => item.id);
+  const isDigitalProduct = (p) =>
+    p?.productType === 'digital' ||
+    (typeof p?.id === 'string' && p.id.startsWith('digital-'));
+  const cartHasPhysical = cart.some(item => !isDigitalProduct(item));
   const crossSellProducts = products
-    .filter(p => !cartProductIds.includes(p.id) && p.id !== 6) // Exclude cart items and Duo set
+    .filter(p => !cartProductIds.includes(p.id) && p.id !== 6 && !isDigitalProduct(p))
     .slice(0, 5);
 
   // Handle quick add to cart
@@ -297,19 +303,19 @@ const CartSidebar = () => {
               
               <div className="text-sm text-green-600 flex items-center gap-2">
                 <Truck className="w-4 h-4" />
-                Gratis verzending!
+                {cartHasPhysical ? 'Gratis verzending!' : '📥 Direct via e-mail (geen verzending)'}
               </div>
               
-              {/* Korting hint */}
-              {getDiscount() === 0 && getItemCount() === 1 && (
+              {/* Korting hint — alleen relevant als de cart fysieke knuffels bevat */}
+              {cartHasPhysical && getDiscount() === 0 && getItemCount() === 1 && (
                 <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-lg flex items-center gap-2">
                   <Tag className="w-4 h-4" />
                   Voeg nog 1 knuffel toe voor 50% korting!
                 </div>
               )}
 
-              {/* Cross-sell Strip */}
-              {crossSellProducts.length > 0 && (
+              {/* Cross-sell Strip — alleen tonen als er fysieke knuffels in de cart zitten */}
+              {cartHasPhysical && crossSellProducts.length > 0 && (
                 <div className="bg-gradient-to-r from-warm-brown-50 to-amber-50 rounded-xl p-3 border border-warm-brown-100 -mx-1">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-bold text-warm-brown-700">

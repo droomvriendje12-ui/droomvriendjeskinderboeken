@@ -41,6 +41,8 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Backend `/api/digital-products/*` (6 endpoints, Bearer admin auth, atomic counters)
 - [x] Mollie webhook → entitlement bij `paid`, 24u geldig, max 3 downloads
 - [x] Admin UI `/admin/digital-products`, Customer UI `/mijn-download/{token}`
+- [x] **18 Feb 2026: ProductPage content sanitisation** — alle fysieke knuffel-content verwijderd van digital product pages. Per digital PDF unieke teasers, 3 feature cards, specs (Bestandsformaat / Omvang / Leeftijd / Taal), trust badges (Direct download / Onbeperkt printen / Veilige betaling / NL klantenservice), tip-tekst, Product Details box en quick-features. "Alleen de zachtste materialen" sectie verborgen voor digital. StickyAddToCart toont nu "Direct download" en "Direct beschikbaar na betaling / Onbeperkt printen" ipv "Bijna uitverkocht / Nog X op voorraad". Stock-urgency banner verborgen voor digital. Price badge "Direct in je inbox" ipv "2e knuffel 50% korting". Promises "Direct downloaden · Onbeperkt printen · Geen verzendkosten". Digital-specific FAQ (6 vragen over PDF, printen, refund, devices).
+- [x] **18 Feb 2026: Cart drawer voor digital-only cart** — cross-sell knuffel-strip, "2e knuffel 50% korting" regel, "Voeg nog 1 knuffel toe" hint en "Gratis verzending" tekst worden verborgen wanneer cart alleen digital items bevat. "📥 Direct via e-mail (geen verzending)" wordt getoond. `getDiscount()` in CartContext excludeert nu digital items van de 2e-knuffel-promo.
 
 ### Kortingscodes — Supabase consolidatie (18 Feb 2026)
 **Probleem (opgelost):** Admin schreef naar MongoDB, CartSidebar valideerde tegen Supabase → codes aangemaakt in admin verschenen niet op de website.

@@ -16,6 +16,34 @@ import StickyAddToCart from '../components/StickyAddToCart';
 import { trackViewItem } from '../utils/analytics';
 import { trackProductView, trackAddToCart } from '../lib/funnel';
 
+// Digital-product specific FAQ (printing, file format, refund, license, devices)
+const digitalFaqs = [
+  {
+    question: 'Hoe krijg ik mijn PDF na betaling?',
+    answer: 'Direct na succesvolle betaling sturen we een download-link naar het e-mailadres dat je bij de bestelling hebt opgegeven. De link blijft 24 uur geldig en je kunt het bestand maximaal 3 keer downloaden — meer dan genoeg om het op je computer, telefoon én tablet op te slaan.',
+  },
+  {
+    question: 'Kan ik de PDF onbeperkt printen?',
+    answer: 'Ja. Eén aankoop = onbeperkt thuis printen voor eigen gebruik in je gezin. Print zo vaak als je wilt, in welke kleur of formaat ook. Doorverkopen of commercieel gebruik is niet toegestaan.',
+  },
+  {
+    question: 'Op welk formaat papier moet ik het printen?',
+    answer: 'Alle bestanden zijn ontworpen op A4-formaat met 300 dpi-kwaliteit — geschikt voor elke standaard thuisprinter. Sommige onderdelen (zoals affirmatiekaartjes) zijn bedoeld om uit te knippen tot A6. Plaats het papier zoals normaal en kies in je print-dialoog "Werkelijke grootte".',
+  },
+  {
+    question: 'Werkt het op een iPad of telefoon?',
+    answer: 'Ja, het PDF-bestand opent op elk apparaat met een PDF-lezer (iPhone, Android, iPad, Mac, Windows). Wij raden wel aan om de bestanden op papier te gebruiken — schermvrije tijd vlak voor bedtijd helpt kinderen sneller in slaap te vallen.',
+  },
+  {
+    question: 'Krijg ik mijn geld terug als het niet bevalt?',
+    answer: 'Omdat het een digitaal product is en je het direct kunt downloaden, geldt geen wettelijke bedenktermijn. Maar: als je echt niet tevreden bent of het bestand werkt niet zoals beloofd, stuur ons een mail naar info@droomvriendjes.com en we lossen het op — refund of vervangend bestand.',
+  },
+  {
+    question: 'Kan ik dit ook cadeau geven?',
+    answer: 'Zeker! Print het uit en doe het in een mooi cadeauboekje of map. Of bestel rechtstreeks op naam van de ontvanger — vul hun e-mailadres in bij de bestelling en ze ontvangen de download-link direct.',
+  },
+];
+
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -1596,7 +1624,7 @@ const ProductPage = () => {
             Veelgestelde Vragen
           </h2>
           <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, idx) => (
+            {(isDigital ? digitalFaqs : faqs).map((faq, idx) => (
               <AccordionItem 
                 key={idx} 
                 value={`item-${idx}`}
