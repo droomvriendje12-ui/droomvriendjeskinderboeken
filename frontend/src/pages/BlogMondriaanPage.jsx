@@ -77,7 +77,7 @@ const BlogMondriaanPage = () => (
       <li><strong>Prikkelarm afsluiten:</strong> zacht licht, geen druk spel of schermen</li>
     </ul>
     <p>
-      Onze <Link to="/slaapknuffel">slaapknuffels</Link> sluiten daarop aan en helpen kinderen
+      Onze <Link to="/knuffels" className="underline">slaapknuffels</Link> sluiten daarop aan en helpen kinderen
       bij de overgang van "aan" naar "uit". Een nachtlampje met sterrenprojectie geeft net genoeg
       visuele rust om de kamer "vriendelijk" te maken, zonder de slaap te verstoren.
     </p>

@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
 import RelatedArticles from '../components/RelatedArticles';
+import BlogDigitalProductCallout from '../components/BlogDigitalProductCallout';
+import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
 const BlogSlaaptipsPage = () => {
+  const bedtimeChart = useDigitalProduct('digital-bedtime-chart');
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -97,6 +100,17 @@ const BlogSlaaptipsPage = () => {
               Let op dat je deze routine ook in het weekend aanhoudt. Grote verschillen tussen doordeweekse dagen en weekenden kunnen het slaapritme verstoren. Kleine variaties zijn geen probleem, maar probeer bedtijd binnen een half uur consistent te houden.
             </p>
           </div>
+
+          <BlogDigitalProductCallout
+            product={bedtimeChart}
+            teaser='Wil je niet helemaal zelf je slaapritueel uitdenken? We hebben een kant-en-klaar 7-staps schema gemaakt — print het uit en hang het op de slaapkamerdeur, zodat je kind precies weet wat er komt.'
+            benefits={[
+              '7 visuele stappen die elke avond hetzelfde blijven',
+              'Direct uitprintbaar in A4, geen account nodig',
+              'Werkt vanaf peuter tot ongeveer 8 jaar',
+            ]}
+            ctaLabel="Bekijk het schema"
+          />
 
           {/* Tip 2 */}
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-12 mb-6 flex items-center gap-3">

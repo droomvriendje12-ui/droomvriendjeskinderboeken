@@ -30,8 +30,14 @@ const HomePage = () => {
   const [fiveStarReviews, setFiveStarReviews] = useState([]);
   const [reviewStats, setReviewStats] = useState({ total: 0, avgRating: 4.9 });
 
-  // Filter out of stock products from homepage
-  const availableProducts = products.filter(p => p.inStock !== false);
+  // Filter out of stock + digital products from homepage.
+  // Digital PDFs are surfaced inside relevant blog posts, not in the
+  // physical product catalog.
+  const availableProducts = products.filter((p) => {
+    if (p.inStock === false) return false;
+    const isDigital = p.productType === 'digital' || (typeof p.id === 'string' && p.id.startsWith('digital-'));
+    return !isDigital;
+  });
 
   // Shuffle array helper function
   const shuffleArray = (array) => {

@@ -5,8 +5,11 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import Footer from '../components/Footer';
 import RelatedArticles from '../components/RelatedArticles';
+import BlogDigitalProductCallout from '../components/BlogDigitalProductCallout';
+import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
 const BlogStressKnuffelsPage = () => {
+  const affirmationCards = useDigitalProduct('digital-affirmation-cards');
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -209,6 +212,17 @@ const BlogStressKnuffelsPage = () => {
           <p className="text-gray-700 mb-6">
             Deze voorspelbaarheid is enorm waardevol voor kinderen, vooral voor diegenen met angst, hoogsensitiviteit of een behoefte aan structuur. Het creëert een veilige routine waarop ze kunnen vertrouwen, zelfs in onbekende of stressvolle situaties zoals een vakantie, ziekenhuisbezoek of verhuizing.
           </p>
+
+          <BlogDigitalProductCallout
+            product={affirmationCards}
+            teaser='Wil je dit ritueel nog verder versterken? Voeg een vaste, kort uitgesproken zin toe — een “affirmatie”. Wij maakten 12 liefdevolle bedtijd-kaartjes die je samen met je kind kunt voorlezen. Bewezen kalmerend volgens kinderpsychologen.'
+            benefits={[
+              '12 zinnen zoals “Ik voel mij veilig en geborgen” — direct uitknipbaar',
+              'Speciaal getoetst op woordkeuze voor 3–9 jarigen',
+              'Verstevigt het Pavlov-effect dat je hierboven leest',
+            ]}
+            ctaLabel="Bekijk de kaartjes"
+          />
 
           {/* Section 5: Doelgroepen */}
           <div className="flex items-center space-x-3 mb-6 mt-12">

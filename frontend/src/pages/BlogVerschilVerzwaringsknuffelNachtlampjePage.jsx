@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import BlogPostLayout from '../components/BlogPostLayout';
+import BlogDigitalProductCallout from '../components/BlogDigitalProductCallout';
+import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
-const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => (
+const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => {
+  const visualSchedule = useDigitalProduct('digital-visual-schedule');
+  return (
   <BlogPostLayout
     category="Productgids"
     categoryColor="bg-sky-100 text-sky-800"
@@ -80,7 +84,7 @@ const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => (
 
     <h2 id="nachtlampje">Wat is een nachtlampje-knuffel?</h2>
     <p>
-      Een nachtlampje-knuffel — zoals onze <Link to="/slaapknuffel">Droomvriendjes</Link> — is een
+      Een nachtlampje-knuffel — zoals onze <Link to="/knuffels" className="underline">Droomvriendjes</Link> — is een
       zachte knuffel met een ingebouwd lichtsysteem. Vaak met meerdere functies:
     </p>
     <ul>
@@ -114,6 +118,17 @@ const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => (
       </tbody>
     </table>
 
+    <BlogDigitalProductCallout
+      product={visualSchedule}
+      teaser='Een knuffel kies je voor de stemming — maar peuters en kleuters die nog niet kunnen lezen begrijpen woorden minder goed dan plaatjes. Hang daarom een visueel slaapschema op de slaapkamerdeur, naast de gekozen knuffel. Kind herkent in één oogopslag waar in het ritueel jullie zijn.'
+      benefits={[
+        '8 stappen in plaatjes — geschikt vanaf 2 jaar',
+        'Knip uit en plak op of laminate voor herbruikbaarheid',
+        'Werkt perfect samen met je verzwaringsknuffel of nachtlampje',
+      ]}
+      ctaLabel="Bekijk het schema"
+    />
+
     <h2 id="combinatie">Kun je ze combineren?</h2>
     <p>
       Absoluut, en eerlijk gezegd is dat onze favoriete oplossing. De verzwaringsknuffel ligt naast
@@ -131,7 +146,7 @@ const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => (
     <p>
       Beide knuffels zijn niet alleen voor kinderen. We zien steeds meer volwassenen met
       slaapproblemen, eenzaamheid of een burn-out die geholpen worden door een verzwaringsknuffel.
-      Voor <Link to="/dementie">mensen met dementie</Link> is een knuffel met zachte hartslag of
+      Voor mensen met dementie is een knuffel met zachte hartslag of
       een vertrouwd geluid soms het verschil tussen een onrustige en een rustige nacht.
     </p>
 
@@ -142,6 +157,7 @@ const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => (
       onze <Link to="/knuffels">complete collectie</Link>.
     </p>
   </BlogPostLayout>
-);
+  );
+};
 
 export default BlogVerschilVerzwaringsknuffelNachtlampjePage;

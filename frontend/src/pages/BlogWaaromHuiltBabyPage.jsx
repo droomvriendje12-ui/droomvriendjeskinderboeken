@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import BlogPostLayout from '../components/BlogPostLayout';
+import BlogDigitalProductCallout from '../components/BlogDigitalProductCallout';
+import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
-const BlogWaaromHuiltBabyPage = () => (
+const BlogWaaromHuiltBabyPage = () => {
+  const sleepTracker = useDigitalProduct('digital-sleep-tracker');
+  return (
   <BlogPostLayout
     category="Babyslaap"
     categoryColor="bg-rose-100 text-rose-800"
@@ -84,8 +88,8 @@ const BlogWaaromHuiltBabyPage = () => (
     <h2 id="overprikkeling">4. Overprikkeling van de dag</h2>
     <p>
       Veel bezoek gehad? Druk geweest op het kinderdagverblijf? Een overprikkelde baby kan moeilijker
-      tot rust komen, en dat uit zich juist \'s nachts. Bouw 1-2 uur voor het slapen een rustig
-      bedtijdritueel op: gedimd licht, zachte muziek of <Link to="/white-noise-knuffel">white noise</Link>,
+      tot rust komen, en dat uit zich juist 's nachts. Bouw 1-2 uur voor het slapen een rustig
+      bedtijdritueel op: gedimd licht, zachte muziek of <Link to="/knuffels" className="underline">white noise via een nachtlampje-knuffel</Link>,
       en geen schermen meer.
     </p>
 
@@ -93,7 +97,7 @@ const BlogWaaromHuiltBabyPage = () => (
     <p>
       Na 6 maanden is meerdere keren per nacht huilen vaak een aangeleerde gewoonte: je baby is
       gewend om in slaap te vallen mét jou erbij. Wakker worden = paniek. Een rustgevende{' '}
-      <Link to="/slaapknuffel">slaapknuffel met sterrenprojectie</Link> kan helpen omdat je kind
+      <Link to="/knuffels" className="underline">slaapknuffel met sterrenprojectie</Link> kan helpen omdat je kind
       iets vertrouwds heeft om naar te kijken, ook als jij er niet bent.
     </p>
 
@@ -120,7 +124,7 @@ const BlogWaaromHuiltBabyPage = () => (
     <p>
       Tussen 8-18 maanden ontstaat bij veel kinderen verlatingsangst. Ze begrijpen dat je weg bent,
       maar nog niet dat je terugkomt. Een vaste knuffel als{' '}
-      <Link to="/troost">troostvriendje</Link> geeft een houvast.
+      <Link to="/knuffels" className="underline">vertrouwd troostvriendje</Link> geeft een houvast.
     </p>
 
     <h2 id="omgeving">10. De slaapomgeving is niet rustgevend</h2>
@@ -143,12 +147,24 @@ const BlogWaaromHuiltBabyPage = () => (
       <li><strong>Houd een slaapdagboek</strong> bij gedurende 2 weken. Patronen zie je pas op papier.</li>
     </ol>
 
+    <BlogDigitalProductCallout
+      product={sleepTracker}
+      teaser='Geen zin om elke ochtend een leeg notitieboekje te pakken? Wij maakten een kant-en-klare 30-dagen slaaplog waarin je in 10 seconden invult wanneer je baby is wakker geworden — perfect om aan je consultatiebureau te laten zien.'
+      benefits={[
+        '30 dagen op één pagina — patronen zichtbaar in een oogopslag',
+        'Vakjes voor voeding, luier, huilen en slaaptijden',
+        'Direct printen op A4, klaar bij het ochtendkoffie',
+      ]}
+      ctaLabel="Bekijk de slaaplog"
+    />
+
     <p className="mt-8 italic text-stone-600">
       Bij twijfel: een huilende baby is <em>nooit</em> "gewoon vervelend". Het is communicatie.
       Geef het tijd, vraag hulp aan je consultatiebureau of een slaapcoach, en weet dat dit fase
       vrijwel altijd voorbijgaat. Je doet het goed.
     </p>
   </BlogPostLayout>
-);
+  );
+};
 
 export default BlogWaaromHuiltBabyPage;

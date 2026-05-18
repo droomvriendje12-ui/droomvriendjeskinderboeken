@@ -1,0 +1,48 @@
+{
+  "summary": "Tested discount-codes Supabase migration (CRUD + dual-endpoint validate parity) and digital-products filtering on storefront/blog. Backend: 10/10 pytest pass — CRUD works, newly created code is immediately validatable on BOTH /api/discount-codes/validate and legacy /api/discount/validate (single source of truth confirmed), and is removed from BOTH after DELETE. Validate without cart_total returns graceful {valid:false, message:'Minimaal bestelbedrag is €X.XX'} (no 500). /api/products returns 15+ items with 5 digital. Frontend: /knuffels shows 10 cards, 0 digital. / (homepage) shows 10 product links, 0 digital. All 5 blog detail pages render the correct BlogDigitalProductCallout with the expected data-testid and a link to the matching /product/digital-* page. /blogs list has 6 cards, all resolving to 200 (no dead links). Two minor duplicate violations found inside individual blog posts (not blocking).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/discount/validate vs /api/discount-codes/validate", "issue": "Both endpoints share Supabase as expected, but return DIFFERENT response shapes — new uses {discount, discount_value, free_shipping}, legacy uses {discount_amount, type}. Functionally equivalent but consumers must know which shape to expect. Consider aligning shapes or documenting the contract."},
+      {"endpoint": "POST /api/discount-codes", "issue": "No admin auth required on CRUD endpoints — anyone with URL can create/update/delete discount codes (anonymous tests succeed without Bearer token). Lock down with admin auth dependency."},
+      {"endpoint": "POST /api/discount-codes/use", "issue": "Increment is read-then-write (not atomic). Concurrent usage on the same code can lose increments, allowing more uses than max_uses. Use Supabase RPC or `UPDATE … SET current_uses = current_uses + 1 WHERE current_uses < max_uses RETURNING *`."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Blog post body — uniqueness rule", "issue": "/blog/waarom-huilt-baby-s-nachts: image https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png appears 2 times in the article body. Violates 'each image must appear at most once per blog post'.", "affected_selectors": ["article img[src*='bearbrown-main.png']"]},
+      {"flow": "Blog post body — uniqueness rule", "issue": "/blog/beste-slaapknuffel-2026: link /product/14 appears 2 times in the article body. Violates 'each product link must appear at most once per blog post'. (relatedProducts was emptied but /product/14 is still duplicated inside the content/top-5 block.)", "affected_selectors": ["a[href='/product/14']"]},
+      {"flow": "Global product fetch fallback", "issue": "Console error 'Error fetching products, using fallback: TypeError: Failed to fetch' still appears (carried over from iteration_26). Same observation: hits something other than REACT_APP_BACKEND_URL. Non-blocking but should be traced.", "affected_selectors": []}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_discount_codes_supabase.py",
+    "/app/test_reports/pytest/discount_codes_iter27.xml"
+  ],
+  "action_items": [
+    "Remove the duplicate <img src='…bearbrown-main.png'> in /app/frontend/src/pages/BlogWaaromHuiltBabyPage.jsx (image rendered twice).",
+    "Remove the duplicate /product/14 link in /app/frontend/src/pages/BlogBesteSlaapknuffel2026Page.jsx — product 14 appears 2x in the body (Top-5 list + another mention).",
+    "(Security) Add admin auth guard to /api/discount-codes POST/PUT/DELETE — currently open to anonymous requests. The list endpoint can stay public if needed but mutating endpoints must require Bearer admin JWT.",
+    "(Concurrency) Make /api/discount-codes/use increment atomic to prevent over-use under concurrent checkouts.",
+    "(Optional) Align response shape between /api/discount/validate (legacy) and /api/discount-codes/validate so frontend doesn't need to handle two field names (discount vs discount_amount)."
+  ],
+  "critical_code_review_comments": [
+    "discount_codes.py: clean, async-friendly, no _id leakage, proper HTTPException usage, consistent Dutch error messages. Good single-source consolidation.",
+    "Code-id generated as uuid4()[:8].upper() — 8-char codes give ~2^32 space; collision risk is low but the uniqueness constraint relies on the `code` field, not `id`. Fine.",
+    "Missing admin auth on CRUD is the most important security gap — easy fix via Depends on existing admin dependency.",
+    "_to_admin_shape silently swallows fields not in the mapping (e.g., free_shipping is exposed but free_shipping flag is also derived from discount_type elsewhere). OK.",
+    "Validate endpoint correctly handles missing cart_total (defaults to 0 and returns graceful min-order error)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_discount_codes_supabase.py (new)"
+  ],
+  "success_rate": {"backend": "100% (10/10)", "frontend": "Storefront filter 100%, Blog callouts 5/5 present, Blog uniqueness 3/5 clean (2 with duplicates)"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login (returns {token}).",
+  "seed_data_creation": "Test created and deleted 1 discount code: TEST_ITER27_PCT (percentage 15→20, min_order 25→50). All test data cleaned at end of test_delete_discount_code_and_verify_removed_on_both_endpoints. Verified Supabase has 0 rows with code starting with TEST_ after run.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend discount-codes consolidation is verified end-to-end. Pytest: pytest backend/tests/test_discount_codes_supabase.py -v. Two minor blog content fixes pending (duplicate image in BlogWaaromHuiltBabyPage.jsx, duplicate /product/14 link in BlogBesteSlaapknuffel2026Page.jsx). Re-run the playwright dup check from this iteration after fixes — code in scratch: query article/main imgs and a[href*='/product/'], count duplicates. /knuffels (10 cards, 0 digital), homepage (10 product links, 0 digital), all 5 callouts and /blogs links are all green. Security debt: discount-codes CRUD is unauthenticated.",
+  "rca of the issue": "N/A — this iteration is feature/regression verification."
+}

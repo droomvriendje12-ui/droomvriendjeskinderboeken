@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import BlogPostLayout from '../components/BlogPostLayout';
+import BlogDigitalProductCallout from '../components/BlogDigitalProductCallout';
+import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
-const BlogBesteSlaapknuffel2026Page = () => (
+const BlogBesteSlaapknuffel2026Page = () => {
+  const coloringPages = useDigitalProduct('digital-coloring-pages');
+  return (
   <BlogPostLayout
     category="Productgids"
     categoryColor="bg-emerald-100 text-emerald-800"
@@ -43,11 +47,7 @@ const BlogBesteSlaapknuffel2026Page = () => (
         a: 'Tussen 6-10 uur per oplaadbeurt. Bij ons gaan ze gemiddeld 8 uur mee, ruim voldoende voor een hele nacht. Wij gebruiken oplaadbare lithium-batterijen (USB-C) — geen wegwerpbatterijen.'
       },
     ]}
-    relatedProducts={[
-      { id: 3, name: 'Slaperige Panda - Onze bestseller', emoji: '🐼' },
-      { id: 5, name: 'Magische Eenhoorn - Voor dromers', emoji: '🦄' },
-      { id: 14, name: 'Slimme Leeuw - AI huilsensor (Premium)', emoji: '🦁' },
-    ]}
+    relatedProducts={[]}
   >
     <p>
       Je staat in de winkel of scrollt door honderden zoekresultaten op Google. Allemaal beloven ze
@@ -158,6 +158,17 @@ const BlogBesteSlaapknuffel2026Page = () => (
       direct laten bezorgen bij de gelukkige ouders.
     </p>
 
+    <BlogDigitalProductCallout
+      product={coloringPages}
+      teaser='Heb je de knuffel gekozen? Dan helpt het om het inslapen langzaam te kalmeren. Een rustige tekenactiviteit vlak voor het tandenpoetsen werkt aantoonbaar — kinderen schakelen vanzelf in lagere versnelling. Wij maakten 4 kleurplaten met bedtime-thema.'
+      benefits={[
+        '4 bedtijd-kleurplaten: maan & sterren, knuffel in bed, slapend dier, droomwolken',
+        'Print zoveel je wilt — geen apps, geen schermtijd',
+        'Combineer met je nieuwe knuffel voor een compleet ritueel',
+      ]}
+      ctaLabel="Bekijk de kleurplaten"
+    />
+
     <h2>Tot slot</h2>
     <p>
       Geen enkele knuffel werkt voor 100% van de kinderen. Wat wij wel weten: een goede slaapknuffel
@@ -170,6 +181,7 @@ const BlogBesteSlaapknuffel2026Page = () => (
       en eerlijk, ook als we je naar een ander merk verwijzen.
     </p>
   </BlogPostLayout>
-);
+  );
+};
 
 export default BlogBesteSlaapknuffel2026Page;

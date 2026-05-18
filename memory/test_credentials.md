@@ -25,8 +25,20 @@
 - Service + Anon keys in `/app/backend/.env`
 - Buckets: `product-images` (public), `digital-products` (private, 25MB PDF only)
 
-## Digital Products (NIEUW)
+## Discount Codes (Feb 2026 update - now Supabase single source of truth)
+- All discount code CRUD via `/api/discount-codes/*` reads/writes Supabase `discount_codes` table
+- Both `/api/discount/validate` (CartSidebar) and `/api/discount-codes/validate` (CheckoutPage) read from the same Supabase source
+- Active codes on Supabase: WELKOM10 (10% off), LENTE25 (25% min €75), EENMALIG2026 (€5 off), and the codes migrated from MongoDB
+
+## Digital Products
 - 5 producten geseed met IDs: `digital-bedtime-chart`, `digital-sleep-tracker`, `digital-affirmation-cards`, `digital-coloring-pages`, `digital-visual-schedule`
+- Digital products are NOT shown on `/knuffels` or homepage anymore (filtered out by `productType === 'digital'` or id starts with `digital-`)
+- Each digital product is surfaced exactly once inside a relevant blog post via `<BlogDigitalProductCallout>`:
+  - `digital-bedtime-chart` → /blog/5-tips-betere-nachtrust-kinderen
+  - `digital-sleep-tracker` → /blog/waarom-huilt-baby-s-nachts
+  - `digital-affirmation-cards` → /blog/hoe-helpen-kalmerende-knuffels-bij-stress
+  - `digital-visual-schedule` → /blog/verschil-verzwaringsknuffel-nachtlampje
+  - `digital-coloring-pages` → /blog/beste-slaapknuffel-2026
 - Customer download URL pattern: `/mijn-download/{token}`
 - Entitlement: 24h geldig, max 3 downloads
 - Test PDFs lokaal: `/tmp/digital_products/`

@@ -217,7 +217,7 @@ else:
     api_router.include_router(reviews_route.router)
 
 # Set database for other routes (still using MongoDB for non-migrated routes)
-discount_codes_route.set_database(db)
+discount_codes_route.set_supabase_client(supabase_client)
 uploads_route.set_database(db)
 marketing_route.set_database(db)
 database_info_route.set_database(db)

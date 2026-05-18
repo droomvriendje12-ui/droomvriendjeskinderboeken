@@ -51,7 +51,7 @@ const BlogsPage = () => {
       date: "19 januari 2025",
       readTime: "8 min",
       category: "Mentale rust",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
+      image: "https://images.unsplash.com/photo-1564429097439-e09bdbf28f86?w=800"
     },
     {
       id: 1,
@@ -73,50 +73,6 @@ const BlogsPage = () => {
       date: "5 januari 2025",
       readTime: "7 min",
       category: "Wetenschap",
-      image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800"
-    },
-    {
-      id: 3,
-      slug: "hoogsensitiviteit-bij-kinderen",
-      title: "Hoogsensitiviteit bij Kinderen: Wat Je Moet Weten",
-      excerpt: "Alles over hoogsensitieve kinderen en hoe je ze kunt helpen om beter om te gaan met prikkels en emoties in het dagelijks leven.",
-      author: "Emma Janssen",
-      date: "28 december 2024",
-      readTime: "6 min",
-      category: "Opvoeding",
-      image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800"
-    },
-    {
-      id: 4,
-      slug: "wetenschap-diepe-druk-stimulatie",
-      title: "De Wetenschap Achter Diepe Druk Stimulatie",
-      excerpt: "Ontdek hoe diepe druk stimulatie werkt en waarom het zo effectief is bij het kalmeren van kinderen en volwassenen.",
-      author: "Prof. Mark Hendriksen",
-      date: "20 december 2024",
-      readTime: "8 min",
-      category: "Wetenschap",
-      image: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800"
-    },
-    {
-      id: 5,
-      slug: "slaaprituals-rustgevende-routine",
-      title: "Slaaprituals: Hoe Creëer Je Een Rustgevende Routine?",
-      excerpt: "Een goede slaaproutine is essentieel voor kinderen. Lees onze tips voor het creëren van een effectief slaaprituaal.",
-      author: "Lisa van Dam",
-      date: "15 december 2024",
-      readTime: "5 min",
-      category: "Slaaptips",
-      image: "https://images.unsplash.com/photo-1540479859555-17af45c78602?w=800"
-    },
-    {
-      id: 6,
-      slug: "adhd-slaapproblemen-tips",
-      title: "ADHD en Slaapproblemen: Wat Ouders Moeten Weten",
-      excerpt: "Kinderen met ADHD hebben vaak moeite met slapen. Ontdek praktische tips en oplossingen om je kind te helpen.",
-      author: "Team Droomvriendjes",
-      date: "10 december 2024",
-      readTime: "6 min",
-      category: "Opvoeding",
       image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800"
     }
   ];

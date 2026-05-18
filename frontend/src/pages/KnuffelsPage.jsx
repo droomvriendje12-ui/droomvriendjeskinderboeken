@@ -11,14 +11,21 @@ const KnuffelsPage = () => {
   const { addToCart } = useCart();
   const { products, loading } = useProducts();
 
-  // Sort products: in-stock first, out-of-stock at the end
+  // Sort products: in-stock first, out-of-stock at the end.
+  // Digital products (PDFs) are excluded from /knuffels and surfaced
+  // strategically inside blog posts instead.
   const sortedProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
-      const aInStock = a.inStock !== false;
-      const bInStock = b.inStock !== false;
-      if (aInStock === bInStock) return 0;
-      return aInStock ? -1 : 1;
-    });
+    return [...products]
+      .filter((p) => {
+        const isDigital = p.productType === 'digital' || (typeof p.id === 'string' && p.id.startsWith('digital-'));
+        return !isDigital;
+      })
+      .sort((a, b) => {
+        const aInStock = a.inStock !== false;
+        const bInStock = b.inStock !== false;
+        if (aInStock === bInStock) return 0;
+        return aInStock ? -1 : 1;
+      });
   }, [products]);
 
   // GA4: Track view_item_list when page loads
