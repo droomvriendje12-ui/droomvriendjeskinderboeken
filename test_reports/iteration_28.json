@@ -1,0 +1,50 @@
+{
+  "summary": "Verified digital-product content sanitization across all 5 digital product pages (/product/digital-bedtime-chart, /product/digital-sleep-tracker, /product/digital-affirmation-cards, /product/digital-coloring-pages, /product/digital-visual-schedule), regression-checked the physical product page (/product/3), and validated add-to-cart + subtotal for a digital product. All 22 forbidden physical phrases are absent from every digital page; all 6 required digital phrases are present; H4 'Waarom ouders kiezen' card titles are unique across all 5 products; 'Bestand & Specificaties' section replaces 'Technische Specificaties'; 'Alleen de zachtste materialen' section is hidden; price badge reads 'Direct in je inbox' (not '2e knuffel 50%'); promise line reads 'Direct downloaden / Onbeperkt printen / Geen verzendkosten'; trust-badges show 'Direct download / Onbeperkt printen / Veilige betaling / Nederlandse klantenservice'; Product Details show 'Type: Digitale download (PDF)' with Pagina's/Formaat/Taal (no 'undefined' garantie/leeftijd, no 'Zacht pluche'); sticky bottom bar shows 'Direct beschikbaar na betaling / Onbeperkt printen'. Physical page /product/3 still renders all physical content correctly with no digital phrase leakage. Adding a digital product to cart works: subtotal €2,95 shown correctly in cart drawer.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Digital product pages — FAQ section",
+        "issues": [
+          "The FAQ accordion on digital product pages still contains physical-product questions: 'Hoe lang gaat de batterij mee?', 'Hoe werken de licht- en muziekfuncties?', 'Kan ik de knuffel wassen?', 'Voor welke leeftijd zijn de Droomvriendjes knuffels geschikt?'. These reference 'batterij', 'licht- en muziekfuncties', and 'knuffel wassen' which are physical-only concepts and not in scope for a PDF download. Not in the explicit forbidden-phrase list, but reads as a copy-paste leak — recommend a digital-specific FAQ block (refund/printing/file format/license-of-use)."
+        ]
+      },
+      {
+        "screen": "Cart drawer cross-sell (with only digital product in cart)",
+        "issues": [
+          "When a digital product is the only item in the cart, the '🎁 Voeg toe voor 50% korting!' cross-sell carousel still shows physical knuffels. Minor UX inconsistency — the '2e knuffel 50% korting' promo doesn't logically apply to a digital-only cart."
+        ]
+      },
+      {
+        "screen": "Physical product /product/3 — Product Details box",
+        "issues": [
+          "Pre-existing (not introduced by this iteration): the 'Leeftijd:' and 'Garantie:' rows render with empty values on the physical page. Worth a follow-up but unrelated to digital sanitization."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Consider authoring a digital-specific FAQ block (questions about printing, file format, refund policy, license/use rights) instead of the shared physical-product FAQ on digital pages.",
+    "Consider hiding or replacing the '2e knuffel 50% korting' cross-sell carousel in the cart drawer when only digital items are in the cart.",
+    "Pre-existing follow-up: physical product page (/product/3) shows empty values for 'Leeftijd:' and 'Garantie:' rows in the Product Details box."
+  ],
+  "critical_code_review_comments": [
+    "ProductPage.jsx is heavily forked via isDigital + digitalContent memo (~lines 87-300) + multiple conditional sections. The file likely exceeds the 700-line guideline; consider extracting DigitalProductView and PhysicalProductView into separate components (or at least a digitalContent.js content map) for maintainability.",
+    "FAQ section is rendered unconditionally on the product detail page and still uses physical-product copy on digital pages — recommend gating with isDigital and a digital FAQ array, mirroring the pattern already used for trust badges and specs.",
+    "Console shows recurring 'Error fetching products, using fallback: TypeError: Failed to fetch' + 422 responses on initial product load. Page still renders via fallback path, but root cause (Supabase or proxy 422) should be investigated separately — not introduced by this iteration."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only iteration)", "frontend": "100% on requested content-sanitization checks (5/5 digital pages clean, physical regression intact, cart add-to-cart works)"},
+  "test_credentials": "Not needed — product pages are public.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Digital-product content sanitization is verified across all 5 PDFs as of iteration 28. The only remaining digital-specific copy leak is the FAQ accordion (still physical questions). Cart drawer opens via the main CTA 'Bestel & Download - €X,XX' (not a separate add-to-cart button) and shows subtotal correctly. Console emits a non-blocking 'Error fetching products, using fallback' + 422 errors on initial load — page recovers via fallback so doesn't impact UI flow but should be RCA'd separately. /cart route renders blank — cart UX is exclusively via the right-side drawer, which works.",
+  "rca of the issue": "n/a — feature verification iteration, no bug to RCA. Findings above are scope-extension recommendations (FAQ copy + cross-sell logic for digital-only carts)."
+}

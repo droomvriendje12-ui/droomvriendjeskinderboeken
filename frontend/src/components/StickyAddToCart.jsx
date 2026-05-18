@@ -45,6 +45,12 @@ const StickyAddToCart = ({ product, onAddToCart, isCartOpen }) => {
   const lastScrollY = useRef(0);
   const addToCartButtonRef = useRef(null);
 
+  // Digital products don't have physical inventory — never run scarcity logic for them
+  const isDigital = !!product && (
+    product.productType === 'digital' ||
+    (typeof product.id === 'string' && product.id.startsWith('digital-'))
+  );
+
   // Initialize stock on mount and check periodically
   useEffect(() => {
     if (!product) return;
@@ -185,7 +191,7 @@ const StickyAddToCart = ({ product, onAddToCart, isCartOpen }) => {
                 </div>
                 {/* Stock indicator */}
                 <span className="text-xs text-green-600 font-medium hidden md:inline">
-                  ✓ Op voorraad
+                  {isDigital ? '📥 Direct download' : '✓ Op voorraad'}
                 </span>
               </div>
             </div>
@@ -236,7 +242,8 @@ const StickyAddToCart = ({ product, onAddToCart, isCartOpen }) => {
           </div>
         </div>
 
-        {/* Progress bar for urgency */}
+        {/* Progress bar for urgency — physical only */}
+        {!isDigital && (
         <div className="mt-2 hidden sm:block">
           <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
             <span>🔥 Bijna uitverkocht!</span>
@@ -250,6 +257,20 @@ const StickyAddToCart = ({ product, onAddToCart, isCartOpen }) => {
             />
           </div>
         </div>
+        )}
+
+        {/* Digital ready-now indicator */}
+        {isDigital && (
+        <div className="mt-2 hidden sm:block">
+          <div className="flex items-center justify-between text-xs text-emerald-700 mb-1">
+            <span>📥 Direct beschikbaar na betaling</span>
+            <span>🖨️ Onbeperkt printen</span>
+          </div>
+          <div className="w-full bg-emerald-100 rounded-full h-1.5">
+            <div className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-1.5 rounded-full" style={{ width: '100%' }} />
+          </div>
+        </div>
+        )}
 
         {/* Mobile close hint */}
         <button 

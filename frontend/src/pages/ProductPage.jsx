@@ -85,6 +85,222 @@ const ProductPage = () => {
     return 'basic';
   }, [product]);
 
+  // ──────────────────────────────────────────────────────────────────────
+  // Digital product handling
+  // ──────────────────────────────────────────────────────────────────────
+  const isDigital = useMemo(() => {
+    if (!product) return false;
+    return product.productType === 'digital' || (typeof product.id === 'string' && product.id.startsWith('digital-'));
+  }, [product]);
+
+  // Per-digital-product unique content (specs, feature cards, tips, product details)
+  const digitalContent = useMemo(() => {
+    if (!isDigital || !product) return null;
+    const map = {
+      'digital-bedtime-chart': {
+        emotionalIntro: '📥 Een rustig 7-staps slaapritueel op papier. Print het uit, hang het op de slaapkamerdeur en je kind weet precies wat er stap-voor-stap komt — voorspelbaarheid die vrijwel direct effect heeft op het inslapen.',
+        priceBadge: '✨ Direct in je inbox',
+        promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+        quickFeatures: [
+          { icon: '📥', label: 'Direct download' },
+          { icon: '🖨️', label: 'Print zo vaak je wilt' },
+          { icon: '📄', label: 'PDF · A4 formaat' },
+          { icon: '🇳🇱', label: 'Nederlandstalig' },
+        ],
+        specs: {
+          format: 'PDF · A4 (300 dpi)',
+          pages: '2 pagina’s (schema + invulversie)',
+          age: '2 – 8 jaar',
+          language: 'Nederlands',
+        },
+        tipText: 'Plak het schema op ooghoogte van je kind. Wijs samen elke stap aan voor je naar de volgende gaat — binnen 14 dagen kent je kind de volgorde uit het hoofd.',
+        cards: [
+          { title: '7 visuele stappen', body: 'Pyjama → tanden → toilet → voorlezen → knuffel → licht uit → slaap. Voorspelbaar en rustig.' },
+          { title: 'Direct uitprintbaar', body: 'Geen account, geen account, geen wachten. Klik, open, druk — klaar in 30 seconden.' },
+          { title: 'Werkt vanaf peuter tot 8 jaar', body: 'Eenvoudige iconen, geen leestekst nodig. Geschikt voor kinderen die nog niet kunnen lezen.' },
+        ],
+        productDetails: [
+          ['Type', 'Digitale download (PDF)'],
+          ['Pagina’s', '2 (schema + invulversie)'],
+          ['Formaat', 'A4 · 300 dpi'],
+          ['Taal', 'Nederlands'],
+        ],
+        trustBadges: [
+          { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+          { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+          { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+          { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+        ],
+      },
+      'digital-sleep-tracker': {
+        emotionalIntro: '📊 Slapeloze nachten zien er anders uit als je 30 dagen patroon op één pagina hebt. Geen losse aantekeningen meer — gewoon elke ochtend 10 seconden invullen.',
+        priceBadge: '✨ Direct in je inbox',
+        promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+        quickFeatures: [
+          { icon: '📊', label: '30-dagen overzicht' },
+          { icon: '🖨️', label: 'Onbeperkt printen' },
+          { icon: '📄', label: 'PDF · A4 formaat' },
+          { icon: '⏱️', label: '10 sec per dag' },
+        ],
+        specs: {
+          format: 'PDF · A4 (300 dpi)',
+          pages: '1 invul-pagina (30 dagen)',
+          age: 'Baby – 10 jaar',
+          language: 'Nederlands',
+        },
+        tipText: 'Vul de tracker élke ochtend bij het ontbijt in — niet ’s avonds. Ouders die dat 14 dagen volhouden zien meestal al een patroon en kunnen er bewust op sturen.',
+        cards: [
+          { title: 'Patronen in één oogopslag', body: '30 dagen op één pagina — zichtbaar voor je consultatiebureau, kinderarts of slaapcoach.' },
+          { title: 'Vakjes voor alles', body: 'Bedtijd, inslaaptijd, nachtelijk wakker, voeding, luier, stemming. Niets vergeten in de chaos van een vroege ochtend.' },
+          { title: 'Geen apps, geen schermen', body: 'Pure pen en papier. Werkt bij elk huishouden zonder extra installaties of accounts.' },
+        ],
+        productDetails: [
+          ['Type', 'Digitale download (PDF)'],
+          ['Pagina’s', '1 invul-pagina'],
+          ['Formaat', 'A4 · 300 dpi'],
+          ['Taal', 'Nederlands'],
+        ],
+        trustBadges: [
+          { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+          { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+          { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+          { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+        ],
+      },
+      'digital-affirmation-cards': {
+        emotionalIntro: '💛 12 liefdevolle bedtijd-zinnen om uit te knippen en op te hangen — vertaald uit kinderpsychologische affirmatie-praktijk. Lees ze samen voor het slapen voor en zie je kind langzaam tot rust komen.',
+        priceBadge: '✨ Direct in je inbox',
+        promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+        quickFeatures: [
+          { icon: '💛', label: '12 affirmaties' },
+          { icon: '✂️', label: 'Uitknipbaar' },
+          { icon: '📄', label: 'PDF · A4 → A6' },
+          { icon: '🇳🇱', label: 'Nederlandstalig' },
+        ],
+        specs: {
+          format: 'PDF · A4 (300 dpi)',
+          pages: '3 vellen · 12 kaartjes',
+          age: '3 – 9 jaar',
+          language: 'Nederlands',
+        },
+        tipText: 'Lamineer de kaartjes als je ze elke avond gebruikt — ze gaan jaren mee en je kind kan ze zelf vasthouden en aanwijzen.',
+        cards: [
+          { title: 'Bewezen woordkeuze', body: 'Elke zin getoetst op leeftijdsgeschikte taal door pedagogen. Voorbeelden: “Ik voel mij veilig.” “Ik ben geliefd.” “Morgen is een nieuwe dag.”' },
+          { title: 'Uitknippen of laminate', body: 'Print op stevig papier, knip uit en hang op de slaapkamerdeur — of laminate voor jarenlang gebruik.' },
+          { title: 'Versterkt je avondritueel', body: 'Combineer met een vast schema en je creëert het Pavlov-effect: woorden = rust.' },
+        ],
+        productDetails: [
+          ['Type', 'Digitale download (PDF)'],
+          ['Aantal kaartjes', '12'],
+          ['Formaat', 'A4 → uit te knippen tot A6'],
+          ['Taal', 'Nederlands'],
+        ],
+        trustBadges: [
+          { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+          { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+          { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+          { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+        ],
+      },
+      'digital-coloring-pages': {
+        emotionalIntro: '🎨 Een rustige tekenactiviteit vlak voor het tandenpoetsen werkt aantoonbaar — kinderen schakelen vanzelf in een lagere versnelling. 4 unieke kleurplaten met bedtime-thema.',
+        priceBadge: '✨ Direct in je inbox',
+        promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+        quickFeatures: [
+          { icon: '🎨', label: '4 kleurplaten' },
+          { icon: '🖨️', label: 'Onbeperkt printen' },
+          { icon: '📄', label: 'PDF · A4 formaat' },
+          { icon: '📵', label: 'Geen schermtijd' },
+        ],
+        specs: {
+          format: 'PDF · A4 (300 dpi)',
+          pages: '4 kleurplaten',
+          age: '3 – 9 jaar',
+          language: 'Nederlands',
+        },
+        tipText: 'Gebruik kleurpotloden in plaats van stiften — zachter, minder fel licht op het netvlies, en het werkt mooi rustgevend tijdens het kleuren.',
+        cards: [
+          { title: '4 bedtijd-thema’s', body: 'Maan & sterren, knuffel in bed, slapend dier en droomwolken. Elk perfect voor het laatste rustmoment voor het slapen.' },
+          { title: 'Print zoveel je wilt', body: 'Eén aankoop, oneindig veel afdrukken. Geef ze ook mee aan oma, opa of het kinderdagverblijf.' },
+          { title: 'Schermvrij activiteit', body: 'De laatste 30 minuten voor bedtijd schermvrij is goud waard. Deze kleurplaten geven kinderen iets om naar uit te kijken.' },
+        ],
+        productDetails: [
+          ['Type', 'Digitale download (PDF)'],
+          ['Pagina’s', '4 kleurplaten'],
+          ['Formaat', 'A4 · 300 dpi'],
+          ['Taal', 'Nederlands'],
+        ],
+        trustBadges: [
+          { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+          { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+          { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+          { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+        ],
+      },
+      'digital-visual-schedule': {
+        emotionalIntro: '👶 Peuters en kleuters begrijpen plaatjes beter dan woorden. Hang dit visuele schema op de slaapkamerdeur en je kind weet — zonder dat je iets hoeft uit te leggen — wat er als volgende komt.',
+        priceBadge: '✨ Direct in je inbox',
+        promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+        quickFeatures: [
+          { icon: '👶', label: 'Voor peuters' },
+          { icon: '🖼️', label: '8 plaatjes-stappen' },
+          { icon: '📄', label: 'PDF · A4 formaat' },
+          { icon: '🇳🇱', label: 'Nederlandstalig' },
+        ],
+        specs: {
+          format: 'PDF · A4 (300 dpi)',
+          pages: '1 schema · 8 stappen',
+          age: '2 – 5 jaar',
+          language: 'Nederlands',
+        },
+        tipText: 'Ook geschikt voor kinderen met autisme of een prikkelgevoeligheid — visuele voorspelbaarheid neemt de cognitieve last weg waar woorden dat juist toevoegen.',
+        cards: [
+          { title: '8 plaatjes, geen tekst', body: 'Pyjama → tanden → toilet → boekje → knuffel → licht uit → ogen dicht → slaap. Iconen herkenbaar vanaf 2 jaar.' },
+          { title: 'Knip uit & laminate', body: 'Voor herbruikbaarheid: lamineer en gebruik klittenband. Je kind kan zelf elke stap “afvinken”.' },
+          { title: 'Werkt bij speciale behoeften', body: 'Geschikt voor kinderen met autisme, ADHD of prikkelgevoeligheid — visuele voorspelbaarheid kalmeert.' },
+        ],
+        productDetails: [
+          ['Type', 'Digitale download (PDF)'],
+          ['Pagina’s', '1 schema'],
+          ['Formaat', 'A4 · 300 dpi'],
+          ['Taal', 'Nederlands'],
+        ],
+        trustBadges: [
+          { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+          { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+          { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+          { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+        ],
+      },
+    };
+    // Generic fallback for any future digital product
+    return map[product.id] || {
+      emotionalIntro: product.description,
+      priceBadge: '✨ Direct in je inbox',
+      promises: '✓ Direct downloaden · ✓ Onbeperkt printen · ✓ Geen verzendkosten',
+      quickFeatures: [
+        { icon: '📥', label: 'Direct download' },
+        { icon: '🖨️', label: 'Onbeperkt printen' },
+        { icon: '📄', label: 'PDF bestand' },
+        { icon: '🇳🇱', label: 'Nederlandstalig' },
+      ],
+      specs: { format: 'PDF · A4', pages: '–', age: 'Alle leeftijden', language: 'Nederlands' },
+      tipText: 'Sla het PDF bestand op in een vaste map op je computer — zo kun je altijd opnieuw printen wanneer nodig.',
+      cards: [
+        { title: 'Direct downloaden', body: 'Na betaling krijg je direct een unieke download-link in je e-mail.' },
+        { title: 'Onbeperkt printen', body: 'Eén aankoop, oneindig vaak printen voor thuisgebruik.' },
+        { title: 'Geen schermtijd nodig', body: 'Pure pen-en-papier activiteit — geen apps of accounts.' },
+      ],
+      productDetails: [['Type', 'Digitale download (PDF)'], ['Taal', 'Nederlands']],
+      trustBadges: [
+        { icon: '⚡', label: 'Direct\ndownload', color: 'green' },
+        { icon: '🖨️', label: 'Onbeperkt\nprinten', color: 'amber' },
+        { icon: '🔒', label: 'Veilige\nbetaling', color: 'green' },
+        { icon: '🇳🇱', label: 'Nederlandse\nklantenservice', color: 'brown' },
+      ],
+    };
+  }, [isDigital, product]);
+
   // Dynamic specifications - use database specs if available, otherwise fallback to hardcoded
   const productSpecs = useMemo(() => {
     // First check if product has specs from database
@@ -130,6 +346,9 @@ const ProductPage = () => {
 
   // Quick features from database or fallback
   const quickFeatures = useMemo(() => {
+    if (isDigital && digitalContent) {
+      return digitalContent.quickFeatures;
+    }
     if (product?.quickFeatures && product.quickFeatures.length > 0) {
       return product.quickFeatures;
     }
@@ -593,9 +812,15 @@ const ProductPage = () => {
                 {/* Emotional Description */}
                 <div className="bg-[#faf7f4] rounded-xl p-4 mb-6 border border-[#e8e0d8]">
                   <p className="text-gray-700 leading-relaxed">
-                    <span className="text-2xl">🧸</span> Dit lieve {product.shortName} helpt jouw kindje makkelijker in slaap vallen. 
-                    Met rustgevende geluiden en een zacht nachtlampje voelt je kleintje zich geborgen en droomt sneller weg – 
-                    terwijl jij ook eindelijk je rust krijgt.
+                    {isDigital && digitalContent ? (
+                      digitalContent.emotionalIntro
+                    ) : (
+                      <>
+                        <span className="text-2xl">🧸</span> Dit lieve {product.shortName} helpt jouw kindje makkelijker in slaap vallen. 
+                        Met rustgevende geluiden en een zacht nachtlampje voelt je kleintje zich geborgen en droomt sneller weg – 
+                        terwijl jij ook eindelijk je rust krijgt.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -607,12 +832,12 @@ const ProductPage = () => {
                     <span className="text-4xl md:text-5xl font-bold text-[#5a4a3a]">€{product.price.toFixed(2).replace('.', ',')}</span>
                     <span className="text-gray-500 text-sm ml-2 line-through">€{(product.price * 1.3).toFixed(2).replace('.', ',')}</span>
                   </div>
-                  <div className="bg-red-500 text-white px-4 py-2 rounded-full font-bold text-sm animate-pulse">
-                    🎁 2e knuffel 50% korting!
+                  <div className={`text-white px-4 py-2 rounded-full font-bold text-sm ${isDigital ? 'bg-amber-600' : 'bg-red-500 animate-pulse'}`} data-testid="product-price-badge">
+                    {isDigital && digitalContent ? digitalContent.priceBadge : '🎁 2e knuffel 50% korting!'}
                   </div>
                 </div>
                 <p className="text-green-700 font-medium mt-2 text-sm">
-                  ✓ Gratis verzending · ✓ Morgen in huis · ✓ 14 dagen retour
+                  {isDigital && digitalContent ? digitalContent.promises : '✓ Gratis verzending · ✓ Morgen in huis · ✓ 14 dagen retour'}
                 </p>
               </div>
 
@@ -681,18 +906,20 @@ const ProductPage = () => {
                       data-testid="add-to-cart-button"
                     >
                       <ShoppingCart className="w-6 h-6 mr-2" />
-                      Bestel Nu - €{product.price.toFixed(2).replace('.', ',')}
+                      {isDigital ? 'Bestel & Download' : 'Bestel Nu'} - €{product.price.toFixed(2).replace('.', ',')}
                     </Button>
                     <p className="text-center text-sm text-gray-600">
-                      🚚 Voor 23:00 besteld = morgen in huis
+                      {isDigital ? '📥 Direct na betaling in je inbox' : '🚚 Voor 23:00 besteld = morgen in huis'}
                     </p>
                     
-                    {/* Stock Urgency */}
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                      <p className="text-orange-700 text-sm font-medium">
-                        ⚡ Nog maar {Math.floor(Math.random() * 8) + 3} op voorraad - bestel snel!
-                      </p>
-                    </div>
+                    {/* Stock Urgency — physical only */}
+                    {!isDigital && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                        <p className="text-orange-700 text-sm font-medium">
+                          ⚡ Nog maar {Math.floor(Math.random() * 8) + 3} op voorraad - bestel snel!
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -700,47 +927,72 @@ const ProductPage = () => {
               {/* Trust Badges - Enhanced */}
               <div className="bg-white rounded-xl border-2 border-[#e8e0d8] p-4 mb-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <Shield className="w-6 h-6 text-green-600" />
-                    </div>
-                    <p className="text-xs text-slate-700 font-semibold">14 dagen<br />proefslapen</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-warm-brown-50 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <Check className="w-6 h-6 text-warm-brown-600" />
-                    </div>
-                    <p className="text-xs text-slate-700 font-semibold">Gratis<br />verzending</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <Star className="w-6 h-6 text-amber-600" />
-                    </div>
-                    <p className="text-xs text-slate-700 font-semibold">CE<br />gecertificeerd</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-warm-brown-50 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <span className="text-xl">🇳🇱</span>
-                    </div>
-                    <p className="text-xs text-slate-700 font-semibold">Nederlandse<br />klantenservice</p>
-                  </div>
+                  {isDigital && digitalContent ? (
+                    digitalContent.trustBadges.map((badge, idx) => (
+                      <div key={idx} className="text-center">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                          badge.color === 'green' ? 'bg-green-100' :
+                          badge.color === 'amber' ? 'bg-amber-100' :
+                          badge.color === 'brown' ? 'bg-warm-brown-50' : 'bg-gray-100'
+                        }`}>
+                          <span className="text-xl">{badge.icon}</span>
+                        </div>
+                        <p className="text-xs text-slate-700 font-semibold whitespace-pre-line">{badge.label}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Shield className="w-6 h-6 text-green-600" />
+                        </div>
+                        <p className="text-xs text-slate-700 font-semibold">14 dagen<br />proefslapen</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-warm-brown-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Check className="w-6 h-6 text-warm-brown-600" />
+                        </div>
+                        <p className="text-xs text-slate-700 font-semibold">Gratis<br />verzending</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Star className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <p className="text-xs text-slate-700 font-semibold">CE<br />gecertificeerd</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-warm-brown-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <span className="text-xl">🇳🇱</span>
+                        </div>
+                        <p className="text-xs text-slate-700 font-semibold">Nederlandse<br />klantenservice</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               
               {/* Guarantee Banner */}
               <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-4 mb-6 text-white text-center">
                 <p className="font-bold text-lg">💯 100% Tevredenheidsgarantie</p>
-                <p className="text-sm opacity-90">Niet tevreden? Geld terug, geen vragen!</p>
+                <p className="text-sm opacity-90">{isDigital ? 'Bestand niet zoals verwacht? Mail ons en je geld komt terug.' : 'Niet tevreden? Geld terug, geen vragen!'}</p>
               </div>
 
               {/* Product Details */}
               <div className="bg-white rounded-xl p-6 border-2 border-[#e8e0d8]">
                 <h3 className="font-bold text-[#5a4a3a] mb-3">Product Details:</h3>
                 <div className="space-y-2 text-sm text-gray-700">
-                  <p><strong>Leeftijd:</strong> {product.ageRange}</p>
-                  <p><strong>Garantie:</strong> {product.warranty}</p>
-                  <p><strong>Certificering:</strong> CE-gecertificeerd</p>
-                  <p><strong>Materiaal:</strong> Zacht pluche, hoogwaardig en veilig</p>
+                  {isDigital && digitalContent ? (
+                    digitalContent.productDetails.map(([label, value], idx) => (
+                      <p key={idx}><strong>{label}:</strong> {value}</p>
+                    ))
+                  ) : (
+                    <>
+                      <p><strong>Leeftijd:</strong> {product.ageRange}</p>
+                      <p><strong>Garantie:</strong> {product.warranty}</p>
+                      <p><strong>Certificering:</strong> CE-gecertificeerd</p>
+                      <p><strong>Materiaal:</strong> Zacht pluche, hoogwaardig en veilig</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -755,18 +1007,30 @@ const ProductPage = () => {
         <section className="text-center max-w-4xl mx-auto space-y-12">
           <div className="space-y-4">
             <span className="text-warm-brown-500 font-black uppercase tracking-[0.3em] text-xs">
-              Voor Ouders & Baby
+              {isDigital ? 'Direct downloadbaar' : 'Voor Ouders & Baby'}
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-slate-800 leading-tight italic">
-              Waarom ouders kiezen voor de {product.shortName}
+              {isDigital ? `Waarom ouders kiezen voor de ${product.shortName}` : `Waarom ouders kiezen voor de ${product.shortName}`}
             </h2>
             <p className="text-slate-500 font-medium text-lg leading-relaxed">
-              Wetenschappelijk bewezen geluiden en kleuren die bijdragen aan een betere nachtrust voor zowel kind als ouder.
+              {isDigital
+                ? 'Een doordachte digitale tool die je kunt printen, hergebruiken en in 30 seconden in handen hebt — zonder verzending, zonder wachten.'
+                : 'Wetenschappelijk bewezen geluiden en kleuren die bijdragen aan een betere nachtrust voor zowel kind als ouder.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {productSeries === 'ai' ? (
+            {isDigital && digitalContent ? (
+              digitalContent.cards.map((card, idx) => (
+                <div key={idx} className="space-y-4">
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
+                    <span className="text-3xl">{['📥', '🖨️', '🇳🇱'][idx] || '📄'}</span>
+                  </div>
+                  <h4 className="text-xl font-black italic">{card.title}</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">{card.body}</p>
+                </div>
+              ))
+            ) : productSeries === 'ai' ? (
               <>
                 <div className="space-y-4">
                   <div className="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto text-warm-brown-500">
@@ -878,7 +1142,8 @@ const ProductPage = () => {
           </div>
         </section>
 
-        {/* Section 2: Material & Washable */}
+        {/* Section 2: Material & Washable — physical only */}
+        {!isDigital && (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white rounded-[3rem] overflow-hidden shadow-sm border border-warm-brown-100 p-4 lg:p-0">
           <div className="h-full min-h-[400px]">
             <img 
@@ -920,41 +1185,75 @@ const ProductPage = () => {
             </ul>
           </div>
         </section>
+        )}
 
         {/* Section 3: Technical Specs - Dynamic based on product series */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="order-2 lg:order-1 space-y-8">
-            <h2 className="text-3xl md:text-4xl font-black italic text-slate-800">Technische Specificaties</h2>
+            <h2 className="text-3xl md:text-4xl font-black italic text-slate-800">
+              {isDigital ? 'Bestand & Specificaties' : 'Technische Specificaties'}
+            </h2>
             <div className="space-y-0">
-              <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
-                <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
-                  Projectie / Licht
-                </span>
-                <span className="font-bold text-slate-800 italic">{productSpecs.projection}</span>
-              </div>
-              <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
-                <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
-                  Audio Content
-                </span>
-                <span className="font-bold text-slate-800 italic">{productSpecs.audio}</span>
-              </div>
-              <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
-                <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
-                  Voeding
-                </span>
-                <span className="font-bold text-slate-800 italic">{productSpecs.power}</span>
-              </div>
-              <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
-                <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
-                  Timer
-                </span>
-                <span className="font-bold text-slate-800 italic">{productSpecs.timer}</span>
-              </div>
+              {isDigital && digitalContent ? (
+                <>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Bestandsformaat
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{digitalContent.specs.format}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Omvang
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{digitalContent.specs.pages}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Leeftijd
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{digitalContent.specs.age}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Taal
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{digitalContent.specs.language}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Projectie / Licht
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{productSpecs.projection}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Audio Content
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{productSpecs.audio}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Voeding
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{productSpecs.power}</span>
+                  </div>
+                  <div className="flex justify-between py-5 border-b border-warm-brown-100 group">
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-[11px] group-hover:text-warm-brown-600 transition">
+                      Timer
+                    </span>
+                    <span className="font-bold text-slate-800 italic">{productSpecs.timer}</span>
+                  </div>
+                </>
+              )}
             </div>
             <div className="p-5 bg-warm-brown-50 rounded-2xl border border-warm-brown-100 italic">
               <p className="text-xs text-warm-brown-800 font-bold leading-relaxed">
                 <span className="uppercase mr-2 font-black">Tip:</span> 
-                {productSpecs.tipText}
+                {isDigital && digitalContent ? digitalContent.tipText : productSpecs.tipText}
               </p>
             </div>
           </div>
