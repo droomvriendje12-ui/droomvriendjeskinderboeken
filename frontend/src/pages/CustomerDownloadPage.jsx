@@ -195,12 +195,63 @@ const CustomerDownloadPage = () => {
             </div>
           </div>
 
+          {/* Cross-sell: 10% korting op eerste knuffel */}
+          {info?.crosssell && (
+            <CrossSellCard crosssell={info.crosssell} />
+          )}
+
           <p className="text-center text-xs text-stone-400 mt-6">
             Vragen? <a href="mailto:info@droomvriendjes.com" className="underline">info@droomvriendjes.com</a>
           </p>
         </div>
       </div>
     </>
+  );
+};
+
+const CrossSellCard = ({ crosssell }) => {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(crosssell.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      // ignored — clipboard might be restricted
+    }
+  };
+  return (
+    <div
+      className="mt-8 rounded-2xl p-6 border-2 border-dashed border-amber-400 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 text-center"
+      data-testid="crosssell-card"
+    >
+      <p className="text-[11px] uppercase tracking-[0.18em] text-amber-700 font-bold mb-1">
+        Cadeau van Droomvriendjes
+      </p>
+      <h3 className="text-2xl font-black text-amber-950 leading-tight mb-2">
+        {crosssell.message}
+      </h3>
+      <p className="text-sm text-amber-900/80 leading-relaxed mb-5 max-w-md mx-auto">
+        Een knuffel maakt het ritueel uit deze PDF nóg krachtiger. Gebruik onderstaande code bij je eerste knuffel-bestelling — eenmalig geldig.
+      </p>
+      <button
+        onClick={copy}
+        className="inline-flex items-center gap-3 bg-white border-2 border-amber-500 rounded-xl px-6 py-3 mb-4 hover:bg-amber-50 transition-colors group"
+        data-testid="crosssell-copy-btn"
+      >
+        <span className="font-mono text-xl font-bold text-amber-900 tracking-[3px]">{crosssell.code}</span>
+        <span className="text-xs text-amber-700 group-hover:underline">{copied ? '✓ Gekopieerd' : 'Klik om te kopiëren'}</span>
+      </button>
+      <div>
+        <a
+          href="/knuffels"
+          className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors"
+          data-testid="crosssell-cta-btn"
+        >
+          Bekijk de knuffels →
+        </a>
+      </div>
+    </div>
   );
 };
 

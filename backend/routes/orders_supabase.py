@@ -138,8 +138,13 @@ def _send_order_notification(order_data: dict, items: list, event_type: str):
     return _send_email(OWNER_EMAIL, f"{title} - #{order_number}", html, text)
 
 
-def _send_digital_downloads_email(order_data: dict, entitlements: list):
-    """Stuur een aparte mail met directe download links voor digitale producten."""
+def _send_digital_downloads_email(order_data: dict, entitlements: list, crosssell_code: Optional[str] = None):
+    """Stuur een aparte mail met directe download links voor digitale producten.
+
+    Wanneer `crosssell_code` is meegegeven wordt er onderaan de mail een
+    "10% korting op je eerste knuffel"-blok getoond. Dit verbindt de digital
+    funnel (PDF lezer) met de fysieke knuffel-verkoop.
+    """
     customer_email = order_data.get('customer_email')
     if not customer_email or not entitlements:
         return False
@@ -162,6 +167,17 @@ def _send_digital_downloads_email(order_data: dict, entitlements: list):
             </td>
         </tr>"""
 
+    crosssell_block = ""
+    if crosssell_code:
+        crosssell_block = f"""
+        <div style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border-radius:14px;padding:24px;margin:24px 0;text-align:center;border:2px dashed #f59e0b;">
+            <p style="color:#78350f;margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">Cadeau van Droomvriendjes</p>
+            <h3 style="color:#92400e;margin:0 0 8px;font-size:22px;">10% korting op je eerste knuffel</h3>
+            <p style="color:#78350f;margin:0 0 16px;font-size:14px;line-height:1.5;">Een knuffel maakt het slaapritueel uit deze PDF nóg krachtiger. Gebruik onderstaande code bij je eerste knuffel-bestelling — eenmalig geldig, 30 dagen lang.</p>
+            <div style="background:#fff;display:inline-block;padding:14px 28px;border-radius:10px;font-family:Courier,monospace;font-size:22px;font-weight:700;letter-spacing:3px;color:#92400e;border:2px solid #f59e0b;">{crosssell_code}</div>
+            <p style="margin:14px 0 0;"><a href="{frontend_url}/knuffels" style="background:#f59e0b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;display:inline-block;">Bekijk de knuffels →</a></p>
+        </div>"""
+
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"></head>
     <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#fafaf9;">
     <div style="background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
@@ -178,14 +194,61 @@ def _send_digital_downloads_email(order_data: dict, entitlements: list):
         <div style="background:#fef3c7;border-radius:10px;padding:14px 18px;color:#78350f;font-size:13px;">
             <strong>Tip:</strong> Sla het bestand direct op je apparaat op. Je kunt het maximaal 3x downloaden binnen 24 uur.
         </div>
+        {crosssell_block}
         <div style="border-top:1px solid #f1ede8;margin-top:28px;padding-top:18px;text-align:center;color:#a8a29e;font-size:12px;">
             <p>Vragen? Mail naar <a href="mailto:info@droomvriendjes.com" style="color:#f59e0b;">info@droomvriendjes.com</a></p>
         </div>
     </div></body></html>"""
-    text = f"Bedankt {customer_name}! Je downloads voor bestelling #{order_number}: " + " | ".join(
+    text_parts = [f"Bedankt {customer_name}! Je downloads voor bestelling #{order_number}: "]
+    text_parts.append(" | ".join(
         [f"{e.get('product_name')}: {frontend_url}/mijn-download/{e['token']}" for e in entitlements]
-    )
-    return _send_email(customer_email, f"Jouw downloads - bestelling #{order_number}", html, text)
+    ))
+    if crosssell_code:
+        text_parts.append(f"\n\nCadeau: 10% korting op je eerste knuffel. Code: {crosssell_code} (eenmalig geldig, 30 dagen).")
+    return _send_email(customer_email, f"Jouw downloads - bestelling #{order_number}", html, "".join(text_parts))
+
+
+def _create_crosssell_discount_code(customer_email: str, order_id: str) -> Optional[str]:
+    """Genereer een eenmalige 10% kortingscode voor de fysieke knuffel-shop.
+    
+    Wordt aangeroepen na een succesvolle digital-only of mixed order. Code:
+      - Prefix `BEDANKT-` + 6-char hash van order_id
+      - 10% korting, max_uses=1, 30 dagen geldig
+      - min_order_amount=0 (werkt op elke knuffel)
+    Returns None als generatie faalt.
+    """
+    if supabase is None:
+        return None
+    try:
+        import hashlib
+        from datetime import timedelta
+        suffix = hashlib.sha256(f"{order_id}-{customer_email}".encode()).hexdigest()[:6].upper()
+        code = f"BEDANKT{suffix}"
+        # Idempotency: als deze code al bestaat, hergebruik 'm
+        existing = supabase.table("discount_codes").select("code").eq("code", code).limit(1).execute()
+        if existing.data:
+            logger.info(f"Cross-sell code {code} already exists, reusing")
+            return code
+        row = {
+            "id": str(uuid.uuid4())[:8].upper(),
+            "code": code,
+            "discount_type": "percentage",
+            "discount_value": 10.0,
+            "min_order_amount": 0,
+            "max_uses": 1,
+            "current_uses": 0,
+            "active": True,
+            "free_shipping": False,
+            "description": f"Cross-sell: 10% op eerste knuffel (digital order {order_id[:8]})",
+            "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        supabase.table("discount_codes").insert(row).execute()
+        logger.info(f"✨ Cross-sell code {code} aangemaakt voor {customer_email} (order {order_id})")
+        return code
+    except Exception as e:
+        logger.error(f"Cross-sell code generation failed: {e}")
+        return None
 
 
 def set_supabase_client(client):
@@ -620,8 +683,21 @@ async def mollie_webhook(request: Request):
                             customer_email=order.get('customer_email', ''),
                         )
                         if ents:
-                            _send_digital_downloads_email(order, ents)
-                            logger.info(f"Aangemaakt: {len(ents)} digital entitlement(s) voor order {order_id}")
+                            # Cross-sell: alleen ALS de bestelling fysieke knuffels nog mist.
+                            # Klant heeft net een PDF gekocht → 10% korting op eerste knuffel.
+                            has_physical = any(
+                                not (item.get('product_id', '').startswith('digital-')
+                                     or item.get('product_type') == 'digital')
+                                for item in (items or [])
+                            )
+                            crosssell_code = None
+                            if not has_physical:
+                                crosssell_code = _create_crosssell_discount_code(
+                                    customer_email=order.get('customer_email', ''),
+                                    order_id=order_id,
+                                )
+                            _send_digital_downloads_email(order, ents, crosssell_code=crosssell_code)
+                            logger.info(f"Aangemaakt: {len(ents)} digital entitlement(s) voor order {order_id} (cross-sell: {crosssell_code or 'no'})")
                     except Exception as dig_err:
                         logger.error(f"Digital entitlement creatie faalde: {dig_err}")
                     if order.get('discount_code'):

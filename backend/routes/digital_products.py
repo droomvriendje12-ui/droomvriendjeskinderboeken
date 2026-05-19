@@ -351,6 +351,35 @@ async def info_via_token(token: str):
                 product = pr.data[0]
         except Exception:
             pass
+
+    # Cross-sell: zoek een actieve, ongebruikte BEDANKT-code voor deze order
+    crosssell = None
+    order_id = ent.get("order_id")
+    customer_email = ent.get("customer_email")
+    if order_id and customer_email:
+        try:
+            import hashlib
+            suffix = hashlib.sha256(f"{order_id}-{customer_email}".encode()).hexdigest()[:6].upper()
+            expected_code = f"BEDANKT{suffix}"
+            cs = supabase.table("discount_codes").select(
+                "code, discount_value, max_uses, current_uses, expires_at, active"
+            ).eq("code", expected_code).limit(1).execute()
+            if cs.data:
+                row = cs.data[0]
+                is_usable = (
+                    row.get("active", True)
+                    and (row.get("current_uses") or 0) < (row.get("max_uses") or 1)
+                )
+                if is_usable:
+                    crosssell = {
+                        "code": row["code"],
+                        "discount_percentage": row.get("discount_value") or 10,
+                        "expires_at": row.get("expires_at"),
+                        "message": "10% korting op je eerste knuffel",
+                    }
+        except Exception as cs_err:
+            logger.warning(f"Cross-sell lookup failed: {cs_err}")
+
     return {
         "token": token,
         "filename": (ent.get("file_path") or "").split("/")[-1],
@@ -359,6 +388,7 @@ async def info_via_token(token: str):
         "expires_at": ent.get("expires_at"),
         "customer_email": ent.get("customer_email"),
         "product": product,
+        "crosssell": crosssell,
     }
 
 

@@ -82,19 +82,30 @@ def get_default_avatar(name: str) -> str:
 
 
 @router.get("")
-async def get_reviews(product_id: Optional[int] = None, include_hidden: bool = False):
-    """Get all reviews, optionally filtered by product_id"""
+async def get_reviews(product_id: Optional[str] = None, include_hidden: bool = False):
+    """Get all reviews, optionally filtered by product_id.
+
+    `product_id` accepts both integer ids (legacy physical products: "3", "14")
+    and string ids (digital products: "digital-coloring-pages"). Matching is
+    flexible: we try the raw value first and fall back to a numeric cast so
+    older clients sending a number still work.
+    """
     if db is None:
         raise HTTPException(status_code=500, detail="Database not initialized")
-    
+
     query = {}
-    if product_id:
-        query["product_id"] = product_id
-    
+    if product_id is not None and product_id != "":
+        # Accept both string and int — match either form stored in DB
+        try:
+            as_int = int(product_id)
+            query["product_id"] = {"$in": [product_id, as_int]}
+        except (TypeError, ValueError):
+            query["product_id"] = product_id
+
     # By default, only show visible reviews (for public pages)
     if not include_hidden:
         query["visible"] = {"$ne": False}
-    
+
     reviews = await db.reviews.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return reviews
 

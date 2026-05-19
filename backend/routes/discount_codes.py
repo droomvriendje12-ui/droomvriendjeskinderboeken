@@ -211,39 +211,57 @@ async def validate_discount_code(data: dict):
 
     Same Supabase source as `/api/discount/validate` so CheckoutPage and
     CartSidebar stay consistent.
+
+    Response shape (unified):
+        {
+            ok: bool,                  # true if the code is currently usable
+            valid: bool,               # alias of `ok`, kept for legacy clients
+            message: str,              # localized user-facing message
+            code: str | null,          # echoed code (uppercased, trimmed)
+            discount: float,           # discount amount in EUR (0 for free shipping)
+            discount_amount: float,    # alias of `discount`
+            discount_type: str | null, # 'percentage' | 'fixed' | 'free_shipping'
+            discount_value: float,     # raw value as configured
+            free_shipping: bool,
+            error_code: str | null,    # machine-readable failure reason
+        }
     """
     if supabase is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+        return _error_response("Database niet beschikbaar", code=None, status_code=500)
     try:
         code = (data.get("code") or "").upper().strip()
         cart_total = float(data.get("cart_total", 0) or 0)
         if not code:
-            raise HTTPException(status_code=400, detail="Code is verplicht")
+            return _error_response("Code is verplicht", code=None, error_code="MISSING_CODE")
 
         result = supabase.table("discount_codes").select("*").eq("code", code).limit(1).execute()
         if not result.data:
-            return {"valid": False, "message": "Ongeldige kortingscode", "discount": 0}
+            return _error_response("Ongeldige kortingscode", code=code, error_code="NOT_FOUND")
         row = result.data[0]
 
         if not row.get("active", True):
-            return {"valid": False, "message": "Deze kortingscode is niet meer actief", "discount": 0}
+            return _error_response("Deze kortingscode is niet meer actief", code=code, error_code="INACTIVE")
 
         if row.get("expires_at"):
             try:
                 exp = datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00"))
                 if datetime.now(timezone.utc) > exp:
-                    return {"valid": False, "message": "Deze kortingscode is verlopen", "discount": 0}
+                    return _error_response("Deze kortingscode is verlopen", code=code, error_code="EXPIRED")
             except Exception:
                 pass
 
         max_uses = row.get("max_uses")
         current_uses = row.get("current_uses", 0) or 0
         if max_uses is not None and current_uses >= max_uses:
-            return {"valid": False, "message": "Deze kortingscode is al maximaal gebruikt", "discount": 0}
+            return _error_response("Deze kortingscode is al maximaal gebruikt", code=code, error_code="MAX_USES")
 
         min_amount = row.get("min_order_amount", 0) or 0
         if cart_total < min_amount:
-            return {"valid": False, "message": f"Minimaal bestelbedrag is €{min_amount:.2f}", "discount": 0}
+            return _error_response(
+                f"Minimaal bestelbedrag is €{min_amount:.2f}",
+                code=code,
+                error_code="MIN_ORDER",
+            )
 
         d_type = row.get("discount_type")
         d_value = row.get("discount_value", 0) or 0
@@ -261,40 +279,110 @@ async def validate_discount_code(data: dict):
             message = "Korting toegepast!"
 
         return {
+            "ok": True,
             "valid": True,
             "message": message,
+            "code": code,
             "discount": discount,
+            "discount_amount": discount,
             "discount_type": d_type,
             "discount_value": d_value,
-            "code": code,
             "free_shipping": d_type == "free_shipping",
+            "error_code": None,
         }
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Error validating discount code: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return _error_response("Er ging iets mis bij het valideren", code=None, error_code="SERVER_ERROR", status_code=500)
 
 
 @router.post("/use")
 async def use_discount_code(data: dict):
-    """Increment usage count after successful order."""
+    """Atomically increment the usage counter for a discount code.
+
+    Uses optimistic concurrency control (compare-and-swap on `current_uses`)
+    so two simultaneous orders can't both go over `max_uses`. Retries up to
+    5 times on contention.
+
+    Response shape (unified):
+        { ok: bool, message: str, code: str | null, current_uses: int | null,
+          max_uses: int | null, error_code: str | null }
+    """
     if supabase is None:
-        return {"success": False, "message": "Database not configured"}
+        return _error_response("Database niet beschikbaar", code=None, status_code=500)
     try:
         code = (data.get("code") or "").upper().strip()
         if not code:
-            return {"success": False, "message": "Code is verplicht"}
-        existing = supabase.table("discount_codes").select("current_uses").eq("code", code).limit(1).execute()
-        if not existing.data:
-            return {"success": False, "message": "Code niet gevonden"}
-        new_uses = (existing.data[0].get("current_uses") or 0) + 1
-        supabase.table("discount_codes").update({"current_uses": new_uses}).eq("code", code).execute()
-        logger.info(f"Discount code {code} used (count={new_uses})")
-        return {"success": True, "message": "Kortingscode gebruikt"}
+            return _error_response("Code is verplicht", code=None, error_code="MISSING_CODE")
+
+        MAX_RETRIES = 5
+        for attempt in range(MAX_RETRIES):
+            existing = supabase.table("discount_codes").select(
+                "id, current_uses, max_uses, active"
+            ).eq("code", code).limit(1).execute()
+            if not existing.data:
+                return _error_response("Code niet gevonden", code=code, error_code="NOT_FOUND")
+
+            row = existing.data[0]
+            if not row.get("active", True):
+                return _error_response("Code niet meer actief", code=code, error_code="INACTIVE")
+
+            prev = int(row.get("current_uses") or 0)
+            max_uses = row.get("max_uses")
+            if max_uses is not None and prev >= int(max_uses):
+                return _error_response(
+                    "Code is al maximaal gebruikt",
+                    code=code,
+                    error_code="MAX_USES",
+                )
+
+            new_uses = prev + 1
+            # Compare-and-swap: only update if current_uses still equals `prev`
+            update_q = supabase.table("discount_codes").update(
+                {"current_uses": new_uses}
+            ).eq("code", code).eq("current_uses", prev)
+            result = update_q.execute()
+            if result.data:
+                logger.info(f"Discount code {code} used (count={new_uses}/{max_uses or '∞'})")
+                return {
+                    "ok": True,
+                    "message": "Kortingscode gebruikt",
+                    "code": code,
+                    "current_uses": new_uses,
+                    "max_uses": max_uses,
+                    "error_code": None,
+                }
+            # Contention: another request updated first — retry
+            logger.warning(f"Contention on discount code {code}, retry {attempt + 1}/{MAX_RETRIES}")
+
+        return _error_response(
+            "Code is op dit moment druk, probeer opnieuw",
+            code=code,
+            error_code="CONTENTION",
+            status_code=409,
+        )
     except Exception as e:
         logger.error(f"Error using discount code: {e}")
-        return {"success": False, "message": str(e)}
+        return _error_response("Er ging iets mis", code=None, error_code="SERVER_ERROR", status_code=500)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ────────────────────────────────────────────────────────────────────────────
+def _error_response(message: str, *, code=None, error_code: str = "INVALID", status_code: int = 200):
+    """Unified error envelope. Always 200 unless explicitly elevated so the
+    frontend can show the user a friendly message without try/catch noise."""
+    return {
+        "ok": False,
+        "valid": False,            # legacy alias for validate endpoint
+        "message": message,
+        "code": code,
+        "discount": 0,
+        "discount_amount": 0,
+        "discount_type": None,
+        "discount_value": 0,
+        "free_shipping": False,
+        "error_code": error_code,
+    }
 
 
 async def seed_discount_codes():
