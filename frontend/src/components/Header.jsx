@@ -16,6 +16,7 @@ const Header = () => {
     { href: "/", label: "Home" },
     { href: "/knuffels", label: "Knuffels" },
     { href: "/pro", label: "Printables", badge: "Nieuw" },
+    { href: "/quiz", label: "Quiz" },
     { href: "/cadeaubon", label: "Cadeaubonnen" },
     { href: "/over-ons", label: "Over Droomvriendjes" },
     { href: "/contact", label: "Contact" }
@@ -39,7 +40,7 @@ const Header = () => {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex items-center space-x-5 lg:space-x-8">
             {navLinks.map((link) => (
               <Link 
                 key={link.href}

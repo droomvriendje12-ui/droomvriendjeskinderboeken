@@ -303,6 +303,37 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Quiz CTA Band */}
+      <section className="py-12 bg-warm-brown-50 border-y border-warm-brown-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link to="/quiz" data-testid="home-quiz-cta" className="block group">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-warm-brown-900 via-warm-brown-800 to-amber-900 text-white p-7 sm:p-10 shadow-lg">
+              <div className="absolute -right-6 -top-6 opacity-10">
+                <Sparkles className="w-44 h-44" />
+              </div>
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/15 px-3 py-1 rounded-full mb-3">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Gratis · 30 seconden
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-2 leading-tight">
+                    Welke slaapknuffel past bij jouw kindje?
+                  </h2>
+                  <p className="text-sm sm:text-base opacity-90 max-w-xl">
+                    Doe de gratis Droomvriendje-test, ontdek jouw type én ontvang <span className="font-semibold">10% korting</span>.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-2 bg-white text-warm-brown-900 font-bold px-7 py-3.5 rounded-full whitespace-nowrap group-hover:gap-3 transition-all shadow-md">
+                  Doe de test
+                  <ChevronRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* Benefits Section - Warm Brown Theme */}
       <section id="voordelen" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
