@@ -75,13 +75,20 @@ def format_review_response(review: dict) -> dict:
 
 
 @router.get("")
-async def get_all_reviews():
-    """Get all reviews from Supabase"""
+async def get_all_reviews(product_id: Optional[str] = None):
+    """Get reviews from Supabase, optionally filtered by product_id.
+
+    `product_id` accepts both integer ids (legacy physical products: "3", "14")
+    and string ids (digital products: "digital-coloring-pages").
+    """
     if supabase is None:
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        result = supabase.table("reviews").select("*").eq("visible", True).order("created_at", desc=True).execute()
+        query = supabase.table("reviews").select("*").eq("visible", True)
+        if product_id:
+            query = query.eq("product_id", product_id)
+        result = query.order("created_at", desc=True).execute()
         reviews = [format_review_response(r) for r in result.data]
         return reviews
     except Exception as e:

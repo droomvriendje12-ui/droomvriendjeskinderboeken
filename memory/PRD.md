@@ -18,10 +18,56 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Winkelwagen met cross-sell
 - [x] Checkout met mobiel-first design, floating labels
 - [x] Adres auto-fill (NL via PDOK, BE via publieke API)
-- [x] Express checkout (Apple Pay, Google Pay, PayPal) - direct naar betaaldienst
-- [x] Kortingscode invoerveld in checkout — **stuurt nu cart_total mee** (was bug)
-- [x] Mollie betalingen met retry-logica (3 pogingen) en nette Nederlandse foutmeldingen
+- [x] Express checkout (Apple Pay, Google Pay, PayPal)
+- [x] Kortingscode invoerveld in checkout — stuurt nu cart_total mee
+- [x] Mollie betalingen met retry-logica en NL foutmeldingen
 - [x] Cadeaubonnen (/cadeaubon) via Supabase
+
+### Discount Codes — Supabase + atomic (18 Feb 2026)
+- [x] Single source of truth: Supabase `discount_codes` tabel
+- [x] Admin CRUD `/api/discount-codes/*` met Bearer JWT auth (POST/PUT/DELETE)
+- [x] **Atomic increment**: `/api/discount-codes/use` gebruikt Compare-And-Swap loop (5 retries) — 15 parallelle requests met max_uses=5 resulteert in **exact 5 successes, 10 MAX_USES errors**, geen overcount.
+- [x] **Uniforme response shape** voor validate én use endpoints: `{ok, valid, message, code, discount, discount_amount, discount_type, discount_value, free_shipping, error_code}`. Machine-readable error_codes: `NOT_FOUND`, `INACTIVE`, `EXPIRED`, `MAX_USES`, `MIN_ORDER`, `CONTENTION`, `SERVER_ERROR`, `MISSING_CODE`.
+- [x] Legacy `/api/discount/validate` (gift cards + codes) blijft backward-compatible
+
+### Reviews (18 Feb 2026)
+- [x] `/api/reviews?product_id=X` accepteert nu zowel int (`3`) als string ids (`digital-coloring-pages`)
+- [x] 92 nieuwe digital-specifieke reviews geseed (18/23/20/16/15 per product) met realistische namen, varied ratings (3-5) en digital content (geen knuffel-terms)
+- [x] Seed script: `/app/backend/scripts/seed_digital_reviews.py` (idempotent per customer_name)
+
+### Cross-sell Digital → Physical (18 Feb 2026)
+- [x] Na een **digital-only** paid order: auto-generated 10% kortingscode `BEDANKT<6hex>`
+- [x] Code shape: percentage=10, max_uses=1, min_order_amount=0, 30 dagen geldig
+- [x] **Idempotent**: dezelfde order_id+email → dezelfde code (hash-based deterministisch)
+- [x] **Scope**: alleen voor digital-only orders, NIET voor mixed orders met fysieke knuffels
+- [x] Code wordt getoond in de download-email (gold gradient block) én op `/mijn-download/{token}` (CrossSellCard met copy-button)
+- [x] Backend helper: `_create_crosssell_discount_code()` in `orders_supabase.py`
+- [x] Lookup endpoint `/api/digital-products/info/{token}` returnt `crosssell` object
+
+### Digitale Producten / PDF Downloads (Feb 2026)
+- [x] Supabase Storage private bucket `digital-products` (PDF only, max 25MB)
+- [x] 5 placeholder PDFs (Slaapritueel, Slaaplog, Affirmatiekaartjes, Kleurplaten, Visueel Schema)
+- [x] Backend `/api/digital-products/*` (6 endpoints, Bearer admin auth, atomic counters)
+- [x] Mollie webhook → entitlement bij `paid`, 24u geldig, max 3 downloads
+- [x] Admin UI `/admin/digital-products`, Customer UI `/mijn-download/{token}`
+- [x] **ProductPage content sanitisation** — alle fysieke knuffel-content verwijderd van digital pages. Per PDF unieke teasers, specs (Bestandsformaat/Omvang/Leeftijd/Taal), 3 feature cards, trust badges, FAQ (6 vragen over PDF). Digital-only cart hide cross-sell knuffel-strip, "2e knuffel" promo en "Gratis verzending" tekst.
+
+### Blog posts (18 Feb 2026)
+- [x] 5 blog-posts met `<BlogDigitalProductCallout>` natuurlijk ingebed (1 PDF per blog)
+- [x] Dode links gefixt, duplicate images/products gededupliceerd
+- [x] 4 placeholder-blogs zonder detail page verwijderd uit /blogs lijst
+
+### Admin Dashboard
+- [x] Real-time statistieken uit Supabase (omzet, orders, klanten)
+- [x] Live bestellingen feed, conversie funnel, dagelijkse omzet chart
+- [x] Klanten beheer (/admin/customers)
+- [x] Kortingscode beheer (/admin/discount-codes)
+
+### Email Marketing + Inbox
+- [x] CSV import, bulk verzending, AVG/GDPR afmeldlink, open/click tracking
+- [x] Inbox 3-pane Gmail-style interface (/admin/inbox)
+- [x] Cloudflare Email Worker webhook (handleiding in `/app/INBOX_SETUP.md` — bijgewerkt 18 Feb 2026 met TOC, architectuurdiagram en troubleshoot debug-script)
+- [x] Resend SDK voor outbound + reply met In-Reply-To threading
 
 ### Admin Dashboard
 - [x] Real-time statistieken uit Supabase (omzet, orders, klanten)

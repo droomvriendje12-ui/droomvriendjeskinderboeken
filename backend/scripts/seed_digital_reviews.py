@@ -175,18 +175,16 @@ async def seed():
     total_skipped = 0
     random.seed(42)  # reproducible
 
-    # Clean up the Supabase mis-seed from the first run
+    # Cleanup MongoDB rows from a previous mis-run (we use Supabase now)
     try:
         for product_id, _, _, _ in PRODUCTS:
-            sb.table("reviews").delete().eq("product_id", product_id).eq("source", "imported").execute()
+            await mdb.reviews.delete_many({"product_id": product_id})
     except Exception as e:
-        print(f"  (supabase cleanup ignored): {e}")
+        print(f"  (mongo cleanup ignored): {e}")
 
     for product_id, product_name, reviews, target_count in PRODUCTS:
-        existing = await mdb.reviews.find(
-            {"product_id": product_id}, {"customer_name": 1, "_id": 0}
-        ).to_list(length=200)
-        existing_names = {r["customer_name"] for r in existing if r.get("customer_name")}
+        existing = sb.table("reviews").select("customer_name").eq("product_id", product_id).execute()
+        existing_names = {r["customer_name"] for r in (existing.data or []) if r.get("customer_name")}
 
         pool = reviews[:target_count] if target_count <= len(reviews) else reviews
         used_names = set(existing_names)
@@ -212,7 +210,6 @@ async def seed():
                 "rating": rating,
                 "title": title or "",
                 "content": content or title or "Top product!",
-                "text": content or title or "Top product!",  # legacy field used by some queries
                 "verified": True,
                 "visible": True,
                 "avatar": f"https://ui-avatars.com/api/?name={name.replace(' ', '+')}&background=8B7355&color=fff&size=64",
@@ -220,7 +217,7 @@ async def seed():
                 "created_at": (datetime.now(timezone.utc) - timedelta(days=random.randint(2, 90))).isoformat(),
             }
             try:
-                await mdb.reviews.insert_one(dict(row))
+                sb.table("reviews").insert(row).execute()
                 product_added += 1
                 total_added += 1
             except Exception as e:
