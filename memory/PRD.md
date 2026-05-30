@@ -161,6 +161,13 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Bevat: Droomvriendjes-logo (PNG, gehost op publieke Supabase-bucket `product-images/branding/` — SVG wordt door Gmail geblokkeerd), tagline, en links naar Website / Instagram / TikTok / 14-dagen-retour + support-mail. E-mail-veilig (inline CSS, table-layout), idempotent (dubbele append voorkomen), met platte-tekst variant.
 - [x] Getest: unit (idempotent + bevat alle elementen), lint schoon, echte verzending naar test-gmail (200), visuele preview bevestigd.
 
+### Snelle antwoord-templates inbox (30 mei 2026)
+- [x] **"Snelle antwoorden"-balk** boven de reply- én compose-tekstvelden in `pages/admin/InboxPage.jsx` (`QUICK_TEMPLATES` const + `QuickTemplates` component)
+- [x] 5 templates met één klik: Bestelling onderweg, Bestelling ontvangen, Retour aanvragen, Bedankt voor je review, Levertijd / voorraad
+- [x] Voegt automatisch een gepersonaliseerde begroeting toe ("Hallo {voornaam}," bij reply via `original.from_name`, "Hallo," bij compose). Niet-destructief: bij reeds getypte tekst wordt de template eronder geplakt i.p.v. overschreven
+- [x] Templates bevatten GEEN handtekening (die wordt server-side toegevoegd), eindigen met "Lieve groet, Team Droomvriendjes"
+- [x] Getest: lint schoon + e2e screenshot bevestigd (template-klik vult tekstveld correct, 417 tekens, begroeting aanwezig)
+
 ### Dashboard: Marketing & Sales Hub + Premium PDF + Status-monitoring (30 mei 2026)
 - [x] **🤖 Robot-knop → "Marketing & Sales Hub"** (`components/admin/MarketingSalesHub.jsx`, geopend vanuit `AdminCommandCenterNew`):
   - Advertentie aanmaken: AI-tekst (GPT-5.2 via `POST /api/marketing-hub/ad-copy`) + 1-klik knoppen naar TikTok/Instagram/X/Meta Ads/Google Ads + kopieerbare product-link met UTM

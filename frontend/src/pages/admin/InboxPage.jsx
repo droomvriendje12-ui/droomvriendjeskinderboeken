@@ -21,6 +21,79 @@ const FOLDER_DEFS = [
   { id: 'trash', label: 'Prullenbak', icon: Trash2 },
 ];
 
+// Snelle antwoord-templates (de gebrande handtekening wordt server-side toegevoegd)
+const QUICK_TEMPLATES = [
+  {
+    id: 'order-onderweg',
+    label: 'Bestelling onderweg',
+    text:
+      'Bedankt voor je bericht! Goed nieuws: je bestelling is verzonden. Je ontvangt het track & trace nummer zodra het pakket door de bezorger is gescand.\n\n' +
+      'Verwachte levertijd: 1-2 werkdagen.\n\n' +
+      'Laat het ons gerust weten als je nog vragen hebt.\n\n' +
+      'Lieve groet,\nTeam Droomvriendjes',
+  },
+  {
+    id: 'order-ontvangen',
+    label: 'Bestelling ontvangen',
+    text:
+      'Bedankt voor je bestelling! We hebben deze in goede orde ontvangen en gaan er direct mee aan de slag.\n\n' +
+      'Je ontvangt automatisch een bericht zodra je pakket onderweg is.\n\n' +
+      'Lieve groet,\nTeam Droomvriendjes',
+  },
+  {
+    id: 'retour',
+    label: 'Retour aanvragen',
+    text:
+      'Bedankt voor je bericht. Wat vervelend, maar je kunt het product natuurlijk binnen 14 dagen retourneren.\n\n' +
+      'Zo werkt het:\n' +
+      '1. Stuur het product ongebruikt en in de originele verpakking terug naar ons retouradres.\n' +
+      '2. Voeg je ordernummer toe.\n' +
+      '3. Zodra wij het pakket ontvangen, storten we het bedrag binnen 5 werkdagen terug.\n\n' +
+      'Meer info: https://www.droomvriendjes.com/retourneren\n\n' +
+      'Lieve groet,\nTeam Droomvriendjes',
+  },
+  {
+    id: 'review-bedankt',
+    label: 'Bedankt voor je review',
+    text:
+      'Wat lief dat je de tijd nam om een review achter te laten, daar worden we erg blij van! Het helpt andere ouders enorm bij het kiezen van de juiste knuffel.\n\n' +
+      'Mocht je nog iets nodig hebben, we staan voor je klaar.\n\n' +
+      'Lieve groet,\nTeam Droomvriendjes',
+  },
+  {
+    id: 'levertijd',
+    label: 'Levertijd / voorraad',
+    text:
+      'Bedankt voor je vraag! Dit product is op voorraad en wordt op werkdagen voor 17:00 uur besteld dezelfde dag verzonden.\n\n' +
+      'De verwachte levertijd in Nederland is 1-2 werkdagen.\n\n' +
+      'Laat het ons weten als we je verder kunnen helpen.\n\n' +
+      'Lieve groet,\nTeam Droomvriendjes',
+  },
+];
+
+const QuickTemplates = ({ firstName, onPick }) => {
+  const greeting = `Hallo${firstName ? ' ' + firstName : ''},\n\n`;
+  return (
+    <div className="mb-2" data-testid="quick-templates">
+      <div className="text-[11px] uppercase tracking-wide text-slate-500 mb-1.5">Snelle antwoorden</div>
+      <div className="flex flex-wrap gap-1.5">
+        {QUICK_TEMPLATES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onPick(greeting + t.text)}
+            className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 text-xs font-medium hover:bg-emerald-500/20 transition-colors"
+            data-testid={`template-${t.id}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 const fmtDate = (iso) => {
   if (!iso) return '';
   const d = new Date(iso);
@@ -446,6 +519,10 @@ const ReplyModal = ({ original, onClose, onSent }) => {
       <div className="text-xs text-slate-400 mb-2">
         Onderwerp: <span className="text-slate-200">Re: {original.subject}</span>
       </div>
+      <QuickTemplates
+        firstName={(original.from_name || '').trim().split(' ')[0]}
+        onPick={(tpl) => setBody((prev) => (prev.trim() ? `${prev}\n\n${tpl}` : tpl))}
+      />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -516,6 +593,10 @@ const ComposeModal = ({ onClose, onSent }) => {
         placeholder="Onderwerp"
         className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-400 mb-2 text-white"
         data-testid="compose-subject"
+      />
+      <QuickTemplates
+        firstName=""
+        onPick={(tpl) => setBody((prev) => (prev.trim() ? `${prev}\n\n${tpl}` : tpl))}
       />
       <textarea
         value={body}
