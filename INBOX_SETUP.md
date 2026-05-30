@@ -4,7 +4,7 @@ Volledige setup-handleiding voor het ontvangen van mail op `info@droomvriendjes.
 
 > ⏱️ **Setup tijd:** ~10 minuten · **Vereist:** Cloudflare account met droomvriendjes.com gekoppeld
 
-> ✅ **UPDATE 30 mei 2026:** De Worker `inbox-forwarder` is al **automatisch gedeployed** via de Cloudflare API, inclusief de secrets `INBOX_WEBHOOK_TOKEN` en `BACKEND_URL` (= `https://droomvriendjes.com`). **Stap 2 en Stap 3 hieronder zijn dus al klaar.** Je hoeft alleen nog **Stap 1** (Email Routing inschakelen) en **Stap 4** (route `info@` → Worker `inbox-forwarder`) handmatig te doen in het Cloudflare dashboard. Daarna werkt alles.
+> ✅ **UPDATE 30 mei 2026 — Setup VOLTOOID via API:** Email Routing was al ingeschakeld (MX wijst naar Cloudflare) en er bestond al een route `info@droomvriendjes.com` → Worker **`bold-brook-c55c`**. Die Worker bevatte echter nog Cloudflare's standaard voorbeeldcode (weigerde álle mail). Deze is nu **overschreven met de juiste forwarder-code + secrets** (`INBOX_WEBHOOK_TOKEN` + `BACKEND_URL=https://droomvriendjes.com`). **Alle stappen zijn nu klaar.** Stuur een testmail naar `info@droomvriendjes.com` om te bevestigen dat 'ie in `/admin/inbox` verschijnt. (De tijdelijke extra Worker `inbox-forwarder` is weer verwijderd — de actieve Worker is `bold-brook-c55c`.)
 
 ---
 
