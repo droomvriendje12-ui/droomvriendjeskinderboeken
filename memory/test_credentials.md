@@ -12,7 +12,8 @@
 ## Inbox / E-mail (Cloudflare + Resend) — status 30 mei 2026
 - **Inkomende mail WERKT**: Cloudflare Email Routing → Worker `bold-brook-c55c` (account `3e8af75...`, zone `c14c0c33...`) → `POST /api/inbox/webhook` (Bearer `INBOX_WEBHOOK_TOKEN`) → MongoDB `inbox_messages`. Echte test-mails van yonascheh2030@gmail.com kwamen binnen.
 - Worker secrets: `BACKEND_URL=https://droomvriendjes.com`, `INBOX_WEBHOOK_TOKEN`.
-- **Uitgaande mail (reply/compose) BEPERKT**: Resend staat in TESTMODUS (`SENDER_EMAIL=onboarding@resend.dev`, `TEST_RECIPIENT=droomvriendje12@gmail.com`). Versturen lukt alleen naar dat test-adres tot `droomvriendjes.com` is geverifieerd op resend.com/domains. Daarna `SENDER_EMAIL` → `info@droomvriendjes.com` zetten in backend .env.
+- **Uitgaande mail (reply/compose) WERKT NU**: domein `droomvriendjes.com` is GEVERIFIEERD op Resend (30 mei 2026). `SENDER_EMAIL=info@droomvriendjes.com` in backend `.env`. Testmodus-blokkade in `email_sender.py` is hierdoor inactief — replies/compose gaan naar elke klant. Geverifieerd via `tests/test_resend_email.py` (15/15 pass) + echte testverzending (success id ontvangen).
+- ⚠️ **PRODUCTIE**: na deploy controleren dat `SENDER_EMAIL=info@droomvriendjes.com` ook in de productie-env staat (niet meer `onboarding@resend.dev`).
 - Resend API-key is "restricted to send only" → domeinbeheer kan NIET via API, alleen via Resend dashboard.
 
 ## Test Customer (voor download flow)

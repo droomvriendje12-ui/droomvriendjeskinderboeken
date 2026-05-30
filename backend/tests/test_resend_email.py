@@ -1,8 +1,7 @@
 """
 Resend email integration tests (replaces legacy TransIP SMTP).
-Verifies:
-  - /api/inbox/compose to verified recipient (droomvriendje12@gmail.com) -> 200
-  - /api/inbox/compose to unverified recipient -> 502 with clear test-mode error
+Verifies (domain droomvriendjes.com is VERIFIED on Resend — no more test-mode):
+  - /api/inbox/compose to recipient -> 200 (sender on verified domain)
   - /api/inbox/{id}/reply preserves In-Reply-To / References threading
   - GET regressions on /api/inbox/folders, /api/inbox, /api/inbox/{id}
   - Webhook ingest still works (Resend change unrelated)
@@ -106,8 +105,10 @@ class TestConfig:
         import resend  # noqa
         assert hasattr(resend, "Emails")
 
-    def test_sender_is_resend_test(self):
-        assert ENV.get("SENDER_EMAIL") == "onboarding@resend.dev"
+    def test_sender_is_verified_domain(self):
+        sender = ENV.get("SENDER_EMAIL", "")
+        assert sender != "onboarding@resend.dev", "SENDER_EMAIL still on Resend test sender"
+        assert sender.endswith("@droomvriendjes.com"), f"SENDER_EMAIL not on verified domain: {sender}"
 
 
 # ---------- Inbox GET regression ----------
@@ -180,22 +181,20 @@ class TestCompose:
         assert r2.status_code == 200
         assert r2.json()["folder"] == "sent"
 
-    def test_compose_to_unverified_returns_502_with_clear_error(self, session, auth_headers):
+    def test_compose_to_arbitrary_recipient_succeeds_after_domain_verification(self, session, auth_headers):
+        """Domain droomvriendjes.com is verified on Resend → sending is no longer
+        restricted to the test recipient. Compose to the verified recipient still
+        succeeds; we keep the recipient as TEST_RECIPIENT to avoid generating
+        hard bounces against the production domain reputation."""
         payload = {
-            "to": [f"random_{uuid.uuid4().hex[:6]}@example.com"],
-            "subject": "TEST_resend_compose unverified",
-            "body_html": "<p>Should be rejected by Resend test-mode.</p>",
+            "to": [TEST_RECIPIENT],
+            "subject": "TEST_resend_compose post-verify " + uuid.uuid4().hex[:6],
+            "body_html": "<p>Outbound works after domain verification.</p>",
+            "body_text": "Outbound works after domain verification.",
         }
         r = session.post(f"{API}/inbox/compose", json=payload, headers=auth_headers)
-        assert r.status_code == 502, f"Expected 502, got {r.status_code}: {r.text}"
-        body = r.json()
-        detail = (body.get("detail") or "").lower()
-        # Must NOT be a generic 500 / SSL-handshake / smtplib error
-        assert "smtp" not in detail, f"SMTP leaked into error: {body}"
-        assert "ssl" not in detail
-        # Clear Resend test-mode wording
-        assert ("testing" in detail) or ("only send" in detail) or ("verify" in detail) or ("validation" in detail), \
-            f"Error not clearly Resend test-mode: {body}"
+        assert r.status_code == 200, f"Compose failed after domain verification: {r.status_code} {r.text}"
+        assert r.json()["folder"] == "sent"
 
 
 # ---------- Reply: threading preserved ----------
@@ -238,17 +237,6 @@ class TestSendEmailShim:
         )
         assert result["success"] is True, f"Resend SDK send failed: {result}"
         assert result.get("id"), "Resend should return an email id on success"
-
-    def test_resend_send_to_unverified_returns_failure_without_raising(self):
-        from services.email_sender import send_email
-        result = send_email(
-            to_email=f"random_{uuid.uuid4().hex[:6]}@example.com",
-            subject="TEST_resend_unit unverified",
-            html_content="<p>x</p>",
-            text_content="x",
-        )
-        assert result["success"] is False
-        assert result.get("error"), "Should populate error string"
 
     def test_no_smtplib_socket_opened(self, monkeypatch):
         """If Resend is used, smtplib.SMTP_SSL should never be invoked."""
