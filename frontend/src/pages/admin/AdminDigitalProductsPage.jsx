@@ -138,6 +138,25 @@ const AdminDigitalProductsPage = () => {
     notify('Download link gekopieerd');
   };
 
+  const handleExport = async () => {
+    try {
+      const r = await fetch(`${API}/api/digital-products/admin/export`, { headers: authHeaders() });
+      if (!r.ok) throw new Error('Export faalde');
+      const blob = await r.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `digitale-producten-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      notify('CSV-export gedownload');
+    } catch (e) {
+      notify(e.message || 'Export faalde', 'error');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 py-8 px-4" data-testid="admin-digital-products-page">
       <div className="max-w-7xl mx-auto">
@@ -158,13 +177,22 @@ const AdminDigitalProductsPage = () => {
               <p className="text-sm text-stone-500">Upload en beheer PDF downloads voor je shop.</p>
             </div>
           </div>
-          <button
-            onClick={() => { fetchFiles(); fetchEntitlements(); }}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-lg hover:bg-stone-50"
-            data-testid="refresh-button"
-          >
-            <RefreshCw size={16} /> Verversen
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium"
+              data-testid="export-csv-button"
+            >
+              <Download size={16} /> Exporteer CSV
+            </button>
+            <button
+              onClick={() => { fetchFiles(); fetchEntitlements(); }}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-lg hover:bg-stone-50"
+              data-testid="refresh-button"
+            >
+              <RefreshCw size={16} /> Verversen
+            </button>
+          </div>
         </div>
 
         {/* Upload card */}

@@ -9,6 +9,7 @@ Backend ondersteunt:
   -> 24h venster + max 3 downloads enforced in `digital_downloads` tabel
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Request
+from fastapi.responses import Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
@@ -17,6 +18,8 @@ import logging
 import uuid
 import secrets
 import os
+import csv
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +239,82 @@ async def admin_list_entitlements(_admin=Depends(_admin_check)):
         "created_at", desc=True
     ).limit(200).execute()
     return {"entitlements": res.data or []}
+
+
+def _fmt_bytes_csv(b) -> str:
+    """Human-readable bestandsgrootte voor in de CSV export."""
+    try:
+        b = int(b or 0)
+    except Exception:
+        b = 0
+    if b <= 0:
+        return ""
+    if b < 1024:
+        return f"{b} B"
+    if b < 1024 * 1024:
+        return f"{b / 1024:.1f} KB"
+    return f"{b / 1024 / 1024:.2f} MB"
+
+
+@router.get("/admin/export")
+async def admin_export_digital(_admin=Depends(_admin_check)):
+    """Exporteer een CSV-overzicht van alle digitale producten en hun gekoppelde bestanden.
+
+    Kolommen: Digitaal Product ID, Bestandsnaam, Gekoppelde Productnaam,
+    Bestandsgrootte, Aantal Downloads.
+    """
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Supabase niet geconfigureerd")
+
+    # 1) Digitale producten ophalen
+    try:
+        prods = supabase.table("products").select(
+            "id,name,digital_file_path,digital_file_size,product_type"
+        ).eq("product_type", "digital").execute()
+        products = prods.data or []
+    except Exception as exc:
+        logger.exception("Export: producten ophalen faalde")
+        raise HTTPException(status_code=500, detail=f"Producten ophalen faalde: {exc}")
+
+    # 2) Download-aantallen aggregeren per product
+    dl_map = {}
+    try:
+        dl = supabase.table("digital_downloads").select("product_id,downloads_used").execute()
+        for d in dl.data or []:
+            pid = str(d.get("product_id"))
+            dl_map[pid] = dl_map.get(pid, 0) + int(d.get("downloads_used") or 0)
+    except Exception as exc:
+        logger.warning(f"Export: download-stats faalden (ga door met 0): {exc}")
+
+    # 3) CSV bouwen (semicolon-delimited voor NL Excel + UTF-8 BOM)
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow([
+        "Digitaal Product ID",
+        "Bestandsnaam",
+        "Gekoppelde Productnaam",
+        "Bestandsgrootte",
+        "Aantal Downloads",
+    ])
+    for p in sorted(products, key=lambda x: str(x.get("id") or "")):
+        pid = str(p.get("id") or "")
+        path = p.get("digital_file_path") or ""
+        filename = path.split("/")[-1] if path else "—"
+        writer.writerow([
+            pid,
+            filename,
+            p.get("name") or "",
+            _fmt_bytes_csv(p.get("digital_file_size")),
+            dl_map.get(pid, 0),
+        ])
+
+    csv_bytes = ("\ufeff" + output.getvalue()).encode("utf-8")
+    fname = f"digitale-producten-{_now().strftime('%Y%m%d')}.csv"
+    return Response(
+        content=csv_bytes,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
 
 
 # ============== CUSTOMER ENDPOINTS ==============
