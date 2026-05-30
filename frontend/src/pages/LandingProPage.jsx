@@ -58,6 +58,30 @@ const PRODUCT_FALLBACK = [
     price: 2.95,
     benefit: 'Geen woorden nodig',
   },
+  {
+    id: 'digital-sleep-regression-cards',
+    name: 'Slaapregressie Survival Cards',
+    blurb: '7 regressies herkennen — signalen, oorzaak en praktische tips per fase. Inclusief tracker.',
+    category: 'Survival',
+    price: 3.95,
+    benefit: 'Voorbereid op de zware nachten',
+  },
+  {
+    id: 'digital-feeding-nap-planner',
+    name: 'Dutjes & Voedingen Weekplanner',
+    blurb: '4 leeftijdsplanners (0-18m). Voorbeeldtijden voor dutjes én voedingen — geen rigide schema.',
+    category: 'Planner',
+    price: 2.95,
+    benefit: 'Houvast zonder dwang',
+  },
+  {
+    id: 'digital-finn-dream-island',
+    name: 'Finn en het Droomeiland',
+    blurb: '14-pagina voorleesboek met 5 mindfulness-oefeningen. Finn en Beer reizen naar het Droomeiland.',
+    category: 'Verhaal',
+    price: 4.95,
+    benefit: 'Verhaal + mindfulness in één',
+  },
 ];
 
 const TESTIMONIALS = [
@@ -189,7 +213,7 @@ const LandingProPage = () => {
           {/* KPI strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl">
             {[
-              { n: '5', l: 'PDF producten' },
+              { n: '8', l: 'PDF producten' },
               { n: '<1m', l: 'Tot in je inbox' },
               { n: '∞', l: 'Onbeperkt printen' },
               { n: '92', l: '★★★★ reviews' },
@@ -264,7 +288,7 @@ const LandingProPage = () => {
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-14">
             <SectionLabel>De collectie</SectionLabel>
-            <h2 className="text-4xl md:text-5xl font-bold text-stone-900">Vijf PDF's, één missie.</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-stone-900">Acht PDF's, één missie.</h2>
             <p className="text-stone-600 mt-3 max-w-xl mx-auto">
               Elk product staat op zichzelf — combineer ze voor een compleet bedtijd-pakket of kies wat past bij jullie fase.
             </p>
@@ -369,8 +393,8 @@ const LandingProPage = () => {
             Alles in één, voor <span className="italic text-amber-300">40% korting</span>.
           </h2>
           <p className="text-white/70 mb-10 max-w-2xl mx-auto">
-            Alle 5 PDF's samen — slaapritueel, slaaplog, affirmatiekaartjes, kleurplaten én visueel schema.
-            Voor één compleet bedtijd-pakket.
+            Alle 8 PDF's samen — van slaapritueel en slaaplog tot affirmatiekaartjes, kleurplaten, het visuele schema, regressie-cards, weekplanner én voorleesboek.
+            Eén compleet bedtijd-pakket.
           </p>
           <div className="relative bg-white/[0.04] backdrop-blur border border-white/10 rounded-3xl p-8 lg:p-10">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-stone-900 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
