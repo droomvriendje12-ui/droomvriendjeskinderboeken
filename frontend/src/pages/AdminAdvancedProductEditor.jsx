@@ -498,6 +498,21 @@ const AdminAdvancedProductEditor = () => {
 
 
 
+  // Open het gekoppelde PDF-bestand van een digitaal product (signed URL)
+  const openDigitalFile = async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const r = await fetch(`/api/digital-products/admin/file-url/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Geen PDF-bestand gevonden');
+      window.open(d.url, '_blank');
+    } catch (e) {
+      window.alert(e.message || 'Kon PDF-bestand niet openen');
+    }
+  };
+
   // Save all changes (existing functionality)
   const handleSave = async () => {
     setSaving(true);
@@ -749,6 +764,16 @@ const AdminAdvancedProductEditor = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {(product.productType === 'digital' || product.product_type === 'digital') && (
+                <button
+                  onClick={openDigitalFile}
+                  data-testid="open-pdf-file-btn"
+                  className="text-sm bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg flex items-center gap-1.5 font-medium transition"
+                >
+                  <FileText className="w-4 h-4" />
+                  Open PDF-bestand
+                </button>
+              )}
               <Link 
                 to={`/product/${product.id}`} 
                 target="_blank"

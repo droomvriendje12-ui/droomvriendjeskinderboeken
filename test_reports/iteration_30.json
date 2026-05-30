@@ -1,0 +1,40 @@
+{
+  "summary": "Frontend-only validation of the new commercial features for Droomvriendjes admin: Marketing & Sales Hub modal (AI ad-copy + promo + snapshot + socials), background system alerts panel with resolve, premium PDF export on /admin/digital-products, and Open-PDF button in the advanced editor. ALL 10 requested flows passed end-to-end on the preview URL.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "login_and_command_center": "PASS - POST /api/admin/login returned 200 token, /admin/command-center loaded with marketing-hub-button visible",
+    "marketing_hub_modal_open": "PASS - clicking marketing-hub-button opened marketing-hub-modal",
+    "hub_testids_visible": "PASS - hub-ad-section, hub-ad-product, hub-ad-platform, hub-generate-ad, hub-copy-link, hub-promo-section, hub-promo-code, hub-promo-type, hub-promo-value, hub-create-promo, hub-snapshot-section all visible",
+    "social_ads_links": "PASS - 5 external links (Instagram, TikTok, X, Meta Ads, Google Ads) rendered in modal with target=_blank",
+    "ai_ad_generation": "PASS - GPT-5.2 returned 597-char Dutch ad copy in ~10-20s (sample: 'HOOK: Slaap weer rustig, terwijl de Slimme Leeuw een luisterend oor houdt. 🦁✨ TEKST: Zachte gloed, lieve projecties...'). Tested 1x as instructed.",
+    "promo_creation": "PASS - Code TESTHUB106 created via POST /api/discount-codes, hub-promo-msg = '✓ Code \"TESTHUB106\" aangemaakt!'",
+    "conversion_snapshot": "PASS - hub-snapshot-section renders with 'Omzet vandaag' and 'Bestellingen' fields",
+    "system_alerts_badge_and_section": "PASS - nav-alerts-badge shows count=2; clicking reveals system-alerts-section with 2 alert-item entries",
+    "resolve_alert": "PASS - clicking alert-resolve removed one item (2→1) and badge decreased from 2 to 1",
+    "digital_products_pdf_export": "PASS - export-pdf-button visible on /admin/digital-products, GET /api/digital-products/admin/export-pdf returns 200 with content-type application/pdf",
+    "advanced_editor_open_pdf": "PASS - open-pdf-file-btn visible on /admin/products/digital-visual-schedule/advanced-editor; GET /api/digital-products/admin/file-url/digital-visual-schedule returns 200 with {url, filename, product_name}; no error alert shown after click"
+  },
+  "console_warnings_non_blocking": [
+    "Pre-existing 'Error fetching products, using fallback: TypeError: Failed to fetch' (uses fallback list - does not break Hub product dropdown which is populated by command center). Not introduced by these features.",
+    "Minor React JSX warning: 'Received true for a non-boolean attribute jsx' (cosmetic, doesn't break pages)."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MarketingSalesHub.jsx uses bare /api/... fetch paths (relative URL). Works because frontend and backend share the same host via ingress, but inconsistent with other places that use process.env.REACT_APP_BACKEND_URL. Low priority, not breaking.",
+    "Pre-existing 'Error fetching products, using fallback' in command center bundle is unrelated to this iteration but worth noting for future cleanup."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only as requested)", "frontend": "100% (10/10 scenarios pass)"},
+  "test_credentials": "admin / Droomvriendjes2024! (POST /api/admin/login). Token stored in localStorage under both 'admin_token' and 'adminToken'.",
+  "seed_data_creation": "Created discount code TESTHUB106 (5% percentage) via the Hub UI. One of the two seeded system_alerts was resolved during testing (1 unresolved alert remains).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All three commercial features (Marketing & Sales Hub modal, premium PDF export + Open-PDF in advanced editor, and Systeemmeldingen panel with resolve) are fully working in preview. Backend endpoints /api/marketing-hub/best-sellers-today, /api/marketing-hub/ad-copy (GPT-5.2), /api/discount-codes, /api/admin/system-alerts(+resolve), /api/digital-products/admin/export-pdf, and /api/digital-products/admin/file-url/{id} all return expected payloads through the UI. Note that TESTHUB106 discount code now exists in Supabase; one of the two seeded system_alerts was resolved.",
+  "rca_of_the_issue": "n/a - no failures"
+}

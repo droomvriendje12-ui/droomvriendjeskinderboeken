@@ -140,20 +140,16 @@ const AdminDigitalProductsPage = () => {
 
   const handleExport = async () => {
     try {
-      const r = await fetch(`${API}/api/digital-products/admin/export`, { headers: authHeaders() });
-      if (!r.ok) throw new Error('Export faalde');
+      const r = await fetch(`${API}/api/digital-products/admin/export-pdf`, { headers: authHeaders() });
+      if (!r.ok) throw new Error('PDF-export faalde');
       const blob = await r.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `digitale-producten-${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      notify('CSV-export gedownload');
+      // Open de premium PDF direct in een nieuw tabblad (werkt op desktop én mobiel)
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+      notify('PDF-overzicht geopend');
     } catch (e) {
-      notify(e.message || 'Export faalde', 'error');
+      notify(e.message || 'PDF-export faalde', 'error');
     }
   };
 
@@ -181,9 +177,9 @@ const AdminDigitalProductsPage = () => {
             <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium"
-              data-testid="export-csv-button"
+              data-testid="export-pdf-button"
             >
-              <Download size={16} /> Exporteer CSV
+              <FileText size={16} /> Download PDF-overzicht
             </button>
             <button
               onClick={() => { fetchFiles(); fetchEntitlements(); }}

@@ -237,6 +237,15 @@ def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: st
 
 # =========== Webhook ===========
 
+async def _alert(source, message, detail=None, level="error", meta=None):
+    """Log a human-readable system alert (best-effort, never raises)."""
+    try:
+        from routes.system_alerts import log_alert
+        await log_alert(source, message, detail=detail, level=level, meta=meta)
+    except Exception as exc:
+        logger.warning(f"Kon system alert niet loggen: {exc}")
+
+
 @router.post("/webhook")
 async def webhook(payload: WebhookPayload, authorization: Optional[str] = Header(None)):
     """Receive parsed/raw email from Cloudflare Email Worker."""
@@ -250,19 +259,48 @@ async def webhook(payload: WebhookPayload, authorization: Optional[str] = Header
     if payload.raw_b64:
         try:
             raw = base64.b64decode(payload.raw_b64)
-        except Exception:
+        except Exception as exc:
+            await _alert(
+                "inbox_webhook",
+                "Een inkomende e-mail kon niet worden gedecodeerd (corrupte base64-payload). Het bericht is niet opgeslagen.",
+                detail=str(exc), level="error",
+                meta={"from": payload.from_addr, "to": payload.to},
+            )
             raise HTTPException(status_code=400, detail="Invalid raw_b64")
     elif payload.raw:
         raw = payload.raw.encode("utf-8", errors="replace")
     else:
+        await _alert(
+            "inbox_webhook",
+            "Een inkomende e-mail kwam binnen zonder inhoud (geen raw/raw_b64). Mogelijk een lege of corrupte payload.",
+            detail=f"from={payload.from_addr}, to={payload.to}", level="warning",
+        )
         raise HTTPException(status_code=400, detail="Missing raw email")
 
-    parsed = _parse_mime(raw)
+    try:
+        parsed = _parse_mime(raw)
+    except Exception as exc:
+        await _alert(
+            "inbox_webhook",
+            "Een inkomende e-mail kon niet worden verwerkt (parsing mislukt). Controleer de afzender of bijlage.",
+            detail=str(exc), level="error",
+            meta={"from": payload.from_addr, "to": payload.to},
+        )
+        raise HTTPException(status_code=422, detail="Kon e-mail niet verwerken")
 
     # Dedupe by message_id
     existing = await _db.inbox_messages.find_one({"message_id": parsed["message_id"]})
     if existing:
         return {"status": "duplicate", "id": existing.get("id")}
+
+    # Waarschuw als er geen leesbare tekst in zit (alleen bijlage / lege body)
+    if not (parsed.get("body_text") or parsed.get("body_html")):
+        await _alert(
+            "inbox_webhook",
+            f"Inkomende e-mail '{parsed.get('subject') or '(geen onderwerp)'}' van {parsed.get('from_email') or 'onbekend'} bevat geen leesbare tekst (mogelijk alleen een bijlage of lege body).",
+            level="warning",
+            meta={"from": parsed.get("from_email"), "subject": parsed.get("subject")},
+        )
 
     doc = {
         "id": str(uuid.uuid4()),

@@ -317,6 +317,153 @@ async def admin_export_digital(_admin=Depends(_admin_check)):
     )
 
 
+@router.get("/admin/export-pdf")
+async def admin_export_pdf(_admin=Depends(_admin_check)):
+    """Premium, merk-gebrand PDF-overzicht van alle digitale producten.
+
+    Opent op telefoon én desktop. Vervangt de CSV-export met een luxe uitstraling.
+    """
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Supabase niet geconfigureerd")
+
+    try:
+        prods = supabase.table("products").select(
+            "id,name,digital_file_path,digital_file_size,product_type,price"
+        ).eq("product_type", "digital").execute()
+        products = sorted(prods.data or [], key=lambda x: str(x.get("id") or ""))
+    except Exception as exc:
+        logger.exception("PDF-export: producten ophalen faalde")
+        raise HTTPException(status_code=500, detail=f"Producten ophalen faalde: {exc}")
+
+    dl_map = {}
+    try:
+        dl = supabase.table("digital_downloads").select("product_id,downloads_used").execute()
+        for d in dl.data or []:
+            pid = str(d.get("product_id"))
+            dl_map[pid] = dl_map.get(pid, 0) + int(d.get("downloads_used") or 0)
+    except Exception as exc:
+        logger.warning(f"PDF-export: download-stats faalden: {exc}")
+
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+    BROWN = colors.HexColor("#8a5a3b")
+    BROWN_DARK = colors.HexColor("#3a2a1e")
+    CREAM = colors.HexColor("#f7f1ea")
+    GREY = colors.HexColor("#6b5d50")
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        topMargin=18 * mm, bottomMargin=16 * mm, leftMargin=15 * mm, rightMargin=15 * mm,
+        title="Droomvriendjes - Digitale Producten",
+    )
+
+    h1 = ParagraphStyle("h1", fontName="Helvetica-Bold", fontSize=22, textColor=BROWN_DARK, leading=26)
+    sub = ParagraphStyle("sub", fontName="Helvetica", fontSize=11, textColor=BROWN, leading=14, spaceBefore=2)
+    meta = ParagraphStyle("meta", fontName="Helvetica", fontSize=8.5, textColor=GREY, leading=12)
+    cell = ParagraphStyle("cell", fontName="Helvetica", fontSize=8.5, textColor=BROWN_DARK, leading=11)
+    cell_b = ParagraphStyle("cellb", fontName="Helvetica-Bold", fontSize=8.5, textColor=BROWN_DARK, leading=11)
+    head_c = ParagraphStyle("head", fontName="Helvetica-Bold", fontSize=8.5, textColor=colors.white, leading=11)
+
+    total_dl = sum(dl_map.get(str(p.get("id")), 0) for p in products)
+    now_str = _now().strftime("%d-%m-%Y %H:%M")
+
+    elems = [
+        Paragraph("Droomvriendjes", h1),
+        Paragraph("Digitale Producten — Overzicht", sub),
+        Paragraph(f"Gegenereerd op {now_str} &nbsp;·&nbsp; {len(products)} producten &nbsp;·&nbsp; {total_dl} downloads totaal", meta),
+        Spacer(1, 8 * mm),
+    ]
+
+    data = [[
+        Paragraph("Digitaal Product ID", head_c),
+        Paragraph("Bestandsnaam", head_c),
+        Paragraph("Gekoppelde Productnaam", head_c),
+        Paragraph("Grootte", head_c),
+        Paragraph("Downloads", head_c),
+        Paragraph("Prijs", head_c),
+    ]]
+    for p in products:
+        pid = str(p.get("id") or "")
+        path = p.get("digital_file_path") or ""
+        filename = path.split("/")[-1] if path else "—"
+        price = p.get("price")
+        price_str = f"€{float(price):.2f}".replace(".", ",") if price is not None else "—"
+        data.append([
+            Paragraph(pid, cell),
+            Paragraph(filename, cell),
+            Paragraph(p.get("name") or "", cell_b),
+            Paragraph(_fmt_bytes_csv(p.get("digital_file_size")) or "—", cell),
+            Paragraph(str(dl_map.get(pid, 0)), cell),
+            Paragraph(price_str, cell),
+        ])
+
+    table = Table(data, colWidths=[34 * mm, 44 * mm, 44 * mm, 20 * mm, 19 * mm, 19 * mm], repeatRows=1)
+    style = [
+        ("BACKGROUND", (0, 0), (-1, 0), BROWN),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LINEBELOW", (0, 0), (-1, 0), 0, BROWN),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, CREAM]),
+        ("LINEBELOW", (0, 1), (-1, -1), 0.4, colors.HexColor("#e6dccf")),
+    ]
+    table.setStyle(TableStyle(style))
+    elems.append(table)
+    elems.append(Spacer(1, 6 * mm))
+    elems.append(Paragraph(
+        "Droomvriendjes · Digitale slaaphulp-printables · droomvriendjes.com", meta))
+
+    doc.build(elems)
+    pdf = buf.getvalue()
+    fname = f"digitale-producten-{_now().strftime('%Y%m%d')}.pdf"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{fname}"'},
+    )
+
+
+@router.get("/admin/file-url/{product_id}")
+async def admin_get_file_url(product_id: str, _admin=Depends(_admin_check)):
+    """Geef een tijdelijke signed URL naar het gekoppelde PDF-bestand van een product.
+
+    Gebruikt o.a. door de advanced editor om het bestaande PDF-bestand te openen.
+    """
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Supabase niet geconfigureerd")
+    try:
+        pres = supabase.table("products").select(
+            "id,name,digital_file_path"
+        ).eq("id", str(product_id)).limit(1).execute()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Product lookup faalde: {exc}")
+    if not pres.data:
+        raise HTTPException(status_code=404, detail="Product niet gevonden")
+    p = pres.data[0]
+    path = p.get("digital_file_path")
+    if not path:
+        raise HTTPException(status_code=404, detail="Geen PDF-bestand gekoppeld aan dit product")
+    try:
+        signed = supabase.storage.from_(BUCKET_NAME).create_signed_url(path, SIGNED_URL_LIFETIME_SEC)
+        signed_url = signed.get("signedURL") or signed.get("signed_url") or signed.get("signedUrl")
+        if signed_url and signed_url.startswith("/"):
+            base = os.environ.get("SUPABASE_URL", "").rstrip("/")
+            signed_url = f"{base}{signed_url}"
+        if not signed_url:
+            raise RuntimeError(f"Geen signed URL: {signed}")
+    except Exception as exc:
+        logger.exception("Signed URL (admin file-url) faalde")
+        raise HTTPException(status_code=500, detail=f"Download URL fout: {exc}")
+    return {"url": signed_url, "filename": path.split("/")[-1], "product_name": p.get("name")}
+
+
 # ============== CUSTOMER ENDPOINTS ==============
 
 class DownloadResponse(BaseModel):

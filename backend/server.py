@@ -181,6 +181,8 @@ from routes import admin_customers as admin_customers_route
 from routes import faq_tracking as faq_tracking_route
 from routes import blogs as blogs_route
 from routes import digital_products as digital_products_route
+from routes import marketing_hub as marketing_hub_route
+from routes import system_alerts as system_alerts_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -264,6 +266,16 @@ api_router.include_router(blogs_route.router)
 digital_products_route.set_supabase_client(supabase_client)
 digital_products_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(digital_products_route.router)
+
+# Marketing & Sales Hub (best-sellers snapshot + AI ad copy)
+marketing_hub_route.set_supabase_client(supabase_client)
+marketing_hub_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(marketing_hub_route.router)
+
+# System alerts (background monitoring of failed webhooks/orders)
+system_alerts_route.set_database(db)
+system_alerts_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(system_alerts_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

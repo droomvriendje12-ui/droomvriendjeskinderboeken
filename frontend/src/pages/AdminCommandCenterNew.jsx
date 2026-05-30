@@ -7,8 +7,9 @@ import {
   Megaphone, Gift, Star, Layers, LogOut, ChevronRight,
   DollarSign, ShoppingCart, Eye, Mail, TrendingUp, Plus,
   Download, Activity, Package, Settings, Zap, Target, Clock,
-  Bell, Wifi, WifiOff, Inbox, FileText
+  Bell, Wifi, WifiOff, Inbox, FileText, AlertTriangle, CheckCircle
 } from 'lucide-react';
+import MarketingSalesHub from '../components/admin/MarketingSalesHub';
 
 
 const AdminCommandCenterNew = () => {
@@ -40,6 +41,40 @@ const AdminCommandCenterNew = () => {
   const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [funnelData, setFunnelData] = useState([]);
   const [dailyBreakdown, setDailyBreakdown] = useState([]);
+  const [hubOpen, setHubOpen] = useState(false);
+  const [systemAlerts, setSystemAlerts] = useState([]);
+  const [alertsUnresolved, setAlertsUnresolved] = useState(0);
+
+  // Background system alerts (failed webhooks/orders)
+  const fetchAlerts = useCallback(async () => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const r = await fetch(`/api/admin/system-alerts?resolved=false`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (r.ok) {
+        const d = await r.json();
+        setSystemAlerts(d.items || []);
+        setAlertsUnresolved(d.unresolved || 0);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    const t = setInterval(fetchAlerts, 60000);
+    return () => clearInterval(t);
+  }, [fetchAlerts]);
+
+  const resolveAlert = async (id) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      await fetch(`/api/admin/system-alerts/${id}/resolve`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchAlerts();
+    } catch { /* ignore */ }
+  };
 
   // Update clock
   useEffect(() => {
@@ -203,6 +238,7 @@ const AdminCommandCenterNew = () => {
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
     { id: 'divider-system', label: 'Systeem', divider: true },
+    { id: 'system-alerts', icon: AlertTriangle, label: 'Systeemmeldingen', badge: alertsUnresolved },
     { id: 'database', icon: Settings, label: 'Database', link: '/admin/database' },
   ];
 
@@ -275,7 +311,12 @@ const AdminCommandCenterNew = () => {
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-semibold">{item.label}</span>
-                  <ChevronRight className={`w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all ${isActive ? 'opacity-100' : ''}`} />
+                  {item.badge > 0 && (
+                    <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center" data-testid="nav-alerts-badge">
+                      {item.badge}
+                    </span>
+                  )}
+                  <ChevronRight className={`w-4 h-4 ${item.badge > 0 ? '' : 'ml-auto'} opacity-0 group-hover:opacity-100 transition-all ${isActive ? 'opacity-100' : ''}`} />
                 </button>
               );
             })}
@@ -776,13 +817,67 @@ const AdminCommandCenterNew = () => {
               </div>
             </div>
           )}
+
+          {/* System Alerts Section */}
+          {activeSection === 'system-alerts' && (
+            <div data-testid="system-alerts-section">
+              <h1 className="text-4xl font-black bg-gradient-to-r from-amber-400 to-red-400 bg-clip-text text-transparent mb-2">
+                Systeemmeldingen
+              </h1>
+              <p className="text-white/50 mb-8">Automatische meldingen wanneer een bestelling, betaling of e-mail niet goed binnenkwam.</p>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+                {systemAlerts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="alerts-empty">
+                    <CheckCircle className="w-12 h-12 text-emerald-400 mb-3" />
+                    <p className="text-white font-semibold">Alles werkt naar behoren</p>
+                    <p className="text-white/40 text-sm">Er zijn geen openstaande systeemmeldingen.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {systemAlerts.map((a) => {
+                      const tones = {
+                        error: { box: 'bg-red-500/10 border-red-500/30', icon: 'text-red-400', tag: 'bg-red-500/20 text-red-300' },
+                        warning: { box: 'bg-amber-500/10 border-amber-500/30', icon: 'text-amber-400', tag: 'bg-amber-500/20 text-amber-300' },
+                        info: { box: 'bg-blue-500/10 border-blue-500/30', icon: 'text-blue-400', tag: 'bg-blue-500/20 text-blue-300' },
+                      };
+                      const t = tones[a.level] || tones.info;
+                      return (
+                        <div key={a.id} className={`flex items-start gap-3 p-4 rounded-xl border ${t.box}`} data-testid="alert-item">
+                          <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${t.icon}`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.tag}`}>{a.source}</span>
+                              <span className="text-white/30 text-xs">{a.created_at ? new Date(a.created_at).toLocaleString('nl-NL') : ''}</span>
+                            </div>
+                            <p className="text-white text-sm font-medium">{a.message}</p>
+                            {a.detail && <p className="text-white/40 text-xs mt-1 font-mono break-all">{a.detail}</p>}
+                          </div>
+                          <button onClick={() => resolveAlert(a.id)} data-testid="alert-resolve"
+                            className="flex-shrink-0 flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition">
+                            <CheckCircle className="w-3.5 h-3.5" /> Opgelost
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
-      {/* Floating Action Button */}
-      <button className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/50 hover:scale-110 transition-all z-40 animate-bounce">
-        <span className="text-3xl">🤖</span>
+      {/* Floating Action Button — Marketing & Sales Hub */}
+      <button
+        onClick={() => setHubOpen(true)}
+        data-testid="marketing-hub-button"
+        title="Marketing & Sales Hub"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/50 hover:scale-110 transition-all z-40"
+      >
+        <Megaphone className="w-7 h-7 text-white" />
       </button>
+
+      <MarketingSalesHub isOpen={hubOpen} onClose={() => setHubOpen(false)} products={products} />
 
       <style jsx>{`
         @keyframes fadeIn {

@@ -613,6 +613,15 @@ async def express_checkout(req: ExpressCheckoutRequest):
         raise HTTPException(status_code=500, detail=f"Betaling kon niet worden gestart: {str(e)}")
 
 
+async def _alert(source, message, detail=None, level="error", meta=None):
+    """Log a human-readable system alert (best-effort, never raises)."""
+    try:
+        from routes.system_alerts import log_alert
+        await log_alert(source, message, detail=detail, level=level, meta=meta)
+    except Exception as exc:
+        logger.warning(f"Kon system alert niet loggen: {exc}")
+
+
 @router.post("/webhook/mollie")
 async def mollie_webhook(request: Request):
     """Handle Mollie webhook notifications (supports both Supabase and MongoDB)"""
@@ -621,6 +630,11 @@ async def mollie_webhook(request: Request):
         payment_id = form_data.get("id")
 
         if not payment_id:
+            await _alert(
+                "payment_webhook",
+                "Mollie webhook ontvangen zonder payment ID — mogelijk een corrupte of incomplete payload.",
+                level="warning",
+            )
             return {"status": "error", "message": "Missing payment ID"}
 
         logger.info(f"Webhook received for payment: {payment_id}")
@@ -664,6 +678,13 @@ async def mollie_webhook(request: Request):
 
         if not order_id:
             logger.warning(f"Payment not found in any DB: {payment_id}")
+            await _alert(
+                "payment_webhook",
+                f"Betaling {payment_id} kwam binnen via Mollie, maar de bijbehorende bestelling werd niet gevonden in de database. Controleer of deze order correct is aangemaakt.",
+                detail=f"payment_id={payment_id}, status={new_status}",
+                level="error",
+                meta={"payment_id": payment_id},
+            )
             return {"status": "error", "message": "Payment not found"}
 
         logger.info(f"Payment {payment_id} status updated to: {new_status}")
@@ -700,6 +721,13 @@ async def mollie_webhook(request: Request):
                             logger.info(f"Aangemaakt: {len(ents)} digital entitlement(s) voor order {order_id} (cross-sell: {crosssell_code or 'no'})")
                     except Exception as dig_err:
                         logger.error(f"Digital entitlement creatie faalde: {dig_err}")
+                        await _alert(
+                            "digital_delivery",
+                            f"Het klaarzetten van de digitale download(s) voor bestelling {order_id} is mislukt. De klant heeft mogelijk geen downloadlink ontvangen.",
+                            detail=str(dig_err),
+                            level="error",
+                            meta={"order_id": order_id},
+                        )
                     if order.get('discount_code'):
                         try:
                             from routes.discount_codes import use_discount_code
@@ -710,11 +738,24 @@ async def mollie_webhook(request: Request):
                     _send_order_notification(order, items, 'payment_failed')
         except Exception as email_err:
             logger.error(f"Failed to send payment emails: {email_err}")
+            await _alert(
+                "order_email",
+                f"Het versturen van de order-e-mail(s) voor bestelling {order_id} is mislukt.",
+                detail=str(email_err),
+                level="warning",
+                meta={"order_id": order_id},
+            )
 
         return {"status": "ok"}
 
     except Exception as e:
         logger.error(f"Webhook error: {e}")
+        await _alert(
+            "payment_webhook",
+            "Er ging iets mis bij het verwerken van een Mollie betaal-webhook. Een bestelling is mogelijk niet correct bijgewerkt.",
+            detail=str(e),
+            level="error",
+        )
         return {"status": "error", "message": str(e)}
 
 
