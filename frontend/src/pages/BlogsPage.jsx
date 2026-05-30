@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Calendar, User, Clock, Mail } from 'lucide-react';
+import { Calendar, User, Clock, Mail, Download, ArrowRight, Printer } from 'lucide-react';
 import Footer from '../components/Footer';
 
 const BlogsPage = () => {
@@ -107,6 +107,10 @@ const BlogsPage = () => {
             <nav className="hidden md:flex space-x-6">
               <Link to="/" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Home</Link>
               <Link to="/knuffels" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Producten</Link>
+              <Link to="/pro" className="text-gray-700 hover:text-amber-700 font-medium transition-colors flex items-center gap-1.5">
+                Printables
+                <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-700 text-white px-1.5 py-0.5 rounded-full leading-none">Nieuw</span>
+              </Link>
               <Link to="/blogs" className="text-amber-700 font-medium">Blog</Link>
               <Link to="/contact" className="text-gray-700 hover:text-amber-700 font-medium transition-colors">Contact</Link>
             </nav>
@@ -219,6 +223,33 @@ const BlogsPage = () => {
               </Card>
             </Link>
           ))}
+        </div>
+
+        {/* Printables Promo Banner */}
+        <div className="mb-8 sm:mb-12">
+          <Link to="/pro" data-testid="blogs-printables-banner" className="block group">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 text-white p-6 sm:p-10 shadow-lg">
+              <div className="absolute -right-8 -top-8 opacity-10">
+                <Printer className="w-40 h-40" />
+              </div>
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-white/15 px-3 py-1 rounded-full mb-3">
+                    <Download className="w-3.5 h-3.5" />
+                    Nieuw · Direct Download
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Droomvriendjes Printables</h2>
+                  <p className="text-sm sm:text-base opacity-90 max-w-xl">
+                    Slaapschema's, affirmatiekaartjes, kleurplaten en meer — direct als PDF in je inbox, onbeperkt te printen. Vanaf €1,95.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-2 bg-white text-amber-900 font-semibold px-6 py-3 rounded-full whitespace-nowrap group-hover:gap-3 transition-all">
+                  Bekijk Printables
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Newsletter Section */}

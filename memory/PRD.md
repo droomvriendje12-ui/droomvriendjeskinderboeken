@@ -127,6 +127,13 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Dode blog routes verwijderd uit /blogs lijst (hoogsensitiviteit, diepe-druk-stimulatie, slaaprituals, adhd — geen detail pages)
 - [x] Mondriaan blog krijgt eigen unieke afbeelding (was duplicaat bearbrown-main.png)
 
+### Printables-navigatie zichtbaarheid (30 mei 2026)
+- [x] **Probleem:** `/pro` digitale producten-pagina bestond wel maar had geen enkele navigatielink → onvindbaar voor bezoekers
+- [x] Naam gekozen: **"Printables"** (SEO-vriendelijk, onderscheidt van fysieke concurrentie)
+- [x] Hoofdmenu (`Header.jsx`): nieuwe link "Printables" + "Nieuw"-badge (desktop + mobiel), tussen Knuffels en Cadeaubonnen
+- [x] Footer (`Footer.jsx`): "Printables (PDF)" link met Nieuw-badge in Producten-kolom
+- [x] Blogs: `BlogDigitalProductCallout.jsx` heeft nu een "Bekijk alle Printables →" link naar `/pro` (5 blogposts) + `BlogsPage.jsx` eigen nav-link "Printables" én een promo-banner "Droomvriendjes Printables · Direct Download"
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview

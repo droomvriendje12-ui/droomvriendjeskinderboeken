@@ -85,6 +85,17 @@ const BlogDigitalProductCallout = ({ product, teaser, benefits = [], ctaLabel = 
           </div>
         </div>
       </Link>
+
+      <div className="mt-4 pt-4 border-t border-amber-200/60 text-center">
+        <Link
+          to="/pro"
+          data-testid="blog-digital-callout-all-printables"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:text-amber-600 hover:gap-2.5 transition-all"
+        >
+          Bekijk alle Printables
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
     </aside>
   );
 };

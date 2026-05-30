@@ -15,6 +15,7 @@ const Header = () => {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/knuffels", label: "Knuffels" },
+    { href: "/pro", label: "Printables", badge: "Nieuw" },
     { href: "/cadeaubon", label: "Cadeaubonnen" },
     { href: "/over-ons", label: "Over Droomvriendjes" },
     { href: "/contact", label: "Contact" }
@@ -43,9 +44,15 @@ const Header = () => {
               <Link 
                 key={link.href}
                 to={link.href} 
-                className="text-slate-600 hover:text-warm-brown-500 font-medium transition"
+                data-testid={`nav-desktop-${link.href === '/' ? 'home' : link.href.replace('/', '')}`}
+                className="text-slate-600 hover:text-warm-brown-500 font-medium transition flex items-center gap-1.5"
               >
                 {link.label}
+                {link.badge && (
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-warm-brown-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
@@ -91,9 +98,15 @@ const Header = () => {
                 key={link.href}
                 to={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-2 text-slate-600 hover:bg-warm-brown-50 hover:text-warm-brown-600 font-medium transition rounded-lg"
+                data-testid={`nav-mobile-${link.href === '/' ? 'home' : link.href.replace('/', '')}`}
+                className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-warm-brown-50 hover:text-warm-brown-600 font-medium transition rounded-lg"
               >
                 {link.label}
+                {link.badge && (
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-warm-brown-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             ))}
             <div className="px-4 pt-2">

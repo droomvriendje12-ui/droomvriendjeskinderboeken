@@ -114,6 +114,12 @@ const Footer = () => {
             <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-xs">Producten</h4>
             <ul className="space-y-3 text-sm">
               <li><Link to="/knuffels" className="opacity-80 hover:opacity-100 hover:text-warm-brown-300 transition">Alle Knuffels</Link></li>
+              <li>
+                <Link to="/pro" data-testid="footer-printables" className="opacity-80 hover:opacity-100 hover:text-warm-brown-300 transition inline-flex items-center gap-2">
+                  Printables (PDF)
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-warm-brown-500 text-white px-1.5 py-0.5 rounded-full leading-none">Nieuw</span>
+                </Link>
+              </li>
               <li><Link to="/cadeaubon" className="opacity-80 hover:opacity-100 hover:text-warm-brown-300 transition">Cadeaubonnen</Link></li>
               <li><Link to="/over-ons" className="opacity-80 hover:opacity-100 hover:text-warm-brown-300 transition">Over Droomvriendjes</Link></li>
             </ul>
