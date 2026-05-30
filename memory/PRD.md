@@ -145,6 +145,16 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] CTA-band op homepage (`home-quiz-cta`) + nav-link "Quiz" in header
 - [x] Getest via testing agent: **24/24 frontend assertions, 100%**, geen bugs. E-mailvalidatie verbeterd naar regex; progressbalk toont meteen voortgang
 
+### Admin CSV-export digitale producten (30 mei 2026)
+- [x] Knop **"Exporteer CSV"** op `/admin/digital-products` (`AdminDigitalProductsPage.jsx`)
+- [x] Backend: `GET /api/digital-products/admin/export` (admin-auth) → CSV (semicolon, UTF-8 BOM voor NL Excel)
+- [x] Kolommen: Digitaal Product ID, Bestandsnaam, Gekoppelde Productnaam, Bestandsgrootte, Aantal Downloads (uit Supabase `products` + `digital_downloads`)
+- [x] Getest via curl (HTTP 200, 8 producten) + UI-render bevestigd; zonder auth → 403
+
+### Inbox e-mail koppeling — Cloudflare Worker fix (30 mei 2026)
+- [x] **Inkomende mail werkt nu**: bestaande route `info@` wees naar Worker `bold-brook-c55c` met Cloudflare's standaard (weigerende) voorbeeldcode → overschreven met de juiste forwarder + secrets via Cloudflare API. Echte test-mails kwamen binnen in `/admin/inbox`.
+- [ ] **Uitgaande reply/compose**: geblokkeerd door Resend testmodus → vereist domeinverificatie van `droomvriendjes.com` op resend.com (gebruikersactie), daarna `SENDER_EMAIL=info@droomvriendjes.com`.
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview

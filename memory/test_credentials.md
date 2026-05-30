@@ -4,8 +4,16 @@
 - **Login URL:** `/admin/login`
 - **Username:** `admin`
 - **Email (alt):** `admin@droomvriendjes.com`
-- **Password:** `Droomvriendjes2024!`
+- **Password (PREVIEW):** `Droomvriendjes2024!`
 - **Token endpoint:** `POST /api/admin/login` returns Bearer JWT
+- ⚠️ **PRODUCTIE admin-wachtwoord WIJKT AF** van preview (eigen `ADMIN_PASSWORD_HASH` env in productie; onbekend hier). Preview-creds werken NIET op droomvriendjes.com.
+- ℹ️ **Preview en productie delen dezelfde MongoDB** (zelfde MONGO_URL/DB_NAME) — inbox-berichten zijn in beide omgevingen zichtbaar.
+
+## Inbox / E-mail (Cloudflare + Resend) — status 30 mei 2026
+- **Inkomende mail WERKT**: Cloudflare Email Routing → Worker `bold-brook-c55c` (account `3e8af75...`, zone `c14c0c33...`) → `POST /api/inbox/webhook` (Bearer `INBOX_WEBHOOK_TOKEN`) → MongoDB `inbox_messages`. Echte test-mails van yonascheh2030@gmail.com kwamen binnen.
+- Worker secrets: `BACKEND_URL=https://droomvriendjes.com`, `INBOX_WEBHOOK_TOKEN`.
+- **Uitgaande mail (reply/compose) BEPERKT**: Resend staat in TESTMODUS (`SENDER_EMAIL=onboarding@resend.dev`, `TEST_RECIPIENT=droomvriendje12@gmail.com`). Versturen lukt alleen naar dat test-adres tot `droomvriendjes.com` is geverifieerd op resend.com/domains. Daarna `SENDER_EMAIL` → `info@droomvriendjes.com` zetten in backend .env.
+- Resend API-key is "restricted to send only" → domeinbeheer kan NIET via API, alleen via Resend dashboard.
 
 ## Test Customer (voor download flow)
 - **Email:** `droomvriendje12@gmail.com` (Resend test mode default recipient)
