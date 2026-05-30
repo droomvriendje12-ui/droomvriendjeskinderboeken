@@ -155,6 +155,19 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] **Inkomende mail werkt nu**: bestaande route `info@` wees naar Worker `bold-brook-c55c` met Cloudflare's standaard (weigerende) voorbeeldcode → overschreven met de juiste forwarder + secrets via Cloudflare API. Echte test-mails kwamen binnen in `/admin/inbox`.
 - [ ] **Uitgaande reply/compose**: geblokkeerd door Resend testmodus → vereist domeinverificatie van `droomvriendjes.com` op resend.com (gebruikersactie), daarna `SENDER_EMAIL=info@droomvriendjes.com`.
 
+### Dashboard: Marketing & Sales Hub + Premium PDF + Status-monitoring (30 mei 2026)
+- [x] **🤖 Robot-knop → "Marketing & Sales Hub"** (`components/admin/MarketingSalesHub.jsx`, geopend vanuit `AdminCommandCenterNew`):
+  - Advertentie aanmaken: AI-tekst (GPT-5.2 via `POST /api/marketing-hub/ad-copy`) + 1-klik knoppen naar TikTok/Instagram/X/Meta Ads/Google Ads + kopieerbare product-link met UTM
+  - Promotie aanmaken: snelle kortingscode (code/type/waarde → `POST /api/discount-codes`)
+  - Conversie-snapshot: best verkochte producten van vandaag (`GET /api/marketing-hub/best-sellers-today` uit Supabase orders/order_items)
+- [x] **Premium PDF (geen CSV)** via reportlab:
+  - `/admin/digital-products`: knop "Download PDF-overzicht" → gebrand A4-overzicht (`GET /api/digital-products/admin/export-pdf`, opent inline)
+  - Advanced editor: knop "Open PDF-bestand" → opent het bestaande PDF via signed URL (`GET /api/digital-products/admin/file-url/{id}`)
+- [x] **Achtergrond status-monitoring** (`routes/system_alerts.py`, MongoDB `system_alerts`):
+  - `log_alert()` helper aangeroepen bij gefaalde payment-webhook (orders_supabase) en inbox-webhook (corrupte/lege payload, parse-fout, missende tekst)
+  - "Systeemmeldingen"-paneel in command center met rode badge + "Opgelost"-knop (`GET /api/admin/system-alerts`, `POST /api/admin/system-alerts/{id}/resolve`)
+- [x] Getest via testing agent: **10/10 frontend scenario's, 100%**, geen bugs. Backend curl-geverifieerd (incl. GPT-5.2 NL ad-copy).
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview
