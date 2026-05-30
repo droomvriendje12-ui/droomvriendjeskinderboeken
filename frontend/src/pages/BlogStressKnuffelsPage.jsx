@@ -10,6 +10,7 @@ import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
 const BlogStressKnuffelsPage = () => {
   const affirmationCards = useDigitalProduct('digital-affirmation-cards');
+  const finnBook = useDigitalProduct('digital-finn-dream-island');
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -336,6 +337,17 @@ const BlogStressKnuffelsPage = () => {
               </div>
             </li>
           </ul>
+
+          <BlogDigitalProductCallout
+            product={finnBook}
+            teaser='De krachtigste vorm van mindfulness voor kinderen is: een verhaal waarin ze het zelf doen, zonder dat het zo aanvoelt. Ons voorleesboek “Finn en het Droomeiland” weeft 5 mindfulness-oefeningen door een avontuur — ademen wordt de wind in Finns zeilen, dankbaarheid een schat op het strand. Geen oefening, gewoon meeleven.'
+            benefits={[
+              '5 mindfulness-oefeningen verweven in het verhaal',
+              '14 pagina’s · voorleesduur ~10 minuten',
+              'Combineer met je kalmerende knuffel voor maximaal effect',
+            ]}
+            ctaLabel="Lees het verhaal"
+          />
 
           {/* Conclusie */}
           <h2 className="text-2xl md:text-3xl font-bold text-teal-900 mt-12 mb-6 pb-3 border-b-2 border-teal-600">

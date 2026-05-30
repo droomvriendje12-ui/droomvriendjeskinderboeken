@@ -10,6 +10,7 @@ import { useDigitalProduct } from '../hooks/useDigitalProduct';
 
 const BlogSlaaptipsPage = () => {
   const bedtimeChart = useDigitalProduct('digital-bedtime-chart');
+  const finnBook = useDigitalProduct('digital-finn-dream-island');
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -161,6 +162,17 @@ const BlogSlaaptipsPage = () => {
           <p className="text-gray-700 mb-6">
             Moet je kind 's avonds nog iets op een scherm doen voor school? Zet dan een blauwe licht filter aan en houd de tijd zo kort mogelijk. En vooral: geen schermen in de slaapkamer zelf. Dit geldt ook voor opladers met knipperende lichtjes.
           </p>
+
+          <BlogDigitalProductCallout
+            product={finnBook}
+            teaser='In plaats van een scherm: voorlezen is de oudste en best onderzochte manier om kinderen tot rust te krijgen. Wij schreven een voorleesboek met 5 mindfulness-oefeningen ingebed in het verhaal — Finn en zijn knuffelbeer reizen naar het Droomeiland, leren ademen en zorgen loslaten.'
+            benefits={[
+              '14 pagina’s · voorleesduur ~10 minuten',
+              '5 mindfulness-oefeningen (ademen, dankbaarheid, zorgen loslaten)',
+              'Geschikt vanaf 2 jaar, hoogtepunt rond 4–6 jaar',
+            ]}
+            ctaLabel="Bekijk het verhaal"
+          />
 
           {/* Tip 4 */}
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-12 mb-6 flex items-center gap-3">
