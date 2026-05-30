@@ -78,22 +78,44 @@ async def admin_upload_pdf(
 
     safe_name = (file.filename or "document.pdf").replace(" ", "-").replace("/", "_")
     folder = f"products/{product_id}" if product_id else "library"
-    unique = uuid.uuid4().hex[:10]
-    storage_path = f"{folder}/{unique}-{safe_name}"
 
+    # ── Deduplicatie ────────────────────────────────────────────────────────
+    # Als er al een bestand in dezelfde folder bestaat dat eindigt op
+    # `-{safe_name}`, gebruiken we die hergebruikt — geen tweede upload, geen
+    # tweede storage row. De file_size moet ook matchen voor zekerheid.
+    existing_path = None
     try:
-        supabase.storage.from_(BUCKET_NAME).upload(
-            path=storage_path,
-            file=contents,
-            file_options={
-                "cache-control": "3600",
-                "upsert": "false",
-                "content-type": "application/pdf",
-            },
-        )
-    except Exception as exc:
-        logger.exception("PDF upload faalde")
-        raise HTTPException(status_code=500, detail=f"Upload naar storage faalde: {exc}")
+        listing = supabase.storage.from_(BUCKET_NAME).list(folder) or []
+        for item in listing:
+            name = item.get("name") or ""
+            if not name.lower().endswith(safe_name.lower()):
+                continue
+            size = (item.get("metadata") or {}).get("size")
+            if size and int(size) == len(contents):
+                existing_path = f"{folder}/{name}"
+                logger.info(f"Dedup hit: {existing_path} (size match)")
+                break
+    except Exception as dedup_err:
+        logger.warning(f"Dedup-list faalde (gaat door met fresh upload): {dedup_err}")
+
+    if existing_path:
+        storage_path = existing_path
+    else:
+        unique = uuid.uuid4().hex[:10]
+        storage_path = f"{folder}/{unique}-{safe_name}"
+        try:
+            supabase.storage.from_(BUCKET_NAME).upload(
+                path=storage_path,
+                file=contents,
+                file_options={
+                    "cache-control": "3600",
+                    "upsert": "false",
+                    "content-type": "application/pdf",
+                },
+            )
+        except Exception as exc:
+            logger.exception("PDF upload faalde")
+            raise HTTPException(status_code=500, detail=f"Upload naar storage faalde: {exc}")
 
     # Update product als product_id meegegeven
     product_data = None
@@ -116,6 +138,7 @@ async def admin_upload_pdf(
         "filename": file.filename,
         "product_id": product_id,
         "product": product_data,
+        "deduplicated": existing_path is not None,
     }
 
 

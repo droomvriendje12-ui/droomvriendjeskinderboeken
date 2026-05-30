@@ -30,7 +30,21 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] **Uniforme response shape** voor validate én use endpoints: `{ok, valid, message, code, discount, discount_amount, discount_type, discount_value, free_shipping, error_code}`. Machine-readable error_codes: `NOT_FOUND`, `INACTIVE`, `EXPIRED`, `MAX_USES`, `MIN_ORDER`, `CONTENTION`, `SERVER_ERROR`, `MISSING_CODE`.
 - [x] Legacy `/api/discount/validate` (gift cards + codes) blijft backward-compatible
 
-### Reviews (18 Feb 2026)
+### Landingspage `/pro` — Digital Showcase (Feb 2026, deploy 30 mei)
+- [x] Aparte sales-pagina voor de 5 digitale PDFs op route `/pro`
+- [x] Donker-paars hero (sterrenhemel + gold italic accent), KPI-strip (5 PDFs / <1m levering / ∞ printen / 92 reviews)
+- [x] Trust strip, "Waarom digitaal" sectie met 4 pillars, 5 product cards (live prijzen via /api/products), 3-staps hoe-werkt-het, 3 testimonials, bundle-block (40% korting computed), FAQ
+- [x] Helmet meta SEO toegevoegd
+- [x] Alle CTA's koppelen aan bestaande `/product/digital-*` routes
+- [x] Component: `/app/frontend/src/pages/LandingProPage.jsx`, route in App.js
+
+### Upload Deduplicatie (Feb 2026)
+- [x] `/api/digital-products/admin/upload` controleert nu of een bestand met dezelfde safe filename + size al in de bucket folder zit
+- [x] Bij hit: geen tweede upload, het bestaande pad wordt hergebruikt; response bevat `deduplicated: true`
+- [x] Werkt zowel voor library uploads (`library/`) als product-specifieke uploads (`products/{product_id}/`)
+- [x] Bewezen: 2x upload van zelfde file → 1 storage object, 2e response `deduplicated: true`
+
+
 - [x] `/api/reviews?product_id=X` accepteert nu zowel int (`3`) als string ids (`digital-coloring-pages`)
 - [x] 92 nieuwe digital-specifieke reviews geseed (18/23/20/16/15 per product) met realistische namen, varied ratings (3-5) en digital content (geen knuffel-terms)
 - [x] Seed script: `/app/backend/scripts/seed_digital_reviews.py` (idempotent per customer_name)

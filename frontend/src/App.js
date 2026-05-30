@@ -22,6 +22,7 @@ import BlogWaaromHuiltBabyPage from "./pages/BlogWaaromHuiltBabyPage";
 import BlogVerschilVerzwaringsknuffelNachtlampjePage from "./pages/BlogVerschilVerzwaringsknuffelNachtlampjePage";
 import BlogBesteSlaapknuffel2026Page from "./pages/BlogBesteSlaapknuffel2026Page";
 import CadeaubonPage from "./pages/CadeaubonPage";
+import LandingProPage from "./pages/LandingProPage";
 import StressPage from "./pages/StressPage";
 import OverprikkelingPage from "./pages/OverprikkelingPage";
 import AngstPage from "./pages/AngstPage";
@@ -113,6 +114,7 @@ function App() {
               <Route path="/blog/verschil-verzwaringsknuffel-nachtlampje" element={<BlogVerschilVerzwaringsknuffelNachtlampjePage />} />
               <Route path="/blog/beste-slaapknuffel-2026" element={<BlogBesteSlaapknuffel2026Page />} />
               <Route path="/cadeaubon" element={<CadeaubonPage />} />
+              <Route path="/pro" element={<LandingProPage />} />
               <Route path="/stress" element={<StressPage />} />
               <Route path="/overprikkeling" element={<OverprikkelingPage />} />
               <Route path="/angst" element={<AngstPage />} />
