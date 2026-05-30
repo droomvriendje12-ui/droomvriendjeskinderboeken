@@ -184,6 +184,7 @@ from routes import digital_products as digital_products_route
 from routes import marketing_hub as marketing_hub_route
 from routes import system_alerts as system_alerts_route
 from routes import resend_webhook as resend_webhook_route
+from routes import campaigns as campaigns_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -281,6 +282,11 @@ api_router.include_router(system_alerts_route.router)
 # Resend webhook receiver (email delivery/bounce/complaint events, Svix-signed)
 resend_webhook_route.set_database(db)
 api_router.include_router(resend_webhook_route.router)
+
+# Marketing campaigns (campaign planner storage)
+campaigns_route.set_database(db)
+campaigns_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(campaigns_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

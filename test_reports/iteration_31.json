@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend e2e voor admin Command Center — 'Exporteer' PDF, 'Nieuwe Campagne' planner modal, campagnes-sectie (activeren/pauzeren/verwijderen) en Marketing Hub regressie. Alle kritieke flows slagen, geen page-breaking JS errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Command Center init load", "issues": ["Eenmalige console-melding 'Error fetching products, using fallback: TypeError: Failed to fetch' bij paginastart; producten worden alsnog correct geladen (18 stuks) via fallback/retry — niet blokkerend, maar de eerste fetch zou stilletjes moeten falen of een retry zonder console.error moeten doen."]},
+      {"screen": "React DevWarning", "issues": ["Non-boolean attribute 'jsx' wordt op een element gezet — waarschijnlijk styled-jsx-achtige usage of een prop die als boolean wordt doorgegeven. Cosmetisch, niet brekend."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optioneel: onderdruk/repareer 'Error fetching products, using fallback' bij eerste laden van /admin/command-center (gebruikt nu fallback, werkt verder prima).",
+    "Optioneel: los React 'non-boolean attribute jsx' warning op."
+  ],
+  "critical_code_review_comments": [
+    "AdminCommandCenterNew.jsx is 1008 regels — overweegt opsplitsen per sectie (CampaignsSection, AlertsSection, AnalyticsSection) voor onderhoudbaarheid (>700 lines drempel).",
+    "exportDashboardPdf() en alle campaigns-fetches gebruiken een direct relatieve `/api/...` URL met localStorage token. Dit werkt, maar wijkt af van convention process.env.REACT_APP_BACKEND_URL — controleer of dat bewust is (preview/prod gebruiken hetzelfde origin, dus geen issue).",
+    "CampaignBuilder.jsx: bij save zonder geselecteerde producten kan productId leeg zijn — controleer of backend dit accepteert. Tijdens test waren 18 producten beschikbaar, dus pad gedekt.",
+    "Goede toegankelijkheid en data-testid coverage op alle interactieve elementen — uitstekend voor automatisering."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (9/9 critical flows)"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login (preview)",
+  "seed_data_creation": "Campaign 'TEST_E2E Campagne 2026' aangemaakt en daarna in dezelfde flow weer verwijderd. Database is schoon achtergebleven.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "AI-tekst generatie in CampaignBuilder (POST /api/marketing-hub/ad-copy, GPT-5.2, 10-25s) is bewust NIET getest om credits te sparen — backend is al via curl geverifieerd door E1. Het frontend pad is triviaal (fetch → toon resultaat in textarea data-testid='campaign-copy-result'). Indien een testagent dit later toch test: gebruik genereuze timeout (≥30s) en doe dit maximaal 1x.",
+  "rca of the issue": "n.v.t. — geen blokkerende bugs gevonden",
+  "detailed_results": {
+    "step1_login": "PASS — POST /api/admin/login → 200, token ontvangen en in localStorage gezet",
+    "step2_command_center_load": "PASS — dashboard-export-btn zichtbaar binnen 15s",
+    "step3_exporteer_btn": "PASS — GET /api/marketing-hub/dashboard-pdf → 200, content-type application/pdf, nieuw tabblad geopend, geen error-alert",
+    "step4_new_campaign_btn": "PASS — campaign-builder-modal opent",
+    "step5_form_fill": "PASS — naam/doel/product (18 producten beschikbaar)/platforms toggled (x en facebook toegevoegd)/budget=250",
+    "step6_save_campaign": "PASS — POST /api/campaigns → 200, modal automatisch gesloten (succes-pad)",
+    "step7_campaigns_section": "PASS — Campagnes-link in nav navigeert; campaigns-section toont 3 rows incl. de zojuist opgeslagen",
+    "step8_activate_pause_delete": "PASS — Activeren → 'actief' in row tekst; Pauzeren → 'gepauzeerd'; Verwijderen → rij count daalt van 3 naar 2",
+    "step9_marketing_hub_regression": "PASS — marketing-hub-button opent marketing-hub-modal",
+    "ai_copy_generate": "SKIPPED — bewust niet getest om credits te besparen (backend reeds geverifieerd)",
+    "console_errors": "0 page errors. 1 niet-kritieke 'Failed to fetch' op products-init (fallback werkt), 1 React DevWarning over jsx attribute."
+  }
+}

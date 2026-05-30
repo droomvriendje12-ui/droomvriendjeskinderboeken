@@ -7,9 +7,10 @@ import {
   Megaphone, Gift, Star, Layers, LogOut, ChevronRight,
   DollarSign, ShoppingCart, Eye, Mail, TrendingUp, Plus,
   Download, Activity, Package, Settings, Zap, Target, Clock,
-  Bell, Wifi, WifiOff, Inbox, FileText, AlertTriangle, CheckCircle
+  Bell, Wifi, WifiOff, Inbox, FileText, AlertTriangle, CheckCircle, Rocket, Trash2, Play, Pause
 } from 'lucide-react';
 import MarketingSalesHub from '../components/admin/MarketingSalesHub';
+import CampaignBuilder from '../components/admin/CampaignBuilder';
 
 
 const AdminCommandCenterNew = () => {
@@ -74,6 +75,53 @@ const AdminCommandCenterNew = () => {
       });
       fetchAlerts();
     } catch { /* ignore */ }
+  };
+
+  // Campaigns (campaign planner)
+  const [campaignOpen, setCampaignOpen] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
+
+  const fetchCampaigns = useCallback(async () => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const r = await fetch(`/api/campaigns`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) { const d = await r.json(); setCampaigns(d.items || []); }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+
+  const setCampaignStatus = async (id, status) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      await fetch(`/api/campaigns/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      fetchCampaigns();
+    } catch { /* ignore */ }
+  };
+
+  const deleteCampaign = async (id) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      await fetch(`/api/campaigns/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      fetchCampaigns();
+    } catch { /* ignore */ }
+  };
+
+  const exportDashboardPdf = async () => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const r = await fetch(`/api/marketing-hub/dashboard-pdf`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error('Export mislukt');
+      const blob = await r.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      window.alert('Kon analytics-PDF niet genereren');
+    }
   };
 
   // Update clock
@@ -233,6 +281,7 @@ const AdminCommandCenterNew = () => {
     { id: 'faq-stats', icon: TrendingUp, label: 'FAQ Stats', link: '/admin/faq-stats' },
     { id: 'discount', icon: Gift, label: 'Kortingscodes', link: '/admin/discount-codes' },
     { id: 'divider-marketing', label: 'Marketing', divider: true },
+    { id: 'campaigns', icon: Rocket, label: 'Campagnes' },
     { id: 'inbox-link', icon: Inbox, label: 'Inbox', link: '/admin/inbox' },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
@@ -372,12 +421,13 @@ const AdminCommandCenterNew = () => {
                   <p className="text-white/40 text-sm">{formatDate(currentTime)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white text-sm font-semibold transition-all">
+                  <button onClick={exportDashboardPdf} data-testid="dashboard-export-btn" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white text-sm font-semibold transition-all">
                     <Download className="w-4 h-4" />
                     Exporteer
                   </button>
                   <button 
-                    onClick={() => navigate('/admin/email-marketing')}
+                    onClick={() => setCampaignOpen(true)}
+                    data-testid="new-campaign-btn"
                     className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all text-sm"
                   >
                     <Plus className="w-4 h-4" />
@@ -818,6 +868,67 @@ const AdminCommandCenterNew = () => {
             </div>
           )}
 
+          {/* Campaigns Section */}
+          {activeSection === 'campaigns' && (
+            <div data-testid="campaigns-section">
+              <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+                <div>
+                  <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent mb-2">Campagnes</h1>
+                  <p className="text-white/50">Plan, genereer AI-tekst en beheer je marketingcampagnes.</p>
+                </div>
+                <button onClick={() => setCampaignOpen(true)} data-testid="campaigns-new-btn"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all">
+                  <Plus className="w-4 h-4" /> Nieuwe Campagne
+                </button>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+                {campaigns.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center" data-testid="campaigns-empty">
+                    <Rocket className="w-12 h-12 text-white/20 mb-3" />
+                    <p className="text-white font-semibold">Nog geen campagnes</p>
+                    <p className="text-white/40 text-sm">Klik op "Nieuwe Campagne" om je eerste campagne te plannen.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {campaigns.map((c) => {
+                      const statusStyle = c.status === 'actief' ? 'bg-emerald-500/20 text-emerald-300'
+                        : c.status === 'gepauzeerd' ? 'bg-amber-500/20 text-amber-300'
+                        : c.status === 'afgerond' ? 'bg-blue-500/20 text-blue-300' : 'bg-white/10 text-white/60';
+                      return (
+                        <div key={c.id} className="flex items-center gap-4 p-4 rounded-xl bg-slate-950/40 border border-white/5" data-testid="campaign-row">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-white truncate">{c.name}</span>
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${statusStyle}`}>{c.status}</span>
+                            </div>
+                            <p className="text-white/40 text-xs truncate">
+                              {c.product_name || '—'} · €{Number(c.budget || 0).toFixed(0)} · {(c.platforms || []).join(', ') || 'geen platforms'}
+                            </p>
+                          </div>
+                          {c.status !== 'actief' ? (
+                            <button onClick={() => setCampaignStatus(c.id, 'actief')} data-testid="campaign-activate"
+                              className="flex items-center gap-1 text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-3 py-1.5 rounded-lg transition">
+                              <Play className="w-3.5 h-3.5" /> Activeren
+                            </button>
+                          ) : (
+                            <button onClick={() => setCampaignStatus(c.id, 'gepauzeerd')} data-testid="campaign-pause"
+                              className="flex items-center gap-1 text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 px-3 py-1.5 rounded-lg transition">
+                              <Pause className="w-3.5 h-3.5" /> Pauzeren
+                            </button>
+                          )}
+                          <button onClick={() => deleteCampaign(c.id)} data-testid="campaign-delete"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* System Alerts Section */}
           {activeSection === 'system-alerts' && (
             <div data-testid="system-alerts-section">
@@ -878,6 +989,7 @@ const AdminCommandCenterNew = () => {
       </button>
 
       <MarketingSalesHub isOpen={hubOpen} onClose={() => setHubOpen(false)} products={products} />
+      <CampaignBuilder isOpen={campaignOpen} onClose={() => setCampaignOpen(false)} products={products} onSaved={fetchCampaigns} />
 
       <style jsx>{`
         @keyframes fadeIn {

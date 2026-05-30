@@ -90,6 +90,136 @@ async def best_sellers_today(_admin=Depends(_require_admin)):
     }
 
 
+@router.get("/dashboard-pdf")
+async def dashboard_pdf(_admin=Depends(_require_admin)):
+    """Premium, merk-gebrand analytics-overzicht (vandaag + laatste 30 dagen) als PDF."""
+    from fastapi.responses import Response
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Supabase niet geconfigureerd")
+
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_30 = (start_today - timedelta(days=30))
+
+    try:
+        res = supabase.table("orders").select(
+            "id,total_amount,status,created_at"
+        ).gte("created_at", start_30.isoformat()).execute()
+        rows = res.data or []
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Orders ophalen faalde: {exc}")
+
+    def is_paid(o):
+        return (o.get("status") or "").lower() in PAID_STATUSES
+
+    paid_30 = [o for o in rows if is_paid(o)]
+    paid_today = [o for o in paid_30 if (o.get("created_at") or "") >= start_today.isoformat()]
+    rev_30 = sum(float(o.get("total_amount") or 0) for o in paid_30)
+    rev_today = sum(float(o.get("total_amount") or 0) for o in paid_today)
+    aov = (rev_30 / len(paid_30)) if paid_30 else 0
+
+    # top products over 30d
+    ids = [o["id"] for o in paid_30 if o.get("id")]
+    counts = {}
+    for i in range(0, len(ids), 50):
+        batch = ids[i:i + 50]
+        try:
+            items = supabase.table("order_items").select(
+                "product_name,quantity,unit_price"
+            ).in_("order_id", batch).execute()
+            item_rows = items.data or []
+        except Exception:
+            item_rows = []
+        for it in item_rows:
+            name = it.get("product_name") or "Onbekend product"
+            qty = int(it.get("quantity") or 1)
+            price = float(it.get("unit_price") or 0)
+            c = counts.setdefault(name, {"name": name, "units": 0, "revenue": 0.0})
+            c["units"] += qty
+            c["revenue"] += price * qty
+    top = sorted(counts.values(), key=lambda x: x["revenue"], reverse=True)[:8]
+
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    import io
+
+    BROWN = colors.HexColor("#8a5a3b")
+    DARK = colors.HexColor("#3a2a1e")
+    CREAM = colors.HexColor("#f7f1ea")
+    GREY = colors.HexColor("#6b5d50")
+
+    def eur(n):
+        return f"EUR {float(n):.2f}".replace(".", ",")
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=18 * mm, bottomMargin=16 * mm,
+                            leftMargin=15 * mm, rightMargin=15 * mm, title="Droomvriendjes - Analytics")
+    h1 = ParagraphStyle("h1", fontName="Helvetica-Bold", fontSize=22, textColor=DARK, leading=26)
+    sub = ParagraphStyle("sub", fontName="Helvetica", fontSize=11, textColor=BROWN, leading=14, spaceBefore=2)
+    meta = ParagraphStyle("meta", fontName="Helvetica", fontSize=8.5, textColor=GREY, leading=12)
+    kpi_lbl = ParagraphStyle("kl", fontName="Helvetica", fontSize=9, textColor=GREY)
+    kpi_val = ParagraphStyle("kv", fontName="Helvetica-Bold", fontSize=16, textColor=DARK, spaceBefore=2)
+    cell = ParagraphStyle("cell", fontName="Helvetica", fontSize=9, textColor=DARK, leading=12)
+    cell_b = ParagraphStyle("cb", fontName="Helvetica-Bold", fontSize=9, textColor=DARK, leading=12)
+    head_c = ParagraphStyle("hc", fontName="Helvetica-Bold", fontSize=9, textColor=colors.white, leading=12)
+
+    elems = [
+        Paragraph("Droomvriendjes", h1),
+        Paragraph("Verkoop &amp; Conversie — Overzicht", sub),
+        Paragraph(f"Gegenereerd op {now.strftime('%d-%m-%Y %H:%M')} · periode laatste 30 dagen", meta),
+        Spacer(1, 7 * mm),
+    ]
+
+    kpis = [[
+        Paragraph("Omzet (30 dagen)", kpi_lbl), Paragraph("Bestellingen (30d)", kpi_lbl),
+        Paragraph("Gem. orderwaarde", kpi_lbl), Paragraph("Omzet vandaag", kpi_lbl),
+    ], [
+        Paragraph(eur(rev_30), kpi_val), Paragraph(str(len(paid_30)), kpi_val),
+        Paragraph(eur(aov), kpi_val), Paragraph(eur(rev_today), kpi_val),
+    ]]
+    kt = Table(kpis, colWidths=[45 * mm, 45 * mm, 45 * mm, 45 * mm])
+    kt.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), CREAM),
+        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#e6dccf")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.white),
+        ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    elems.append(kt)
+    elems.append(Spacer(1, 8 * mm))
+
+    elems.append(Paragraph("Best verkochte producten (30 dagen)", sub))
+    elems.append(Spacer(1, 3 * mm))
+    data = [[Paragraph("#", head_c), Paragraph("Product", head_c), Paragraph("Aantal", head_c), Paragraph("Omzet", head_c)]]
+    if top:
+        for i, p in enumerate(top, 1):
+            data.append([Paragraph(str(i), cell), Paragraph(p["name"], cell_b),
+                         Paragraph(str(p["units"]), cell), Paragraph(eur(round(p["revenue"], 2)), cell)])
+    else:
+        data.append([Paragraph("—", cell), Paragraph("Nog geen verkopen in deze periode", cell), Paragraph("—", cell), Paragraph("—", cell)])
+    tbl = Table(data, colWidths=[12 * mm, 110 * mm, 28 * mm, 30 * mm], repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), BROWN),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, CREAM]),
+        ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("LINEBELOW", (0, 1), (-1, -1), 0.4, colors.HexColor("#e6dccf")),
+    ]))
+    elems.append(tbl)
+    elems.append(Spacer(1, 6 * mm))
+    elems.append(Paragraph("Droomvriendjes · droomvriendjes.com · automatisch gegenereerd analytics-rapport", meta))
+
+    doc.build(elems)
+    pdf = buf.getvalue()
+    fname = f"droomvriendjes-analytics-{now.strftime('%Y%m%d')}.pdf"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{fname}"'})
+
+
 @router.post("/ad-copy")
 async def generate_ad_copy(payload: dict, _admin=Depends(_require_admin)):
     """Genereer advertentietekst voor een product/platform met GPT-5.2."""
