@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
   Inbox, Send, FileText, Trash2, AlertOctagon, Tag, Search, RefreshCw,
-  Star, StarOff, Reply, X, Plus, ArrowLeft, Mail, MailOpen, Loader2, ChevronLeft
+  Star, StarOff, Reply, X, Plus, ArrowLeft, Mail, MailOpen, Loader2, ChevronLeft,
+  Settings, Pencil, Check
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -21,69 +22,37 @@ const FOLDER_DEFS = [
   { id: 'trash', label: 'Prullenbak', icon: Trash2 },
 ];
 
-// Snelle antwoord-templates (de gebrande handtekening wordt server-side toegevoegd)
-const QUICK_TEMPLATES = [
-  {
-    id: 'order-onderweg',
-    label: 'Bestelling onderweg',
-    text:
-      'Bedankt voor je bericht! Goed nieuws: je bestelling is verzonden. Je ontvangt het track & trace nummer zodra het pakket door de bezorger is gescand.\n\n' +
-      'Verwachte levertijd: 1-2 werkdagen.\n\n' +
-      'Laat het ons gerust weten als je nog vragen hebt.\n\n' +
-      'Lieve groet,\nTeam Droomvriendjes',
-  },
-  {
-    id: 'order-ontvangen',
-    label: 'Bestelling ontvangen',
-    text:
-      'Bedankt voor je bestelling! We hebben deze in goede orde ontvangen en gaan er direct mee aan de slag.\n\n' +
-      'Je ontvangt automatisch een bericht zodra je pakket onderweg is.\n\n' +
-      'Lieve groet,\nTeam Droomvriendjes',
-  },
-  {
-    id: 'retour',
-    label: 'Retour aanvragen',
-    text:
-      'Bedankt voor je bericht. Wat vervelend, maar je kunt het product natuurlijk binnen 14 dagen retourneren.\n\n' +
-      'Zo werkt het:\n' +
-      '1. Stuur het product ongebruikt en in de originele verpakking terug naar ons retouradres.\n' +
-      '2. Voeg je ordernummer toe.\n' +
-      '3. Zodra wij het pakket ontvangen, storten we het bedrag binnen 5 werkdagen terug.\n\n' +
-      'Meer info: https://www.droomvriendjes.com/retourneren\n\n' +
-      'Lieve groet,\nTeam Droomvriendjes',
-  },
-  {
-    id: 'review-bedankt',
-    label: 'Bedankt voor je review',
-    text:
-      'Wat lief dat je de tijd nam om een review achter te laten, daar worden we erg blij van! Het helpt andere ouders enorm bij het kiezen van de juiste knuffel.\n\n' +
-      'Mocht je nog iets nodig hebben, we staan voor je klaar.\n\n' +
-      'Lieve groet,\nTeam Droomvriendjes',
-  },
-  {
-    id: 'levertijd',
-    label: 'Levertijd / voorraad',
-    text:
-      'Bedankt voor je vraag! Dit product is op voorraad en wordt op werkdagen voor 17:00 uur besteld dezelfde dag verzonden.\n\n' +
-      'De verwachte levertijd in Nederland is 1-2 werkdagen.\n\n' +
-      'Laat het ons weten als we je verder kunnen helpen.\n\n' +
-      'Lieve groet,\nTeam Droomvriendjes',
-  },
-];
-
-const QuickTemplates = ({ firstName, onPick }) => {
+// Snelle antwoord-templates worden uit de database geladen (/api/reply-templates).
+// De gebrande handtekening wordt server-side toegevoegd bij verzenden.
+const QuickTemplates = ({ firstName, templates, onPick, onManage }) => {
   const greeting = `Hallo${firstName ? ' ' + firstName : ''},\n\n`;
   return (
     <div className="mb-2" data-testid="quick-templates">
-      <div className="text-[11px] uppercase tracking-wide text-slate-500 mb-1.5">Snelle antwoorden</div>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[11px] uppercase tracking-wide text-slate-500">Snelle antwoorden</span>
+        {onManage && (
+          <button
+            type="button"
+            onClick={onManage}
+            className="text-[11px] text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1"
+            data-testid="manage-templates-btn"
+          >
+            <Settings className="w-3 h-3" /> Beheer
+          </button>
+        )}
+      </div>
       <div className="flex flex-wrap gap-1.5">
-        {QUICK_TEMPLATES.map((t) => (
+        {(templates || []).length === 0 && (
+          <span className="text-xs text-slate-500">Nog geen templates. Klik op "Beheer" om er een toe te voegen.</span>
+        )}
+        {(templates || []).map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => onPick(greeting + t.text)}
             className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 text-xs font-medium hover:bg-emerald-500/20 transition-colors"
             data-testid={`template-${t.id}`}
+            title={t.label}
           >
             {t.label}
           </button>
@@ -119,6 +88,18 @@ const InboxPage = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showCompose, setShowCompose] = useState(false);
   const [replyData, setReplyData] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/api/reply-templates`, { headers: authHeaders() });
+      if (r.ok) {
+        const d = await r.json();
+        setTemplates(d.templates || []);
+      }
+    } catch (e) { console.error(e); }
+  }, []);
 
   const fetchFolders = useCallback(async () => {
     try {
@@ -144,6 +125,7 @@ const InboxPage = () => {
   }, [folder, activeLabel, search]);
 
   useEffect(() => { fetchFolders(); }, [fetchFolders]);
+  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
   useEffect(() => { fetchMessages(); setSelected(null); }, [fetchMessages]);
 
   // Poll for new mail every 30s on inbox
@@ -368,6 +350,8 @@ const InboxPage = () => {
       {replyData && (
         <ReplyModal
           original={replyData}
+          templates={templates}
+          onManage={() => setShowTemplateManager(true)}
           onClose={() => setReplyData(null)}
           onSent={() => { setReplyData(null); fetchFolders(); }}
         />
@@ -375,8 +359,18 @@ const InboxPage = () => {
 
       {showCompose && (
         <ComposeModal
+          templates={templates}
+          onManage={() => setShowTemplateManager(true)}
           onClose={() => setShowCompose(false)}
           onSent={() => { setShowCompose(false); fetchFolders(); }}
+        />
+      )}
+
+      {showTemplateManager && (
+        <TemplateManagerModal
+          templates={templates}
+          onClose={() => setShowTemplateManager(false)}
+          onChanged={fetchTemplates}
         />
       )}
     </div>
@@ -489,7 +483,7 @@ const MessageDetail = ({ message, onPatch, onDelete, onReply, folder }) => {
   );
 };
 
-const ReplyModal = ({ original, onClose, onSent }) => {
+const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState('');
@@ -521,6 +515,8 @@ const ReplyModal = ({ original, onClose, onSent }) => {
       </div>
       <QuickTemplates
         firstName={(original.from_name || '').trim().split(' ')[0]}
+        templates={templates}
+        onManage={onManage}
         onPick={(tpl) => setBody((prev) => (prev.trim() ? `${prev}\n\n${tpl}` : tpl))}
       />
       <textarea
@@ -546,7 +542,7 @@ const ReplyModal = ({ original, onClose, onSent }) => {
   );
 };
 
-const ComposeModal = ({ onClose, onSent }) => {
+const ComposeModal = ({ templates, onManage, onClose, onSent }) => {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -596,6 +592,8 @@ const ComposeModal = ({ onClose, onSent }) => {
       />
       <QuickTemplates
         firstName=""
+        templates={templates}
+        onManage={onManage}
         onPick={(tpl) => setBody((prev) => (prev.trim() ? `${prev}\n\n${tpl}` : tpl))}
       />
       <textarea
@@ -620,6 +618,118 @@ const ComposeModal = ({ onClose, onSent }) => {
     </Modal>
   );
 };
+
+const TemplateManagerModal = ({ templates, onClose, onChanged }) => {
+  const [editing, setEditing] = useState(null); // null | 'new' | template object
+  const [label, setLabel] = useState('');
+  const [text, setText] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
+
+  const startNew = () => { setEditing('new'); setLabel(''); setText(''); setErr(''); };
+  const startEdit = (t) => { setEditing(t); setLabel(t.label); setText(t.text); setErr(''); };
+  const cancelEdit = () => { setEditing(null); setErr(''); };
+
+  const save = async () => {
+    if (!label.trim() || !text.trim()) { setErr('Vul een titel en tekst in.'); return; }
+    setSaving(true); setErr('');
+    try {
+      const isNew = editing === 'new';
+      const url = isNew ? `${API}/api/reply-templates` : `${API}/api/reply-templates/${editing.id}`;
+      const r = await fetch(url, {
+        method: isNew ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ label: label.trim(), text }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        throw new Error(d.detail || `Status ${r.status}`);
+      }
+      setEditing(null);
+      await onChanged();
+    } catch (e) {
+      setErr(e.message || 'Opslaan mislukt');
+    }
+    setSaving(false);
+  };
+
+  const remove = async (t) => {
+    if (!window.confirm(`Template "${t.label}" verwijderen?`)) return;
+    try {
+      await fetch(`${API}/api/reply-templates/${t.id}`, { method: 'DELETE', headers: authHeaders() });
+      await onChanged();
+    } catch (e) { console.error(e); }
+  };
+
+  return (
+    <Modal title="Antwoord-templates beheren" onClose={onClose}>
+      <div data-testid="template-manager">
+        {!editing && (
+          <>
+            <div className="space-y-2 max-h-72 overflow-y-auto mb-4">
+              {(templates || []).length === 0 && (
+                <p className="text-sm text-slate-400">Nog geen templates.</p>
+              )}
+              {(templates || []).map((t) => (
+                <div key={t.id} className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-3" data-testid={`tpl-row-${t.id}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">{t.label}</p>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 whitespace-pre-wrap">{t.text}</p>
+                  </div>
+                  <button onClick={() => startEdit(t)} className="p-1.5 rounded-lg hover:bg-white/10 text-emerald-300" title="Bewerken" data-testid={`tpl-edit-${t.id}`}>
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => remove(t)} className="p-1.5 rounded-lg hover:bg-white/10 text-red-400" title="Verwijderen" data-testid={`tpl-delete-${t.id}`}>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button onClick={startNew} className="w-full px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 font-semibold text-sm hover:bg-emerald-500/25 inline-flex items-center justify-center gap-2" data-testid="tpl-new-btn">
+              <Plus className="w-4 h-4" /> Nieuwe template
+            </button>
+          </>
+        )}
+
+        {editing && (
+          <div className="space-y-3" data-testid="tpl-form">
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Titel (knoptekst)</label>
+              <input
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="Bijv. Bestelling onderweg"
+                maxLength={80}
+                className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:border-emerald-400 text-white"
+                data-testid="tpl-label-input"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Tekst (zonder begroeting en handtekening — die worden automatisch toegevoegd)</label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Typ de standaardtekst..."
+                className="w-full h-48 bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-400 text-white"
+                data-testid="tpl-text-input"
+              />
+            </div>
+            {err && <div className="text-red-400 text-xs">{err}</div>}
+            <div className="flex justify-end gap-2">
+              <button onClick={cancelEdit} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">Annuleer</button>
+              <button onClick={save} disabled={saving} className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold text-sm disabled:opacity-50 inline-flex items-center gap-2" data-testid="tpl-save-btn">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Opslaan
+              </button>
+            </div>
+          </div>
+        )}
+
+        {err && !editing && <div className="text-red-400 text-xs mt-2">{err}</div>}
+      </div>
+    </Modal>
+  );
+};
+
 
 const Modal = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

@@ -177,6 +177,7 @@ from routes import database_info as database_info_route
 from routes import gift_cards_supabase as gift_cards_supabase_route
 from routes import csv_import as csv_import_route
 from routes import inbox as inbox_route
+from routes import reply_templates as reply_templates_route
 from routes import admin_customers as admin_customers_route
 from routes import faq_tracking as faq_tracking_route
 from routes import blogs as blogs_route
@@ -250,6 +251,11 @@ inbox_route.set_database(db)
 # admin verifier is wired after verify_admin_token is defined (lambda resolves lazily)
 inbox_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(inbox_route.router)
+
+# Reply templates (editable inbox quick-replies)
+reply_templates_route.set_database(db)
+reply_templates_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(reply_templates_route.router)
 
 # Admin customers (aggregated from orders)
 admin_customers_route.set_supabase_client(supabase_client)

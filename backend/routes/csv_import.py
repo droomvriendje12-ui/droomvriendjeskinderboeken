@@ -422,6 +422,54 @@ class CampaignRequest(BaseModel):
 campaign_progress = {}
 
 
+class TestSendRequest(BaseModel):
+    template_id: str
+    to_email: str
+    naam: str = "Sanne"
+
+
+@router.post("/send-test")
+async def send_test(request: TestSendRequest):
+    """Send a single personalized test email of a template to one address."""
+    if supabase_client is None:
+        raise HTTPException(status_code=500, detail="Template database niet geconfigureerd")
+    if email_sender is None:
+        raise HTTPException(status_code=500, detail="Email service niet geconfigureerd")
+    if "@" not in request.to_email:
+        raise HTTPException(status_code=400, detail="Ongeldig e-mailadres")
+
+    try:
+        result = supabase_client.table("email_templates").select("*").eq("id", request.template_id).limit(1).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Template niet gevonden")
+        template = result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Template ophalen mislukt: {e}")
+
+    naam = request.naam or "Sanne"
+    subject = "[TEST] " + (template.get("subject", "Droomvriendjes"))
+    content = template.get("content", "")
+    for var in ("{{naam}}", "{{firstname}}", "{{voornaam}}"):
+        subject = subject.replace(var, naam)
+        content = content.replace(var, naam)
+    content = content.replace("{{email}}", request.to_email)
+    content = append_unsub_footer(content, request.to_email, "")
+
+    import html as html_module
+    text_content = html_module.unescape(re.sub(r'<[^>]+>', '', content))
+    text_content = append_unsub_text(text_content, request.to_email)
+
+    try:
+        success = email_sender(request.to_email, subject, content, text_content)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Testmail verzenden mislukt: {e}")
+    if not success:
+        raise HTTPException(status_code=502, detail="Testmail verzenden mislukt (e-mailprovider weigerde)")
+    return {"success": True, "message": f"Testmail verstuurd naar {request.to_email}"}
+
+
 @router.post("/send-campaign")
 async def send_campaign(request: CampaignRequest):
     """

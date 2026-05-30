@@ -218,6 +218,58 @@ async def create_template(template: EmailTemplateCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/upload-html")
+async def upload_html_template(
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    subject: str = Form(...),
+    description: Optional[str] = Form(None),
+):
+    """Upload a full .html email, auto-host embedded images, and store as a template."""
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+
+    raw = await file.read()
+    try:
+        html = raw.decode("utf-8", errors="replace")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bestand kon niet als tekst gelezen worden")
+    if "<" not in html:
+        raise HTTPException(status_code=400, detail="Dit lijkt geen HTML-bestand te zijn")
+
+    from services.email_html_processor import process_html
+    try:
+        result = process_html(html, supabase)
+    except Exception as e:
+        logger.error(f"HTML processing failed: {e}")
+        raise HTTPException(status_code=500, detail=f"HTML verwerken mislukt: {e}")
+
+    processed_html = result["html"]
+    template_data = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "subject": subject,
+        "content": processed_html,
+        "category": "marketing",
+        "is_active": True,
+    }
+    try:
+        ins = supabase.table("email_templates").insert(template_data).execute()
+    except Exception as e:
+        logger.error(f"Error saving uploaded template: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    if not ins.data:
+        raise HTTPException(status_code=500, detail="Template opslaan mislukt")
+
+    return {
+        "template": format_template_response(ins.data[0]),
+        "images_hosted": result["images_hosted"],
+        "original_size_kb": round(result["original_size"] / 1024, 1),
+        "processed_size_kb": round(result["processed_size"] / 1024, 1),
+        "warnings": result.get("errors", []),
+    }
+
+
 @router.put("/{template_id}")
 async def update_template(template_id: str, template: EmailTemplateUpdate):
     """Update an email template"""

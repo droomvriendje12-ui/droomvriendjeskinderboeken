@@ -162,11 +162,11 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: unit (idempotent + bevat alle elementen), lint schoon, echte verzending naar test-gmail (200), visuele preview bevestigd.
 
 ### Snelle antwoord-templates inbox (30 mei 2026)
-- [x] **"Snelle antwoorden"-balk** boven de reply- én compose-tekstvelden in `pages/admin/InboxPage.jsx` (`QUICK_TEMPLATES` const + `QuickTemplates` component)
-- [x] 5 templates met één klik: Bestelling onderweg, Bestelling ontvangen, Retour aanvragen, Bedankt voor je review, Levertijd / voorraad
-- [x] Voegt automatisch een gepersonaliseerde begroeting toe ("Hallo {voornaam}," bij reply via `original.from_name`, "Hallo," bij compose). Niet-destructief: bij reeds getypte tekst wordt de template eronder geplakt i.p.v. overschreven
-- [x] Templates bevatten GEEN handtekening (die wordt server-side toegevoegd), eindigen met "Lieve groet, Team Droomvriendjes"
-- [x] Getest: lint schoon + e2e screenshot bevestigd (template-klik vult tekstveld correct, 417 tekens, begroeting aanwezig)
+- [x] **"Snelle antwoorden"-balk** boven de reply- én compose-tekstvelden in `pages/admin/InboxPage.jsx`
+- [x] Templates laden nu uit de **database** (`/api/reply-templates`, MongoDB `reply_templates`, `routes/reply_templates.py`) i.p.v. hardcoded; 5 standaarden worden automatisch geseed
+- [x] **Beheerscherm** ("Beheer"-knop → `TemplateManagerModal`): toevoegen / bewerken / verwijderen van templates, opgeslagen in DB (admin-auth CRUD: GET/POST/PUT/DELETE)
+- [x] Voegt automatisch een gepersonaliseerde begroeting toe ("Hallo {voornaam}," bij reply, "Hallo," bij compose), niet-destructief. Handtekening server-side toegevoegd
+- [x] Getest: backend curl CRUD (seed 5, create/update/delete, 401 zonder token) + e2e screenshot (5 knoppen uit API, manager opent met 5 rijen, nieuw-formulier werkt)
 
 ### Dashboard: Marketing & Sales Hub + Premium PDF + Status-monitoring (30 mei 2026)
 - [x] **🤖 Robot-knop → "Marketing & Sales Hub"** (`components/admin/MarketingSalesHub.jsx`, geopend vanuit `AdminCommandCenterNew`):
@@ -199,6 +199,16 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Nieuwe **"Campagnes"** menu-sectie: lijst + activeren/pauzeren/verwijderen (`routes/campaigns.py`, MongoDB CRUD `POST/GET/PATCH/DELETE /api/campaigns`)
 - [x] Getest: testing agent **9/9 frontend flows (100%)**; backend curl-geverifieerd
 - [ ] **Toekomst:** volledige TikTok/X/Meta **API-automatisering** (campagnes echt aanmaken via ad-platform API) — vereist klant-credentials (TikTok Business token + advertiser_id, X API keys) + OAuth app-goedkeuring
+
+### Marketing-mail versturen + HTML-upload met image-hosting (30 mei 2026)
+- [x] **Nieuwe admin-pagina** `/admin/nieuwsbrief` (`pages/admin/MarketingMailPage.jsx`, nav-link "Nieuwsbrief versturen" in command center): template kiezen, HTML uploaden, doelgroep + ontvanger-aantal, testmail, bevestiging + verzenden met voortgangsbalk, live preview-iframe
+- [x] **HTML-upload met auto image-hosting** (`services/email_html_processor.py` + `POST /api/email-templates/upload-html`): pakt alle `data:image`-base64 uit, host ze op publieke Supabase-bucket `product-images/email-assets/` (dedup op content-hash), **SVG → PNG** (Gmail rendert geen SVG). Bewezen op het aangeleverde bestand: **1199 KB → 23,8 KB, 9 afbeeldingen gehost**, geen data-URI's meer
+- [x] Aangeleverde mail toegevoegd als klaarstaande template **"Slaapvriend Nieuwsbrief"** (in Supabase `email_templates`)
+- [x] **Test-verzend** `POST /api/email/csv/send-test` (één gepersonaliseerde mail naar jezelf, `[TEST]`-prefix). Getest: mail afgeleverd
+- [x] **Bulk-verzenden** via bestaande `POST /api/email/csv/send-campaign` (gebatcht, skip unsubscribed, `{{voornaam}}`/`{{firstname}}`-personalisatie, uitschrijflink + open/klik-tracking), doelgroep per bron kiesbaar, ontvanger-aantal uit `queue/stats` (32.586 contacten in wachtrij)
+- [x] **Bevestigingsstap** vóór verzenden (toont template-naam + exact aantal ontvangers + bron, "heb je al getest?"). Voorkomt per ongeluk massaal verzenden
+- [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
+- [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
