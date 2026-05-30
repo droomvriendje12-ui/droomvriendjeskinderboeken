@@ -37,7 +37,7 @@
     "frontend": "100% (12/12 features passed)"
   },
   "test_credentials": {
-    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com"
+    "api_base_url": "https://ecommerce-digits.preview.emergentagent.com"
   },
   "seed_data_creation": "None - tested with product added to cart from homepage",
   "retest_needed": false,

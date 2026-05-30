@@ -30,7 +30,7 @@
     "frontend": "100% (all features verified via Playwright)"
   },
   "test_credentials": {
-    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com",
+    "api_base_url": "https://ecommerce-digits.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!"
   },
   "seed_data_creation": "Created test orders and payments via API during testing (cleaned up automatically). Created test CSV imports for UI testing (cleaned up via DELETE /api/email/csv/queue).",

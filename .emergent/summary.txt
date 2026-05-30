@@ -1,131 +1,141 @@
 <analysis>**original_problem_statement:**
-De applicatie is een e-commerce webshop (Droomvriendjes). De gebruiker wilde aanvankelijk de Mollie checkout flow handmatig live testen, maar besloot de gepauzeerde feature voor Digitale Producten (PDF's) toch direct door te zetten. De hoofdfocus van deze sessie was het end-to-end bouwen van een veilig PDF downloadsysteem via Supabase Storage, inclusief het afhandelen van de afronding van oude P1-taken (Cloudflare Email Worker en Blog tabellen check).
+De applicatie is een e-commerce webshop (Droomvriendjes). De huidige focus ligt op het afronden en verfijnen van het digitale producten ecosysteem (PDF downloads via Supabase). De eerdere agent heeft succesvol digitale cross-sells, specifieke productpagina's, en een nieuwe  landingspagina voor bundels gebouwd. Daarnaast zijn er 5 échte (door de gebruiker aangeleverde) PDF's geüpload ter vervanging van dummy bestanden. De applicatie wacht momenteel op verificatie van de gebruiker.
 
 **User's preferred language**: Dutch
-*INSTRUCT FOR NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only.*
+INSTRUCTIE VOOR DE VOLGENDE AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only. REAGEER ALTIJD IN HET NEDERLANDS.
 
 **what currently exists?**
-Een robuuste full-stack e-commerce applicatie (React + FastAPI) gekoppeld aan Supabase (DB + Storage). Nieuw toegevoegd is een compleet module voor digitale producten: 5 best-selling placeholder PDF's, afgeschermde private buckets, veilige download tokens (max 3 downloads) gekoppeld aan de Mollie webhook na betaling, en frontend admin/klanten pagina's. Daarnaast is de backend email-webhook () geconfigureerd en operationeel.
+Een robuuste full-stack e-commerce applicatie (React + FastAPI + Supabase) met een uitgebreid ecosysteem voor digitale producten. Bevat veilige PDF downloads via Supabase Storage, een cross-sell flow (10% korting op fysieke producten na aankoop PDF), atomic transactions voor kortingscodes, en een nieuwe  landingspagina. MongoDB is succesvol uitgefaseerd voor reviews en kortingscodes ten gunste van Supabase.
 
 **Last working item**:
-- **Last item agent was working:** Controleren van twee oude P1-taken voor de gebruiker: de  SQL tabel en de Cloudflare Email Worker. Agent heeft bevestigd dat de blog tabel al bestaat en dat de inbox webhook werkt. De agent heeft een 5-stappenplan gedeeld in de chat zodat de gebruiker de Cloudflare UI kan instellen (Email Routing + Worker) en wacht nu op antwoord.
-- **Status:** USER VERIFICATION PENDING
-- **Agent Testing Done:** Y
-- **Which testing method agent to use?** backend testing agent (curl gebruikt voor webhook verificatie)
-- **User Testing Done:** N
+    - **Last item agent was working:** Het verifiëren van de geïntegreerde  pagina met de 8 digitale producten (inclusief 5 recent geüploade échte PDF's) en vragen of de applicatie gedeployed kan worden. De agent heeft via  een vraag gesteld en wacht op antwoord.
+    - **Status:** USER VERIFICATION PENDING
+    - **Agent Testing Done:** Y (in previous fork)
+    - **Which testing method agent to use?** NA (waiting for user input)
+    - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Cloudflare Email Worker Configuratie afronden** (P0)
-    - **Attempted fixes:** De backend code is 100% klaar. De agent heeft de instructies (uit ) overgedragen aan de gebruiker.
-    - **Next debug checklist:** Wacht op bevestiging van de gebruiker. Zodra zij de stappen in de Cloudflare Dashboard hebben voltooid, vraag de gebruiker om een testmail naar  te sturen en verifieer in  of deze goed doorkomt.
-    - **Why fix this issue and what will be achieved with the fix?** Zorgt ervoor dat inkomende e-mails direct in het interne admin dashboard verschijnen.
-    - **Status:** USER VERIFICATION PENDING
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** Backend (webhook ontvangst)
-    - **Blocked on other issue:** Gebruiker moet handelingen in hun eigen Cloudflare account uitvoeren.
-
-- **Issue 2: Mollie Live Payment Flow Validatie** (P1)
-    - **Attempted fixes:** Automatisering is momenteel genegeerd op verzoek van de gebruiker (Skip automated tests, doe alleen handmatige live verificatie).
-    - **Next debug checklist:** Vraag de gebruiker wanneer hij/zij klaar is om een test order van €0,01 te plaatsen op de productie/preview link om de volledige live Mollie-flow te valideren.
-    - **Why fix this issue and what will be achieved with the fix?** Garandeert dat de orderstatus correct wordt geüpdatet en dat (digitale) bestellingen correct worden uitgeleverd bij een echte betaling.
-    - **Status:** PENDING
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** Both (User manual check)
-    - **Blocked on other issue:** User decision to proceed with test transaction.
+  - Issue 1: Production vs Preview Environment Verwarring (P0)
+     - Attempted fixes: De agent heeft de gebruiker eerder uitgelegd dat de preview URL verschilt van de live website.
+     - Next debug checklist: Als de gebruiker meldt dat wijzigingen niet zichtbaar zijn op de live website (droomvriendjes.com), herinner de gebruiker er dan aan dat zij via de Emergent interface op 'Deploy' moeten klikken om de preview-wijzigingen naar productie te sturen.
+     - Why fix this issue and what will be achieved with the fix? Voorkomt dat de agent onnodig werkende code in de preview-omgeving gaat debuggen.
+     - Status: USER VERIFICATION PENDING
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? NA
+     - Blocked on other issue: None
+  - Issue 2: Cloudflare Email Worker Configuratie afronden (P1)
+     - Attempted fixes: Handleiding () is versimpeld en overgedragen.
+     - Next debug checklist: Wachten tot de gebruiker bevestigt dat de handmatige stappen in hun eigen Cloudflare dashboard zijn voltooid. Test daarna door een e-mail te sturen naar .
+     - Why fix this issue and what will be achieved with the fix? Zorgt ervoor dat alle inkomende e-mails direct in het interne admin dashboard verschijnen.
+     - Status: USER VERIFICATION PENDING
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Backend
+     - Blocked on other issue: Gebruiker moet handelingen in hun eigen Cloudflare account uitvoeren.
 
 **In progress Task List**:
-Geen in progress code-taken; de code voor de features is afgerond. Wachtend op input van de gebruiker.
+Geen (De agent wacht op goedkeuring van de gebruiker na de  call).
 
 **Upcoming and Future Tasks**:
-- (P2) Code Refactoring: Opsplitsen van extreem grote bestanden, zoals  (>4000 regels),  en .
-- (P2) Digitale Producten - Audio bestanden (Momenteel expliciet ON HOLD gezet door de gebruiker, totdat er professionele audio beschikbaar is).
+  - P1 - Mollie Live Payment Flow Validatie: Gebruiker moet nog een live €0,01 test uitvoeren in productie. Test dit NIET geautomatiseerd. Wacht tot de gebruiker er klaar voor is.
+  - P2 - Code Refactoring: Opsplitsen van  (>4000 regels),  en de inmiddels grote .
+  - P3 - Digitale Producten - Audio bestanden: (Momenteel expliciet ON HOLD gezet door de gebruiker, totdat er professionele audio beschikbaar is).
 
-**Completed work in this session**:
-- **PDF Digitale Producten Feature (DONE)**:
-  - Private Supabase Storage bucket () setup.
-  - Genereren en seeden van 5 best-selling dummy PDF's (Slaapritueel, Slaaplog, Affirmatiekaartjes, Kleurplaten, Slaapschema).
-  - API routes:  voor veilige info en download (max 3 downloads per klant).
-  - Integratie in  zodat Mollie webhook automatisch download 'entitlements' aanmaakt.
-  - Frontend:  en  ontwikkeld en in router opgenomen.
-  - Robuustheid toegevoegd na test (Atomic counters en idempotency check op entitlement creatie).
-- Controle: Bevestigd dat de  tabel correct bestaat in de database en klaar is voor gebruik (DONE).
-- Testen: Inkomende  getest en als 'werkend' bevonden (DONE).
+**Completed work in this session**
+- Geen nieuwe implementaties in deze specifieke fork, de agent heeft uitsluitend documentatie (PRD.md) gelezen en de gebruiker om goedkeuring gevraagd.
+- Recently completed (vanuit vorige sessies ter context):
+  - Integratie van 5 echte PDF-bestanden (DONE)
+  -  Landing Page bouw & Deduplicatie logic (DONE)
+  - Discount Code Bug Fix & Migratie naar Supabase met Atomic Usage (DONE)
+  - Reviews Migratie & Seeding (DONE)
+  - Digital ProductPage Refactor & Cross-sell Flow (DONE)
 
-**Earlier issues found/mentioned but not fixed**:
-- Geen.
+**Earlier issues found/mentioned but not fixed**
+   - Geen.
 
-**Known issue recurrence from previous fork**:
-- Issue recurrence in previous fork: None.
-- Recurrence count: 0
-- Status: N/A
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: De gebruiker test vaak op de productie URL in plaats van de preview URL, wat tot valse bugmeldingen leidt.
+  - Recurrence count: 2
+  - Status: RESOLVED (Maar vergt constante waakzaamheid en herinnering aan de gebruiker om te deployen).
 
-**Code Architecture**:
+**Code Architecture**
+/app/
+├── backend/
+│   ├── routes/
+│   │   ├── discount_codes.py        // Gemigreerd naar Supabase + Atomic use
+│   │   ├── reviews_supabase.py      // Gemigreerd naar Supabase
+│   │   ├── digital_products.py      // Met file deduplicatie
+│   │   ├── orders_supabase.py       // Bevat PDF -> Fysiek cross-sell logica
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── BlogDigitalProductCallout.jsx
+│   │   ├── pages/
+│   │   │   ├── ProductPage.jsx      
+│   │   │   ├── LandingProPage.jsx   
 
+**Key Technical Concepts**
+React (Frontend), FastAPI (Backend), Supabase (PostgreSQL - Core transactions & Private Storage buckets), Mollie (Payments). File deduplication via API, Optimistic concurrency control (atomic transactions) voor kortingscodes, Dynamische React rendering gebaseerd op .
 
-**Key Technical Concepts**:
-React (Frontend), FastAPI (Backend), Supabase (PostgreSQL - Core transactions & Private Storage buckets), Mollie (Payments), Veilig digitaal distributiesysteem (Signed URLs met quota), Python  voor PDF generatie.
+**key DB schema**
+  - discount_codes (Supabase): {code, discount_value, min_order_amount, current_uses, max_uses}
+  - products: {digital_file_path, product_type}
+  - digital_downloads: {token, order_id, product_id, file_path, downloads_remaining, expires_at}
 
-**key DB schema**:
-- : Toegevoegde kolommen 
-- : 
+**changes in tech stack**
+  - De MongoDB collecties voor  en  zijn volledig overgezet naar **Supabase PostgreSQL**. Gebruik uitsluitend Supabase voor deze entiteiten.
 
-**changes in tech stack**:
-- Toevoeging van **Supabase Private Storage Buckets** om digitale goederen achter authenticatie/tokens te beveiligen via signed URL's.
+**All files of reference** 
+  - /app/backend/routes/discount_codes.py
+  - /app/backend/routes/reviews_supabase.py
+  - /app/frontend/src/pages/ProductPage.jsx
+  - /app/backend/routes/orders_supabase.py
+  - /app/frontend/src/pages/LandingProPage.jsx
+  - /app/INBOX_SETUP.md (Cloudflare tutorial)
 
-**All files of reference**:
--  (Bevat entitlement allocatie en validatie)
--  (Mollie webhook integratie)
-- 
--  (Bevat cloudflare worker secrets & setup info)
--  (Credentials voor admin/testing)
+**Areas that need refactoring**: 
+ (meer dan 4000 regels),  (veel inline conditionele logica door digitale product toevoegingen), en .
 
-**Areas that need refactoring**:
- (>4000 regels, moet drastisch verkleind worden), , .
+**key api endpoints**
+  - POST /api/discount-codes/use (Atomic decrement)
+  - POST /api/digital-products/upload (Met file deduplication)
+  - GET /api/digital-products/download/{token}
+  - POST /api/inbox/webhook
+  - POST /api/payments/webhook
 
-**key api endpoints**:
-- 
-- 
-- 
--  (Mollie)
+**Critical Info for New Agent** 
+1. **Taal**: Communiceer uitsluitend in het Nederlands.
+2. **Huidige Status**: De voorgaande agent heeft net de gebruiker een vraag gesteld () om de  pagina met de 8 geïntegreerde producten te checken. Wacht op het antwoord van de gebruiker. Als de gebruiker alleen instructies geeft, vervolg dan daarmee.
+3. **Database**: Alle logica rondom Reviews en Discount Codes gaat nu 100% via Supabase, raak hier MongoDB niet meer voor aan.
+4. **Deploy Check**: Let goed op klachten over features die niet werken. De gebruiker kijkt mogelijk naar de live productie-omgeving zonder de nieuwe features te hebben gedeployed vanuit Emergent.
+5. **Mollie**: Probeer Mollie-testbetalingen niet te automatiseren. Dit wordt door de gebruiker later handmatig met een testbetaling van €0,01 gedaan.
 
-**Critical Info for New Agent**:
-1. REAGEER ALTIJD IN HET NEDERLANDS (Dutch).
-2. De gebruiker moet momenteel handmatige stappen uitvoeren in zijn eigen Cloudflare account om de inkomende e-mails via de ingestelde webhook werkend te krijgen. De applicatie backend zélf is hiervoor helemaal af. Wacht op antwoord of vraag of het gelukt is.
-3. De gebruiker wilde **Audio** als digitaal product uitstellen; houd dit gepauzeerd. **PDFs** zijn daarentegen wél volledig gebouwd met dummy data (de gebruiker kan later echte content uploaden).
-4. Er is afgesproken om automatische tests voor Mollie live betalingen over te slaan ten gunste van een handmatige transactie van €0,01 in de toekomst. Forceer daar geen automatische tests op dit moment, om valse betaal-aanroepen te voorkomen.
+**documents and test reports created in this job**
+  - /app/memory/PRD.md
+  - /app/memory/test_credentials.md
 
-**documents and test reports created in this job**:
-- 
--  (Bijgewerkt)
--  (Nieuw aangemaakt voor testing agent doeleinden)
-
-**Last 10 User Messages and any pending HUMAN messages**:
-- **User (LATEST - via ask_human):** Wacht op het antwoord van de gebruiker of hij het 5-stappenplan in Cloudflare heeft afgerond voor de email worker. *(PENDING HUMAN MESSAGE)*
-- **User:** P1 - Cloudflare Email Worker deployen... P1 - supabase_blog_posts.sql runnen (Agent heeft de database gecontroleerd en instructies voor Cloudflare gegeven).
-- **User:** ? (Agent verduidelijkte de status van de bouw voor de PDF's).
-- **User:** oke ga door (Startschot voor agent).
-- **User:** Beantwoordde vragen over de MVP setup voor PDFs (Streng beveiligd, max 3 downloads, agent mocht 5 dummy producten genereren).
-- **User:** Ik bedoelde alleen de audio Verder houden de plan aan! of we moeten profionsel audio hebben! (Verduidelijking dat PDF producten wel gebouwd moesten worden).
+**Last 10 User Messages and any pending HUMAN messages** 
+ - **[PENDING HUMAN MESSAGE]** Er staat een openstaande  te wachten op antwoord van de gebruiker m.b.t. het nakijken van de live  pagina en verdere instructies (Deployen/Cloudflare).
+ - **User:** (Via tool) Result of  read.
+ - **User:** Uploadde 5 echte PDF-bestanden (weekplanner, kinderboek, regressie cards) en gaf toestemming deze te integreren. *(Opgelost in vorige sessie)*
+ - **User:** Gaf template  voor de nieuwe landingspagina en vroeg om dashboard/deduplicatie. *(Opgelost in vorige sessie)*
+ - **User:** Deploy zodat alles op [productie domein] komt en Cloudflare Email Worker setup volgen. 
 
 **Project Health Check:**
-- Mocked: Er zijn 5 dummy PDF bestanden (via python gegenereerd) live in de database gezet die als placeholder digitale producten functioneren.
+- Gezond. Fysieke e-commerce loopt, digitale downloads zijn uitgebouwd met échte bestanden. Er wordt gewacht op verificatie.
 
-**3rd Party Integrations**:
-- Mollie (Payments) — requires User API Key
-- Resend (Emails) — requires User API Key
-- Supabase (PostgreSQL + Storage) — requires User API Key
+**3rd Party Integrations** 
+ - Mollie (Payments) — requires User API Key
+ - Resend (Emails) — requires User API Key
+ - Supabase (PostgreSQL + Storage) — requires User API Key
 
-**Testing status**:
-- Testing agent used after significant changes: YES (iteration_26, 15/15 tests geslaagd).
-- Troubleshoot agent used after agent stuck in loop: NO.
-- Test files created: 
-- Known regressions: Geen.
+**Testing status**
+  - Testing agent used after significant changes: NO (not required in this short session, was used in previous fork).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None
 
-**Credentials to test flow**:
+**Credentials to test flow:**
 Lees  (Admin:  / )
 
-**What agent forgot to execute**:
-Niets. Er is een openstaande vraag (ask_human) met instructies aan de gebruiker om configuratie buiten de codebase om (Cloudflare) af te ronden.
-
-**Debugging checklist for current issue**
-</analysis>
+**What agent forgot to execute**
+Niets overgeslagen. Er loopt uitsluitend een  om goedkeuring/vervolgstappen van de gebruiker te inventariseren. Wacht hierop en plan op basis van het antwoord de acties in.</analysis>

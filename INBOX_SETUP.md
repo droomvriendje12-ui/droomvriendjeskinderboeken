@@ -167,7 +167,7 @@ export default {
 | Naam | Waarde |
 |------|--------|
 | `INBOX_WEBHOOK_TOKEN` | Zelfde waarde als in `/app/backend/.env` (zie boven) |
-| `BACKEND_URL` | `https://droomvriendjes.com` voor productie<br>`https://mollie-payments-test.preview.emergentagent.com` voor preview testing |
+| `BACKEND_URL` | `https://droomvriendjes.com` voor productie<br>`https://ecommerce-digits.preview.emergentagent.com` voor preview testing |
 
 > 💡 Tip: maak je een test-Worker (`inbox-forwarder-preview`) met de preview URL, dan kun je naast productie testen.
 

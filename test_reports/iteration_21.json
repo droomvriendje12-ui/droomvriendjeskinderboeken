@@ -29,7 +29,7 @@
     "frontend": "100% (all UI elements verified)"
   },
   "test_credentials": {
-    "api_base_url": "https://mollie-payments-test.preview.emergentagent.com",
+    "api_base_url": "https://ecommerce-digits.preview.emergentagent.com",
     "admin_login": "admin / Droomvriendjes2024!"
   },
   "seed_data_creation": "Backend tests create and clean up test CSV data (test_unique_source_12345, test_semicolon_cols, test_alt_columns)",

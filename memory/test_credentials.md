@@ -18,7 +18,7 @@
 
 ## URLs
 - **Productie:** https://droomvriendjes.com
-- **Preview:** https://mollie-payments-test.preview.emergentagent.com (REACT_APP_BACKEND_URL)
+- **Preview:** https://ecommerce-digits.preview.emergentagent.com (REACT_APP_BACKEND_URL)
 
 ## Supabase (Storage + DB)
 - **URL:** `https://plxbmkwuacbdzookygtg.supabase.co`

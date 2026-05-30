@@ -85,7 +85,7 @@ Found and updated references to old preview domain:
 #### Changes:
 **Before:**
 ```
-https://mollie-payments-test.preview.emergentagent.com
+https://ecommerce-digits.preview.emergentagent.com
 ```
 
 **After:**
