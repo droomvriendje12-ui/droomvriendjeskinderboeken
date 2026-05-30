@@ -200,7 +200,8 @@ const QuizPage = () => {
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !email.includes('@') || !email.includes('.')) {
+    const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+    if (!emailOk) {
       setEmailErr('Vul een geldig e-mailadres in');
       return;
     }
@@ -238,7 +239,7 @@ const QuizPage = () => {
     }
   };
 
-  const progress = phase === 'quiz' ? ((qIndex) / QUESTIONS.length) * 100 : phase === 'email' ? 90 : 0;
+  const progress = phase === 'quiz' ? ((qIndex + 1) / (QUESTIONS.length + 1)) * 100 : phase === 'email' ? 90 : 0;
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">

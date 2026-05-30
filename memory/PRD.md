@@ -134,6 +134,17 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Footer (`Footer.jsx`): "Printables (PDF)" link met Nieuw-badge in Producten-kolom
 - [x] Blogs: `BlogDigitalProductCallout.jsx` heeft nu een "Bekijk alle Printables →" link naar `/pro` (5 blogposts) + `BlogsPage.jsx` eigen nav-link "Printables" én een promo-banner "Droomvriendjes Printables · Direct Download"
 
+### Virale Quiz-landingspagina `/quiz` (30 mei 2026)
+- [x] **"Ontdek jouw Droomvriendje-type"** — persoonlijkheidsquiz als groei-hack (`QuizPage.jsx`, route `/quiz`)
+- [x] Flow: intro → 4 vragen (progressbalk) → e-mail soft-gate → resultaat
+- [x] **Scoring-engine**: elke antwoordoptie geeft punten aan kandidaat-knuffels; argmax → 1 van 7 archetypes (De Beschermer/Dromer/Avonturier/Knuffelaar/Rustzoeker/Kalmeerder/Trouwe Vriend), elk gekoppeld aan een fysiek product (ids 14/5/4/7/8/9/13). Variatie bevestigd door testing agent
+- [x] **E-mail lead-capture** via bestaande `POST /api/email/csv/import-single` (source `quiz_droomvriendje`), non-blocking; skip-link beschikbaar
+- [x] **Beloning**: vaste kortingscode **DROOMQUIZ10** (10% percentage, geen min. bedrag, ongelimiteerd) — aangemaakt in Supabase, gevalideerd (€5 op €49,95). Kopieer-knop op resultaat
+- [x] Resultaat toont aanbevolen knuffel (live productdata: afbeelding/prijs/badge) + "In winkelwagen" (addToCart) + "Bekijk product" (`/product/{id}`)
+- [x] **Deelbaar**: WhatsApp + Facebook share-links + kopieer-link (viral loop)
+- [x] CTA-band op homepage (`home-quiz-cta`) + nav-link "Quiz" in header
+- [x] Getest via testing agent: **24/24 frontend assertions, 100%**, geen bugs. E-mailvalidatie verbeterd naar regex; progressbalk toont meteen voortgang
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview

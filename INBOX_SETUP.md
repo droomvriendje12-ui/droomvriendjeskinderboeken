@@ -4,6 +4,8 @@ Volledige setup-handleiding voor het ontvangen van mail op `info@droomvriendjes.
 
 > ⏱️ **Setup tijd:** ~10 minuten · **Vereist:** Cloudflare account met droomvriendjes.com gekoppeld
 
+> ✅ **UPDATE 30 mei 2026:** De Worker `inbox-forwarder` is al **automatisch gedeployed** via de Cloudflare API, inclusief de secrets `INBOX_WEBHOOK_TOKEN` en `BACKEND_URL` (= `https://droomvriendjes.com`). **Stap 2 en Stap 3 hieronder zijn dus al klaar.** Je hoeft alleen nog **Stap 1** (Email Routing inschakelen) en **Stap 4** (route `info@` → Worker `inbox-forwarder`) handmatig te doen in het Cloudflare dashboard. Daarna werkt alles.
+
 ---
 
 ## 📑 Inhoudsopgave
