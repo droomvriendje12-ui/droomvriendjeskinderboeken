@@ -180,6 +180,13 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Toont huidig gekoppeld bestand (grootte + pagina's + "Bekijken"), drag-drop upload-zone (alleen PDF, max 25 MB) → `POST /api/digital-products/admin/upload` (product_id + file), ververst daarna productdata
 - [x] Getest: backend-upload 200 (PDF → storage + `digital_file_path`/`digital_file_size`), 403 zonder auth; UI rendert correct
 
+### Command Center: werkende knoppen + Campagne-planner (30 mei 2026)
+- [x] Header-knop **"Nieuwe Campagne"** → opent `CampaignBuilder.jsx` modal: naam, doel (met strategie-hint), product, platforms (Instagram/TikTok/**X Premium**/Meta/Google), budget, datums, **AI-advertentietekst per platform (GPT-5.2)**, launch-links, opslaan
+- [x] Header-knop **"Exporteer"** → premium analytics-PDF (`GET /api/marketing-hub/dashboard-pdf`, reportlab: omzet 30d/vandaag, AOV, top-producten)
+- [x] Nieuwe **"Campagnes"** menu-sectie: lijst + activeren/pauzeren/verwijderen (`routes/campaigns.py`, MongoDB CRUD `POST/GET/PATCH/DELETE /api/campaigns`)
+- [x] Getest: testing agent **9/9 frontend flows (100%)**; backend curl-geverifieerd
+- [ ] **Toekomst:** volledige TikTok/X/Meta **API-automatisering** (campagnes echt aanmaken via ad-platform API) — vereist klant-credentials (TikTok Business token + advertiser_id, X API keys) + OAuth app-goedkeuring
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview
