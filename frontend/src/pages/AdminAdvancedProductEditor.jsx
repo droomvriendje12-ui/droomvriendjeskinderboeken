@@ -92,6 +92,10 @@ const AdminAdvancedProductEditor = () => {
   const [photoUploadProgress, setPhotoUploadProgress] = useState('');
   const [galleryPhotos, setGalleryPhotos] = useState([]);
   const photoInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [pdfMessage, setPdfMessage] = useState('');
+  const [pdfDragging, setPdfDragging] = useState(false);
 
   // File input refs
   const mainImageInputRef = useRef(null);
@@ -513,6 +517,49 @@ const AdminAdvancedProductEditor = () => {
     }
   };
 
+  // Upload/koppel een PDF-bestand aan dit digitale product
+  const uploadPdf = async (file) => {
+    if (!file) return;
+    const isPdf = file.type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
+    if (!isPdf) { setPdfMessage('Alleen PDF-bestanden zijn toegestaan'); return; }
+    if (file.size > 25 * 1024 * 1024) { setPdfMessage('Maximaal 25 MB per PDF'); return; }
+    setPdfUploading(true);
+    setPdfMessage('PDF uploaden…');
+    try {
+      const token = localStorage.getItem('admin_token');
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('product_id', productId);
+      const r = await fetch(`/api/digital-products/admin/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Upload mislukt');
+      const kb = Math.round((d.size || 0) / 1024);
+      setPdfMessage(`✓ "${d.filename}" gekoppeld (${kb} KB)${d.deduplicated ? ' — bestaand bestand hergebruikt' : ''}`);
+      // Ververs productdata zodat grootte/bestand zichtbaar is
+      const pr = await fetch(`/api/products/${productId}/advanced`);
+      if (pr.ok) setProduct(await pr.json());
+    } catch (e) {
+      setPdfMessage(e.message || 'Upload mislukt');
+    }
+    setPdfUploading(false);
+  };
+
+  const handlePdfDrop = async (e) => {
+    e.preventDefault();
+    setPdfDragging(false);
+    const f = Array.from(e.dataTransfer.files || [])[0];
+    if (f) await uploadPdf(f);
+  };
+
+  const handlePdfSelect = async (e) => {
+    const f = e.target.files?.[0];
+    if (f) await uploadPdf(f);
+  };
+
   // Save all changes (existing functionality)
   const handleSave = async () => {
     setSaving(true);
@@ -816,6 +863,9 @@ const AdminAdvancedProductEditor = () => {
                 {[
                   { id: 'details', label: 'Product Details', icon: Edit2, priority: true },
                   { id: 'photos', label: "Foto's Uploaden", icon: Upload, priority: true },
+                  ...((product.productType === 'digital' || product.product_type === 'digital')
+                    ? [{ id: 'pdf', label: 'PDF-bestand', icon: FileText, priority: true }]
+                    : []),
                   { id: 'media', label: 'Media Beheer', icon: Camera, badge: imageInfo?.has_overrides ? '●' : null },
                   { id: 'images', label: 'Afbeeldingen', icon: ImageIcon },
                   { id: 'sections', label: 'Secties', icon: Layers },
@@ -1128,6 +1178,84 @@ const AdminAdvancedProductEditor = () => {
 
 
             {/* PHOTOS UPLOAD Tab - Drag & Drop */}
+            {activeTab === 'pdf' && (
+              <div className="space-y-6" data-testid="pdf-upload-tab">
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-[#8B7355]" />
+                      Digitaal PDF-bestand
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Upload of vervang het PDF-bestand dat klanten downloaden na aankoop. Alleen PDF · max 25 MB.
+                    </p>
+                  </div>
+
+                  {/* Huidig bestand */}
+                  {product.digitalFileSize > 0 ? (
+                    <div className="flex items-center justify-between gap-3 bg-[#fdf8f3] border border-[#e8ddd0] rounded-xl p-4 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#8B7355] text-white flex items-center justify-center">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">PDF gekoppeld aan dit product</p>
+                          <p className="text-xs text-gray-500">
+                            {Math.round(product.digitalFileSize / 1024)} KB
+                            {product.digitalPages ? ` · ${product.digitalPages} pagina's` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <button onClick={openDigitalFile} data-testid="pdf-open-current"
+                        className="text-sm bg-white border border-[#8B7355] text-[#8B7355] hover:bg-[#8B7355] hover:text-white px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
+                        <Eye className="w-4 h-4" /> Bekijken
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
+                      Nog geen PDF gekoppeld aan dit product.
+                    </div>
+                  )}
+
+                  {/* Drop zone */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setPdfDragging(true); }}
+                    onDragLeave={() => setPdfDragging(false)}
+                    onDrop={handlePdfDrop}
+                    onClick={() => !pdfUploading && pdfInputRef.current?.click()}
+                    className={`relative border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200 ${
+                      pdfDragging ? 'border-[#8B7355] bg-[#fdf8f3] scale-[1.01]' : 'border-gray-300 hover:border-[#8B7355] hover:bg-[#fdf8f3]/50'
+                    } ${pdfUploading ? 'opacity-60 pointer-events-none' : ''}`}
+                    data-testid="pdf-drop-zone"
+                  >
+                    <input ref={pdfInputRef} type="file" accept="application/pdf,.pdf" onChange={handlePdfSelect} className="hidden" data-testid="pdf-file-input" />
+                    {pdfUploading ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <RefreshCw className="w-10 h-10 text-[#8B7355] animate-spin" />
+                        <p className="text-[#8B7355] font-medium">PDF uploaden…</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${pdfDragging ? 'bg-[#8B7355] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                          <Upload className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">Sleep een PDF hierheen of klik om te uploaden</p>
+                          <p className="text-sm text-gray-500 mt-1">Alleen PDF · max 25 MB</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {pdfMessage && (
+                    <p className={`text-sm mt-4 ${pdfMessage.startsWith('✓') ? 'text-green-600' : pdfMessage.includes('uploaden') ? 'text-[#8B7355]' : 'text-red-600'}`} data-testid="pdf-upload-msg">
+                      {pdfMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeTab === 'photos' && (
               <div className="space-y-6" data-testid="photos-upload-tab">
                 {/* Upload Area */}

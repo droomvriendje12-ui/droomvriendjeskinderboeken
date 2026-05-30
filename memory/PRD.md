@@ -175,6 +175,11 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest via curl met echte handtekening (200/401 correct, alert aangemaakt)
 - [ ] **Productie:** `RESEND_WEBHOOK_SECRET` moet ook in de productie-env staan + opnieuw deployen. Webhook-URL in Resend dashboard: `https://www.droomvriendjes.com/api/webhook/resend`
 
+### PDF-upload in advanced editor (30 mei 2026)
+- [x] Nieuw tabblad **"PDF-bestand"** in `AdminAdvancedProductEditor.jsx` (alleen voor digitale producten)
+- [x] Toont huidig gekoppeld bestand (grootte + pagina's + "Bekijken"), drag-drop upload-zone (alleen PDF, max 25 MB) → `POST /api/digital-products/admin/upload` (product_id + file), ververst daarna productdata
+- [x] Getest: backend-upload 200 (PDF → storage + `digital_file_path`/`digital_file_size`), 403 zonder auth; UI rendert correct
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview
