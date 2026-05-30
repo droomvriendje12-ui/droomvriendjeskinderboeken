@@ -168,6 +168,13 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
   - "Systeemmeldingen"-paneel in command center met rode badge + "Opgelost"-knop (`GET /api/admin/system-alerts`, `POST /api/admin/system-alerts/{id}/resolve`)
 - [x] Getest via testing agent: **10/10 frontend scenario's, 100%**, geen bugs. Backend curl-geverifieerd (incl. GPT-5.2 NL ad-copy).
 
+### Resend webhook receiver (30 mei 2026)
+- [x] **`POST /api/webhook/resend`** (`routes/resend_webhook.py`) — ontvangt Resend email-events, Svix-ondertekend
+- [x] Svix-signatuurverificatie (HMAC-SHA256 over `svix-id.svix-timestamp.body`, secret in `RESEND_WEBHOOK_SECRET`) — geldige sig → 200, ongeldig/geen headers → 401
+- [x] Events opgeslagen in MongoDB `resend_events` (audit); bounce/complaint/delay/failed → leesbare melding in **Systeemmeldingen**-paneel
+- [x] Getest via curl met echte handtekening (200/401 correct, alert aangemaakt)
+- [ ] **Productie:** `RESEND_WEBHOOK_SECRET` moet ook in de productie-env staan + opnieuw deployen. Webhook-URL in Resend dashboard: `https://www.droomvriendjes.com/api/webhook/resend`
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview
