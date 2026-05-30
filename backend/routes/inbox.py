@@ -217,14 +217,23 @@ def _doc_to_dict(doc) -> dict:
 def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: str,
                cc_emails: List[str] = None, bcc_emails: List[str] = None,
                in_reply_to: str = None, references: str = None) -> dict:
-    """Send via Resend (function name kept for backwards compat)."""
+    """Send via Resend (function name kept for backwards compat).
+
+    A branded Droomvriendjes signature is appended to every inbox reply/compose.
+    Transactional order mails use their own templates and are unaffected.
+    """
     from services.email_sender import send_email as resend_send
+    from services.email_signature import append_signature
+
+    signed_html, signed_text = append_signature(
+        body_html, body_text or _strip_html(body_html)
+    )
 
     result = resend_send(
         to_email=to_emails,
         subject=subject,
-        html_content=body_html,
-        text_content=body_text or _strip_html(body_html),
+        html_content=signed_html,
+        text_content=signed_text,
         cc=cc_emails,
         bcc=bcc_emails,
         in_reply_to=in_reply_to,

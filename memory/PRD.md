@@ -154,6 +154,12 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 ### Inbox e-mail koppeling — Cloudflare Worker fix (30 mei 2026)
 - [x] **Inkomende mail werkt nu**: bestaande route `info@` wees naar Worker `bold-brook-c55c` met Cloudflare's standaard (weigerende) voorbeeldcode → overschreven met de juiste forwarder + secrets via Cloudflare API. Echte test-mails kwamen binnen in `/admin/inbox`.
 - [x] **Uitgaande reply/compose WERKT NU** (30 mei 2026): gebruiker verifieerde `droomvriendjes.com` op Resend → `SENDER_EMAIL=info@droomvriendjes.com` in backend `.env`. Testmodus-blokkade vervalt; replies/compose gaan naar elke klant. Geverifieerd: `tests/test_resend_email.py` 15/15 pass + echte testverzending geslaagd. **Productie:** na deploy controleren dat `SENDER_EMAIL` ook daar op het geverifieerde adres staat.
+- [x] **Live productie geverifieerd** (30 mei 2026): echte reply via productie `/api/inbox/{id}/reply` verstuurd vanaf `info@droomvriendjes.com` (geverifieerd domein), folder `sent`, geen fout. Productie heeft juiste `SENDER_EMAIL`.
+
+### Gebrande inbox-handtekening (30 mei 2026)
+- [x] **Automatische, gebrande e-mailvoettekst** onder elke inbox reply + compose (`services/email_signature.py`, centraal geïnjecteerd in `routes/inbox.py` `_send_smtp`). Transactionele order-mails hebben eigen templates en zijn NIET geraakt.
+- [x] Bevat: Droomvriendjes-logo (PNG, gehost op publieke Supabase-bucket `product-images/branding/` — SVG wordt door Gmail geblokkeerd), tagline, en links naar Website / Instagram / TikTok / 14-dagen-retour + support-mail. E-mail-veilig (inline CSS, table-layout), idempotent (dubbele append voorkomen), met platte-tekst variant.
+- [x] Getest: unit (idempotent + bevat alle elementen), lint schoon, echte verzending naar test-gmail (200), visuele preview bevestigd.
 
 ### Dashboard: Marketing & Sales Hub + Premium PDF + Status-monitoring (30 mei 2026)
 - [x] **🤖 Robot-knop → "Marketing & Sales Hub"** (`components/admin/MarketingSalesHub.jsx`, geopend vanuit `AdminCommandCenterNew`):
