@@ -24,7 +24,9 @@ import resend
 logger = logging.getLogger(__name__)
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+# Domain droomvriendjes.com is verified on Resend → default to the verified sender
+# so a missing env var never silently drops back into Resend test-mode.
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "info@droomvriendjes.com")
 SENDER_NAME = os.environ.get("SENDER_NAME", "Droomvriendjes")
 TEST_RECIPIENT = os.environ.get("TEST_RECIPIENT", "")
 
