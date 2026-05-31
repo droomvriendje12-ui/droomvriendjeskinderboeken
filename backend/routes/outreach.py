@@ -474,52 +474,6 @@ async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
         raise HTTPException(status_code=502, detail=f"AI-generatie mislukt: {exc}")
 
 
-BULK_AI_MAX = 50
-
-
-class BulkAiRequest(BaseModel):
-    ids: List[str]
-    skip_existing: bool = True  # leads die al een custom_email hebben overslaan
-
-
-@router.post("/leads/bulk-ai-draft")
-async def bulk_ai_draft(payload: BulkAiRequest, _admin=Depends(_require_admin)):
-    """Genereer in één klik gepersonaliseerde AI-mails voor meerdere geselecteerde leads.
-    Itereert sequentieel over de geselecteerde leads (max BULK_AI_MAX per batch)."""
-    if _db is None:
-        raise HTTPException(status_code=500, detail="DB unavailable")
-    api_key = os.environ.get("EMERGENT_LLM_KEY")
-    if not api_key:
-        raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
-    ids = payload.ids[:BULK_AI_MAX]
-    if not ids:
-        raise HTTPException(status_code=400, detail="Geen leads geselecteerd")
-
-    leads = await _db.outreach_leads.find({"id": {"$in": ids}}).to_list(length=BULK_AI_MAX)
-    generated = skipped = failed = 0
-    errors: List[str] = []
-    for lead in leads:
-        if payload.skip_existing and (lead.get("custom_email") or {}).get("body"):
-            skipped += 1
-            continue
-        try:
-            await _generate_ai_for_lead(lead, api_key)
-            generated += 1
-        except Exception as exc:
-            failed += 1
-            errors.append(f"{lead.get('naam', lead.get('id'))}: {exc}")
-            logger.error(f"Bulk AI-draft faalde voor {lead.get('id')}: {exc}")
-    return {
-        "generated": generated,
-        "skipped": skipped,
-        "failed": failed,
-        "requested": len(ids),
-        "capped": len(payload.ids) > BULK_AI_MAX,
-        "max_per_batch": BULK_AI_MAX,
-        "errors": errors[:5],
-    }
-
-
 def _parse_ai(resp: str, lead: dict):
     subject, body = "", ""
     if "ONDERWERP:" in resp and "BODY:" in resp:

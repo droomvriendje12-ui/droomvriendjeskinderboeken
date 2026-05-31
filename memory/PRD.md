@@ -210,6 +210,12 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### Bulk AI-personalisatie Leads Bestorming + live voortgangsbalk (31 mei 2026)
+- [x] **Knop "AI-personaliseer (N)"** in toolbar van `/admin/leads-bestorming` (fuchsia, tussen Verwijder en Verstuur selectie) → genereert in één klik GPT-5.2 persoonlijke mails voor alle geselecteerde leads, elk in juiste taal (NL/DE/FR o.b.v. TLD).
+- [x] **Live voortgangsmodal**: client-side sequentiële iteratie roept per lead `POST /api/outreach/leads/{id}/ai-draft` aan en toont real-time "X / Y mails geschreven", "Nu bezig: <naam>", een voortgangsbalk + teller gelukt/mislukt. Leads die al een `custom_email` hebben worden overgeslagen. Bevestigingsprompt vooraf + resultaat-toast.
+- [x] Backend: gerefactorde herbruikbare helper `_generate_ai_for_lead()` (gebruikt door de single-draft route). (Eerder bulk-endpoint vervangen door client-side iteratie voor echte per-lead voortgang.)
+- [x] Getest via curl (NL+DE → correcte talen) + e2e screenshot (voortgangsmodal toont "0/2 mails · Nu bezig: ProgressTest Eva" met balk; Eva NL-mail gegenereerd). Lint schoon.
+
 ### Outreach v2 — per-CSV bron + meertalig (NL/DE/FR) (31 mei 2026)
 - [x] **Per CSV-bestand**: import tagt leads met `source` (bestandsnaam), bron-filter "Alle bestanden" in UI, en "Verstuur alle nieuwe" respecteert de gekozen bron → per CSV verzenden. Stats `sources[]` (count + new per bron).
 - [x] **Taal o.b.v. e-mail-TLD**: `.de`→Duits, `.fr`→Frans, anders Nederlands (`detect_language`). Taal-kolom + filter in UI. 82 bestaande leads gebackfilled (allen NL).
@@ -222,12 +228,6 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: Contacten-import (2 toegevoegd, opgeruimd), Leads-import idempotent (re-upload → 0 toegevoegd), beide knoppen zichtbaar (screenshot).
 - [!] **Observatie:** 63 outreach-leads kregen status Sent (15 Opened) om 14:19 — verstuurd vanuit PRODUCTIE (gedeelde DB; geen send/track-logs in preview). Bevestigt dat productie nu werkt. Statussen NIET gereset (echte data).
 - [x] **P0 geverifieerd (31 mei 2026):** Leads-import in preview gaat correct naar `outreach_leads` (NIET naar Contacten/`email_queue`). Curl-test: CSV-upload → lead in Leads-dashboard met juiste taal (.de→Duits) + source. Eerdere klacht was oude **productie**-code → her-deployen lost op.
-
-### Bulk AI-personalisatie Leads Bestorming (31 mei 2026)
-- [x] **Knop "AI-personaliseer (N)"** in toolbar van `/admin/leads-bestorming` (fuchsia, tussen Verwijder en Verstuur selectie) → genereert in één klik GPT-5.2 persoonlijke mails voor alle geselecteerde leads, elk in juiste taal (NL/DE/FR o.b.v. TLD).
-- [x] Backend: `POST /api/outreach/leads/bulk-ai-draft` ({ids, skip_existing}) — sequentieel, max **50 per batch** (`BULK_AI_MAX`), slaat leads met bestaande `custom_email` over, retourneert `{generated, skipped, failed, requested, capped, errors}`. Hergebruikt `_generate_ai_for_lead()` helper (gerefactord uit single-draft route).
-- [x] Bevestigingsprompt + voortgangsmelding + resultaat-toast (gegenereerd/overgeslagen/mislukt) in UI.
-- [x] Getest via curl (2 leads NL+DE → 2 gegenereerd met correcte taal; re-run skip_existing → 0/2 overgeslagen) + e2e screenshot (knop rendert met selectie-teller).
 
 ### Leads Bestorming — B2B outreach CRM (31 mei 2026)
 - [x] **Nieuwe admin-pagina** `/admin/leads-bestorming` (`pages/admin/LeadsBestormingPage.jsx`, nav-link "Leads Bestorming") + backend `routes/outreach.py` (MongoDB `outreach_leads` + `outreach_templates`, admin-auth)
