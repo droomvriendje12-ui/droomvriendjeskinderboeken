@@ -210,6 +210,12 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### Outreach v2 — per-CSV bron + meertalig (NL/DE/FR) (31 mei 2026)
+- [x] **Per CSV-bestand**: import tagt leads met `source` (bestandsnaam), bron-filter "Alle bestanden" in UI, en "Verstuur alle nieuwe" respecteert de gekozen bron → per CSV verzenden. Stats `sources[]` (count + new per bron).
+- [x] **Taal o.b.v. e-mail-TLD**: `.de`→Duits, `.fr`→Frans, anders Nederlands (`detect_language`). Taal-kolom + filter in UI. 82 bestaande leads gebackfilled (allen NL).
+- [x] **Meertalige sjablonen**: 9 templates (3 types × NL/DE/FR), seeded met professionele DE/FR-vertalingen. Sjabloon-editor met type- én taal-tabs (`PUT /templates/{type}/{language}`). `_build_email` kiest template op (type, taal). AI-draft genereert in de taal van de lead.
+- [x] Getest: import-taaldetectie (.de/.fr/.nl), 9 templates geseed, stats by_language/sources, e2e screenshots (bron-filter, Taal-kolom, DE-template in editor). Lint schoon.
+
 ### CSV-import knoppen op Contacten & Leads (31 mei 2026)
 - [x] **Contacten** (`/admin/contacten`): "Importeer CSV"-knop → `/api/email/csv/import` (met bronnaam-prompt). Backend-fix: kolom **"E-mailadres"** (met koppelteken) wordt nu herkend.
 - [x] **Leads Bestorming** (`/admin/leads-bestorming`): "Importeer CSV"-knop → bestaande `/api/outreach/import` (idempotent, dedupe op naam+email).

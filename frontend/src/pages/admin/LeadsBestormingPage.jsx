@@ -13,6 +13,7 @@ const authHeaders = () => {
 const PAGE = 50;
 
 const TYPE_LABEL = { slaapcoach: 'Slaapcoach', influencer: 'Influencer', winkel: 'Winkel' };
+const LANG_LABEL = { nl: 'Nederlands', de: 'Duits', fr: 'Frans' };
 const STATUS_STYLE = {
   New: 'bg-slate-500/20 text-slate-300',
   Sent: 'bg-blue-500/20 text-blue-300',
@@ -29,6 +30,8 @@ const LeadsBestormingPage = () => {
   const [stats, setStats] = useState(null);
   const [type, setType] = useState('');
   const [status, setStatus] = useState('');
+  const [source, setSource] = useState('');
+  const [sources, setSources] = useState([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -68,17 +71,18 @@ const LeadsBestormingPage = () => {
       const p = new URLSearchParams({ limit: String(PAGE), skip: String(page * PAGE) });
       if (type) p.append('type', type);
       if (status) p.append('status', status);
+      if (source) p.append('source', source);
       if (search.trim()) p.append('search', search.trim());
       const r = await fetch(`${API}/api/outreach/leads?${p}`, { headers: authHeaders() });
       if (r.ok) { const d = await r.json(); setLeads(d.items || []); setTotal(d.total || 0); }
     } catch (e) { console.error(e); }
     setLoading(false);
-  }, [page, type, status, search]);
+  }, [page, type, status, source, search]);
 
   const fetchStats = useCallback(async () => {
     try {
       const r = await fetch(`${API}/api/outreach/stats`, { headers: authHeaders() });
-      if (r.ok) setStats(await r.json());
+      if (r.ok) { const d = await r.json(); setStats(d); setSources(d.sources || []); }
     } catch (e) { console.error(e); }
   }, []);
 
@@ -213,6 +217,10 @@ const LeadsBestormingPage = () => {
             <option value="">Alle statussen</option>
             {STATUS_OPTS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+          <select value={source} onChange={(e) => { setSource(e.target.value); setPage(0); }} className="bg-slate-800 border border-white/10 rounded-lg p-2.5 text-sm max-w-[220px]" data-testid="source-filter">
+            <option value="">Alle bestanden</option>
+            {sources.map((s) => <option key={s.source} value={s.source}>{s.source} ({s.count})</option>)}
+          </select>
           <div className="flex-1 relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (setPage(0), fetchLeads())} placeholder="Zoek naam / e-mail / details... (Enter)" className="w-full bg-slate-800 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-sm" data-testid="search-input" />
@@ -220,7 +228,7 @@ const LeadsBestormingPage = () => {
           <div className="flex gap-2">
             <button disabled={selected.size === 0} onClick={bulkDelete} className="px-3 py-2.5 rounded-lg bg-red-500/15 border border-red-400/30 text-red-300 text-sm disabled:opacity-40 inline-flex items-center gap-2" data-testid="bulk-delete-btn"><Trash2 className="w-4 h-4" /> Verwijder ({selected.size})</button>
             <button disabled={selected.size === 0} onClick={() => setConfirm({ count: selected.size, body: { ids: [...selected], only_new: false }, label: `${selected.size} geselecteerde` })} className="px-3 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm disabled:opacity-40 inline-flex items-center gap-2" data-testid="send-selected-btn"><Send className="w-4 h-4" /> Verstuur selectie</button>
-            <button onClick={() => setConfirm({ count: (stats?.by_status?.New || 0), body: { only_new: true }, label: 'alle nieuwe leads' })} disabled={sending} className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm disabled:opacity-50 inline-flex items-center gap-2" data-testid="send-all-new-btn">
+            <button onClick={() => setConfirm({ count: (source ? (sources.find((s) => s.source === source)?.new || 0) : (stats?.by_status?.New || 0)), body: { only_new: true, ...(type ? { type } : {}), ...(source ? { source } : {}) }, label: source ? `alle nieuwe in "${source}"` : 'alle nieuwe leads' })} disabled={sending} className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm disabled:opacity-50 inline-flex items-center gap-2" data-testid="send-all-new-btn">
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Verstuur alle nieuwe
             </button>
           </div>
@@ -235,6 +243,7 @@ const LeadsBestormingPage = () => {
                 <th className="text-left px-2 py-3">#</th>
                 <th className="text-left px-3 py-3">Naam</th>
                 <th className="text-left px-3 py-3">Type</th>
+                <th className="text-left px-3 py-3">Taal</th>
                 <th className="text-left px-3 py-3">E-mail</th>
                 <th className="text-left px-3 py-3 max-w-[260px]">Details</th>
                 <th className="text-left px-3 py-3">Status</th>
@@ -244,14 +253,15 @@ const LeadsBestormingPage = () => {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={10} className="text-center py-10 text-slate-400"><Loader2 className="w-5 h-5 animate-spin inline" /></td></tr>}
-              {!loading && leads.length === 0 && <tr><td colSpan={10} className="text-center py-10 text-slate-500">Geen leads gevonden.</td></tr>}
+              {loading && <tr><td colSpan={11} className="text-center py-10 text-slate-400"><Loader2 className="w-5 h-5 animate-spin inline" /></td></tr>}
+              {!loading && leads.length === 0 && <tr><td colSpan={11} className="text-center py-10 text-slate-500">Geen leads gevonden.</td></tr>}
               {!loading && leads.map((l) => (
                 <tr key={l.id} className="border-t border-white/5 hover:bg-white/5 align-top" data-testid="lead-row">
                   <td className="px-3 py-2.5"><input type="checkbox" checked={selected.has(l.id)} onChange={() => toggle(l.id)} data-testid={`select-${l.id}`} /></td>
                   <td className="px-2 py-2.5 text-slate-500">{l.seq}</td>
                   <td className="px-3 py-2.5 font-medium text-white max-w-[160px] truncate" title={l.naam}>{l.naam}</td>
                   <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-200">{TYPE_LABEL[l.type] || l.type}</span></td>
+                  <td className="px-3 py-2.5"><span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-white/10 text-slate-200 uppercase" title={LANG_LABEL[l.language] || 'Nederlands'}>{l.language || 'nl'}</span></td>
                   <td className="px-3 py-2.5">{l.email_valid ? <span className="text-slate-300">{l.email}</span> : <span className="inline-flex items-center gap-1 text-amber-400/80 text-xs"><MailX className="w-3.5 h-3.5" /> geen e-mail</span>}</td>
                   <td className="px-3 py-2.5 text-slate-400 max-w-[260px]"><span className="line-clamp-2" title={l.details}>{l.details}</span></td>
                   <td className="px-3 py-2.5">
@@ -289,7 +299,7 @@ const LeadsBestormingPage = () => {
         <Overlay onClose={() => setConfirm(null)} testid="send-confirm">
           <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-amber-400" /></div><h3 className="font-semibold text-lg">Versturen bevestigen</h3></div>
           <p className="text-sm text-slate-300 mb-2">Je staat op het punt outreach-mails te versturen naar <span className="font-bold text-emerald-300">{confirm.label}</span> (alleen leads mét geldig e-mailadres).</p>
-          <p className="text-xs text-slate-400 mb-5">Per type wordt het sjabloon gebruikt; leads met een AI-mail krijgen hun persoonlijke versie. Reacties komen binnen op info@droomvriendjes.com.</p>
+          <p className="text-xs text-slate-400 mb-5">Per lead wordt automatisch het juiste sjabloon gekozen op basis van type én taal (.de=Duits, .fr=Frans, anders NL); leads met een AI-mail krijgen hun persoonlijke versie. Reacties komen binnen op info@droomvriendjes.com.</p>
           <div className="flex justify-end gap-2">
             <button onClick={() => setConfirm(null)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm" data-testid="confirm-cancel">Annuleer</button>
             <button onClick={() => doSend(confirm.body, confirm.label)} className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm inline-flex items-center gap-2" data-testid="confirm-send"><Send className="w-4 h-4" /> Ja, verstuur</button>
@@ -347,6 +357,7 @@ const Overlay = ({ children, onClose, wide, testid }) => (
 const TemplateEditor = ({ onClose, notify }) => {
   const [tpls, setTpls] = useState([]);
   const [active, setActive] = useState('slaapcoach');
+  const [lang, setLang] = useState('nl');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -356,24 +367,30 @@ const TemplateEditor = ({ onClose, notify }) => {
     })();
   }, []);
 
-  const cur = tpls.find((t) => t.type === active);
-  const setField = (k, v) => setTpls((ts) => ts.map((t) => (t.type === active ? { ...t, [k]: v } : t)));
+  const cur = tpls.find((t) => t.type === active && (t.language || 'nl') === lang);
+  const setField = (k, v) => setTpls((ts) => ts.map((t) => (t.type === active && (t.language || 'nl') === lang ? { ...t, [k]: v } : t)));
   const save = async () => {
     if (!cur) return;
     setSaving(true);
-    await fetch(`${API}/api/outreach/templates/${active}`, {
+    await fetch(`${API}/api/outreach/templates/${active}/${lang}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ subject: cur.subject, body: cur.body }),
     });
-    setSaving(false); notify('success', `Sjabloon "${active}" opgeslagen.`);
+    setSaving(false); notify('success', `Sjabloon "${TYPE_LABEL[active]} (${LANG_LABEL[lang]})" opgeslagen.`);
   };
 
   return (
     <Overlay onClose={onClose} wide testid="template-editor">
-      <h3 className="font-semibold text-lg mb-3">E-mailsjablonen per type</h3>
-      <div className="flex gap-2 mb-4">
+      <h3 className="font-semibold text-lg mb-1">E-mailsjablonen per type & taal</h3>
+      <p className="text-xs text-slate-400 mb-3">De taal wordt automatisch gekozen op basis van de e-mail (.de = Duits, .fr = Frans, anders Nederlands).</p>
+      <div className="flex gap-2 mb-3">
         {['slaapcoach', 'influencer', 'winkel'].map((t) => (
           <button key={t} onClick={() => setActive(t)} className={`px-3 py-1.5 rounded-full text-sm ${active === t ? 'bg-emerald-500 text-slate-900 font-semibold' : 'bg-white/10 text-slate-300'}`} data-testid={`tpl-tab-${t}`}>{TYPE_LABEL[t]}</button>
+        ))}
+      </div>
+      <div className="flex gap-2 mb-4">
+        {['nl', 'de', 'fr'].map((l) => (
+          <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-lg text-xs uppercase font-semibold ${lang === l ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-300'}`} data-testid={`tpl-lang-${l}`}>{l}</button>
         ))}
       </div>
       {cur ? (

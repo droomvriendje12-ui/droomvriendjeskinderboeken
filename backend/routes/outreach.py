@@ -15,7 +15,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Response
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
@@ -55,60 +55,167 @@ def _require_admin(credentials: HTTPAuthorizationCredentials = Depends(_security
     return admin
 
 
+# ---------------------------------------------------------------- language
+LANGUAGES = ("nl", "de", "fr")
+LANG_LABEL = {"nl": "Nederlands", "de": "Duits", "fr": "Frans"}
+
+
+def detect_language(email: str) -> str:
+    """Pick outreach language from the e-mail TLD: .de -> Duits, .fr -> Frans, anders NL."""
+    if not email or "@" not in email:
+        return "nl"
+    tld = email.strip().rsplit(".", 1)[-1].lower()
+    if tld == "de":
+        return "de"
+    if tld == "fr":
+        return "fr"
+    return "nl"
+
+
 # ---------------------------------------------------------------- templates
 DEFAULT_TEMPLATES = {
     "slaapcoach": {
-        "subject": "Samenwerken? Droomvriendjes voor jouw slaapcoaching",
-        "body": (
-            "Hoi {{Naam}},\n\n"
-            "Wat fijn dat jij ouders helpt aan betere nachten! Ik ben van Droomvriendjes — wij maken "
-            "knuffels met een zacht nachtlampje en rustgevend white noise, speciaal om kinderen te helpen "
-            "ontspannen en doorslapen.\n\n"
-            "Ik denk dat onze knuffel prachtig past bij jouw slaaptrajecten als rustgevend hulpmiddel. "
-            "Graag stuur ik je vrijblijvend een exemplaar op om zelf te ervaren. Daarnaast werken we graag "
-            "samen via een persoonlijke kortingscode voor jouw klanten (en een aantrekkelijke vergoeding voor jou).\n\n"
-            "Heb je interesse? Dan stuur ik je de details. Ik hoor het graag!\n\n"
-            "Hartelijke groet,\nTeam Droomvriendjes"
-        ),
+        "nl": {
+            "subject": "Samenwerken? Droomvriendjes voor jouw slaapcoaching",
+            "body": (
+                "Hoi {{Naam}},\n\n"
+                "Wat fijn dat jij ouders helpt aan betere nachten! Ik ben van Droomvriendjes — wij maken "
+                "knuffels met een zacht nachtlampje en rustgevend white noise om kinderen te helpen ontspannen "
+                "en doorslapen.\n\n"
+                "Onze knuffel past mooi bij jouw slaaptrajecten als rustgevend hulpmiddel. Graag stuur ik je "
+                "vrijblijvend een exemplaar op, en werken we samen via een persoonlijke kortingscode voor jouw "
+                "klanten (met een aantrekkelijke vergoeding voor jou).\n\n"
+                "Heb je interesse? Ik hoor het graag!\n\n"
+                "Hartelijke groet,\nTeam Droomvriendjes"
+            ),
+        },
+        "de": {
+            "subject": "Zusammenarbeit? Droomvriendjes für dein Schlafcoaching",
+            "body": (
+                "Hallo {{Naam}},\n\n"
+                "schön, dass du Eltern zu besseren Nächten verhilfst! Ich bin von Droomvriendjes — wir machen "
+                "Kuscheltiere mit sanftem Nachtlicht und beruhigendem White Noise, die Kindern beim Entspannen "
+                "und Durchschlafen helfen.\n\n"
+                "Unser Kuscheltier passt wunderbar als beruhigendes Hilfsmittel zu deinen Schlafbegleitungen. "
+                "Gerne schicke ich dir unverbindlich ein Exemplar und wir arbeiten über einen persönlichen "
+                "Rabattcode für deine Kund:innen zusammen (mit einer attraktiven Vergütung für dich).\n\n"
+                "Hast du Interesse? Ich freue mich auf deine Antwort!\n\n"
+                "Herzliche Grüße,\nDein Droomvriendjes-Team"
+            ),
+        },
+        "fr": {
+            "subject": "Une collaboration ? Droomvriendjes pour votre coaching sommeil",
+            "body": (
+                "Bonjour {{Naam}},\n\n"
+                "bravo pour votre travail qui aide les parents à passer de meilleures nuits ! Je représente "
+                "Droomvriendjes — nous créons des peluches avec une douce veilleuse et un bruit blanc apaisant "
+                "qui aident les enfants à se détendre et à mieux dormir.\n\n"
+                "Notre peluche s'intègre parfaitement à vos accompagnements comme outil apaisant. Je vous "
+                "enverrais volontiers un exemplaire sans engagement, et nous pourrions collaborer via un code "
+                "promo personnel pour vos clients (avec une belle rémunération pour vous).\n\n"
+                "Cela vous intéresse ? Au plaisir de vous lire !\n\n"
+                "Bien cordialement,\nL'équipe Droomvriendjes"
+            ),
+        },
     },
     "influencer": {
-        "subject": "Leuke samenwerking? Droomvriendjes ❤️ jouw kanaal",
-        "body": (
-            "Hoi {{Naam}},\n\n"
-            "Ik volg jouw content met plezier — jouw eerlijke en warme verhalen over het mama-leven sluiten "
-            "mooi aan bij waar wij voor staan. Ik ben van Droomvriendjes: knuffels met een zacht nachtlampje "
-            "en white noise die kinderen helpen om rustig in slaap te vallen.\n\n"
-            "Ik zou je graag vrijblijvend een knuffel cadeau doen, zodat jij (en je kindje) hem kunnen uitproberen. "
-            "Als hij bevalt, vinden we het super als je hem deelt met je volgers — en we denken graag mee over een "
-            "leuke actie of kortingscode voor jouw community.\n\n"
-            "Lijkt je dit wat? Laat het me weten, dan stuur ik snel een knuffel jouw kant op!\n\n"
-            "Hartelijke groet,\nTeam Droomvriendjes"
-        ),
+        "nl": {
+            "subject": "Leuke samenwerking? Droomvriendjes & jouw kanaal",
+            "body": (
+                "Hoi {{Naam}},\n\n"
+                "Ik volg jouw content met plezier — jouw warme verhalen sluiten mooi aan bij waar wij voor staan. "
+                "Ik ben van Droomvriendjes: knuffels met een zacht nachtlampje en white noise die kinderen helpen "
+                "rustig in slaap te vallen.\n\n"
+                "Ik doe je graag vrijblijvend een knuffel cadeau om uit te proberen. Als hij bevalt, vinden we het "
+                "super als je hem deelt — en we denken graag mee over een leuke actie of kortingscode voor jouw "
+                "community.\n\n"
+                "Lijkt je dit wat? Laat het me weten, dan stuur ik snel een knuffel jouw kant op!\n\n"
+                "Hartelijke groet,\nTeam Droomvriendjes"
+            ),
+        },
+        "de": {
+            "subject": "Eine schöne Kooperation? Droomvriendjes & dein Kanal",
+            "body": (
+                "Hallo {{Naam}},\n\n"
+                "ich verfolge deinen Content sehr gerne — deine warmen Geschichten passen wunderbar zu dem, wofür "
+                "wir stehen. Ich bin von Droomvriendjes: Kuscheltiere mit sanftem Nachtlicht und White Noise, die "
+                "Kindern beim ruhigen Einschlafen helfen.\n\n"
+                "Gerne schenke ich dir unverbindlich ein Kuscheltier zum Ausprobieren. Wenn es dir gefällt, würden "
+                "wir uns freuen, wenn du es teilst — und wir überlegen gerne eine schöne Aktion oder einen "
+                "Rabattcode für deine Community.\n\n"
+                "Klingt das gut? Sag Bescheid, dann schicke ich dir schnell ein Kuscheltier!\n\n"
+                "Herzliche Grüße,\nDein Droomvriendjes-Team"
+            ),
+        },
+        "fr": {
+            "subject": "Une jolie collaboration ? Droomvriendjes & votre univers",
+            "body": (
+                "Bonjour {{Naam}},\n\n"
+                "je suis votre contenu avec plaisir — vos histoires chaleureuses correspondent parfaitement à nos "
+                "valeurs. Je représente Droomvriendjes : des peluches avec une douce veilleuse et un bruit blanc "
+                "qui aident les enfants à s'endormir paisiblement.\n\n"
+                "Je vous offrirais volontiers une peluche à tester, sans engagement. Si elle vous plaît, nous "
+                "serions ravis que vous la partagiez — et nous pouvons imaginer une jolie action ou un code promo "
+                "pour votre communauté.\n\n"
+                "Cela vous tente ? Dites-moi, je vous envoie vite une peluche !\n\n"
+                "Bien cordialement,\nL'équipe Droomvriendjes"
+            ),
+        },
     },
     "winkel": {
-        "subject": "Droomvriendjes in jullie assortiment? (zakelijk)",
-        "body": (
-            "Hoi {{Naam}},\n\n"
-            "Wat een mooie winkel hebben jullie! Ik ben van Droomvriendjes — wij maken knuffels met een zacht "
-            "nachtlampje en rustgevend white noise die kinderen helpen beter te slapen. Ze zijn populair bij "
-            "ouders en lenen zich uitstekend als cadeau.\n\n"
-            "Ik denk dat onze producten goed bij jullie assortiment passen. Graag vertel ik jullie meer over onze "
-            "inkoopvoorwaarden en marges voor wederverkopers, en stuur ik vrijblijvend een sample op.\n\n"
-            "Zullen we even kennismaken? Ik hoor graag of er interesse is!\n\n"
-            "Hartelijke groet,\nTeam Droomvriendjes"
-        ),
+        "nl": {
+            "subject": "Droomvriendjes in jullie assortiment? (zakelijk)",
+            "body": (
+                "Hoi {{Naam}},\n\n"
+                "Wat een mooie winkel hebben jullie! Ik ben van Droomvriendjes — wij maken knuffels met een zacht "
+                "nachtlampje en rustgevend white noise die kinderen helpen beter te slapen. Ze zijn populair bij "
+                "ouders en ideaal als cadeau.\n\n"
+                "Onze producten passen goed bij jullie assortiment. Graag vertel ik meer over onze inkoopvoorwaarden "
+                "en marges voor wederverkopers, en stuur ik vrijblijvend een sample op.\n\n"
+                "Zullen we kennismaken? Ik hoor graag of er interesse is!\n\n"
+                "Hartelijke groet,\nTeam Droomvriendjes"
+            ),
+        },
+        "de": {
+            "subject": "Droomvriendjes in eurem Sortiment? (geschäftlich)",
+            "body": (
+                "Hallo {{Naam}},\n\n"
+                "was für ein schöner Laden! Ich bin von Droomvriendjes — wir machen Kuscheltiere mit sanftem "
+                "Nachtlicht und beruhigendem White Noise, die Kindern beim besseren Schlafen helfen. Sie sind bei "
+                "Eltern beliebt und ideal als Geschenk.\n\n"
+                "Unsere Produkte passen gut zu eurem Sortiment. Gerne erzähle ich mehr über unsere Einkaufs"
+                "konditionen und Margen für Wiederverkäufer und schicke euch unverbindlich ein Muster.\n\n"
+                "Sollen wir uns kennenlernen? Ich freue mich auf eure Rückmeldung!\n\n"
+                "Herzliche Grüße,\nDein Droomvriendjes-Team"
+            ),
+        },
+        "fr": {
+            "subject": "Droomvriendjes dans votre boutique ? (professionnel)",
+            "body": (
+                "Bonjour {{Naam}},\n\n"
+                "quelle belle boutique ! Je représente Droomvriendjes — nous créons des peluches avec une douce "
+                "veilleuse et un bruit blanc apaisant qui aident les enfants à mieux dormir. Elles plaisent beaucoup "
+                "aux parents et font un cadeau idéal.\n\n"
+                "Nos produits s'accorderaient bien à votre assortiment. Je vous présenterais volontiers nos "
+                "conditions d'achat et marges pour revendeurs, et vous enverrais un échantillon sans engagement.\n\n"
+                "Faisons connaissance ? J'attends votre retour avec plaisir !\n\n"
+                "Bien cordialement,\nL'équipe Droomvriendjes"
+            ),
+        },
     },
 }
 
 
 async def _seed_templates():
-    for t, data in DEFAULT_TEMPLATES.items():
-        existing = await _db.outreach_templates.find_one({"type": t})
-        if not existing:
-            await _db.outreach_templates.insert_one({
-                "type": t, "subject": data["subject"], "body": data["body"],
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            })
+    for t, langs in DEFAULT_TEMPLATES.items():
+        for lang, data in langs.items():
+            existing = await _db.outreach_templates.find_one({"type": t, "language": lang})
+            if not existing:
+                await _db.outreach_templates.insert_one({
+                    "type": t, "language": lang,
+                    "subject": data["subject"], "body": data["body"],
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                })
 
 
 def _lead_out(doc: dict) -> dict:
@@ -118,10 +225,13 @@ def _lead_out(doc: dict) -> dict:
 
 # ---------------------------------------------------------------- import
 @router.post("/import")
-async def import_leads(file: UploadFile = File(...), _admin=Depends(_require_admin)):
-    """Import the leads CSV (columns: Naam, Type, E-mailadres, Details). Adds new leads only."""
+async def import_leads(file: UploadFile = File(...), source: Optional[str] = Form(None),
+                       _admin=Depends(_require_admin)):
+    """Import the leads CSV (columns: Naam, Type, E-mailadres, Details). Adds new leads only.
+    Each batch is tagged with a `source` (CSV filename) and a `language` per lead (.de/.fr/nl)."""
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
+    batch_source = (source or file.filename or "import").strip()
     raw = await file.read()
     try:
         text = raw.decode("utf-8-sig")
@@ -155,6 +265,8 @@ async def import_leads(file: UploadFile = File(...), _admin=Depends(_require_adm
             "type": ltype if ltype in VALID_TYPES else (ltype or "overig"),
             "email": email,
             "email_valid": "@" in email,
+            "language": detect_language(email),
+            "source": batch_source,
             "details": details,
             "status": "New",
             "date_contacted": None,
@@ -170,6 +282,7 @@ async def import_leads(file: UploadFile = File(...), _admin=Depends(_require_adm
 # ---------------------------------------------------------------- list / stats
 @router.get("/leads")
 async def list_leads(type: Optional[str] = None, status: Optional[str] = None,
+                     source: Optional[str] = None, language: Optional[str] = None,
                      search: Optional[str] = None, skip: int = 0, limit: int = 100,
                      _admin=Depends(_require_admin)):
     if _db is None:
@@ -179,6 +292,10 @@ async def list_leads(type: Optional[str] = None, status: Optional[str] = None,
         query["type"] = type
     if status:
         query["status"] = status
+    if source:
+        query["source"] = source
+    if language:
+        query["language"] = language
     if search and search.strip():
         rx = {"$regex": search.strip(), "$options": "i"}
         query["$or"] = [{"naam": rx}, {"email": rx}, {"details": rx}]
@@ -199,6 +316,14 @@ async def stats(_admin=Depends(_require_admin)):
     by_status = await _db.outreach_leads.aggregate([
         {"$group": {"_id": "$status", "count": {"$sum": 1}}},
     ]).to_list(length=50)
+    by_source = await _db.outreach_leads.aggregate([
+        {"$group": {"_id": "$source", "count": {"$sum": 1},
+                    "new": {"$sum": {"$cond": [{"$eq": ["$status", "New"]}, 1, 0]}}}},
+        {"$sort": {"count": -1}},
+    ]).to_list(length=100)
+    by_language = await _db.outreach_leads.aggregate([
+        {"$group": {"_id": "$language", "count": {"$sum": 1}}},
+    ]).to_list(length=10)
     total = await _db.outreach_leads.count_documents({})
     no_email = await _db.outreach_leads.count_documents({"email_valid": False})
     return {
@@ -206,6 +331,8 @@ async def stats(_admin=Depends(_require_admin)):
         "no_email": no_email,
         "by_type": {x["_id"]: x["count"] for x in by_type},
         "by_status": {x["_id"]: x["count"] for x in by_status},
+        "by_language": {(x["_id"] or "nl"): x["count"] for x in by_language},
+        "sources": [{"source": x["_id"] or "onbekend", "count": x["count"], "new": x.get("new", 0)} for x in by_source],
     }
 
 
@@ -266,7 +393,10 @@ async def bulk_delete(payload: BulkIds, _admin=Depends(_require_admin)):
 @router.get("/templates")
 async def get_templates(_admin=Depends(_require_admin)):
     await _seed_templates()
-    docs = await _db.outreach_templates.find({}, {"_id": 0}).to_list(length=20)
+    docs = await _db.outreach_templates.find({}, {"_id": 0}).to_list(length=50)
+    # ensure language present on legacy docs
+    for d in docs:
+        d.setdefault("language", "nl")
     return {"templates": docs}
 
 
@@ -275,11 +405,13 @@ class TemplateUpdate(BaseModel):
     body: str
 
 
-@router.put("/templates/{type}")
-async def update_template(type: str, payload: TemplateUpdate, _admin=Depends(_require_admin)):
+@router.put("/templates/{type}/{language}")
+async def update_template(type: str, language: str, payload: TemplateUpdate, _admin=Depends(_require_admin)):
+    if language not in LANGUAGES:
+        raise HTTPException(status_code=400, detail="Ongeldige taal")
     await _db.outreach_templates.update_one(
-        {"type": type},
-        {"$set": {"subject": payload.subject, "body": payload.body,
+        {"type": type, "language": language},
+        {"$set": {"subject": payload.subject, "body": payload.body, "language": language,
                   "updated_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True,
     )
@@ -297,14 +429,19 @@ async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
         raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
+        lang = lead.get("language", "nl")
+        lang_name = {"nl": "het Nederlands", "de": "het Duits (Deutsch)", "fr": "het Frans (Français)"}.get(lang, "het Nederlands")
+        signoff = {"nl": "Hartelijke groet,\\nTeam Droomvriendjes",
+                   "de": "Herzliche Grüße,\\nDein Droomvriendjes-Team",
+                   "fr": "Bien cordialement,\\nL'équipe Droomvriendjes"}.get(lang, "Hartelijke groet,\\nTeam Droomvriendjes")
         system_message = (
-            "Je bent een Nederlandse outreach-copywriter voor Droomvriendjes, een webshop in slaapknuffels "
-            "met zacht nachtlampje en white noise voor kinderen. Schrijf warme, professionele, persoonlijke "
-            "B2B-outreachmails die uitnodigen tot samenwerking. Kort, oprecht, geen overdreven verkooppraat, "
-            "geen valse claims. Spreek de persoon aan met de voornaam."
+            "Je bent een outreach-copywriter voor Droomvriendjes, een webshop in slaapknuffels met zacht "
+            "nachtlampje en white noise voor kinderen. Schrijf warme, professionele, persoonlijke B2B-outreachmails "
+            "die uitnodigen tot samenwerking. Kort, oprecht, geen overdreven verkooppraat, geen valse claims. "
+            "Spreek de persoon aan met de voornaam. Schrijf VOLLEDIG in de gevraagde taal (ook onderwerp)."
         )
         prompt = (
-            f"Schrijf een korte, persoonlijke outreachmail in het Nederlands.\n"
+            f"Schrijf een korte, persoonlijke outreachmail VOLLEDIG in {lang_name}.\n"
             f"Naam ontvanger: {lead.get('naam')}\n"
             f"Type contact: {lead.get('type')}\n"
             f"Context/details over deze persoon: {lead.get('details')}\n\n"
@@ -312,8 +449,8 @@ async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
             f"(slaapcoach=aanbevelen bij klanten + sample/affiliate; influencer=knuffel cadeau voor post; "
             f"winkel=inkoop/wederverkoop). Gebruik {{{{Naam}}}} NIET — schrijf de echte naam uit.\n"
             f"Antwoord exact in dit formaat op aparte regels:\n"
-            f"ONDERWERP: <pakkend onderwerp>\n"
-            f"BODY: <de mailtekst, eindig met 'Hartelijke groet,\\nTeam Droomvriendjes'>"
+            f"ONDERWERP: <pakkend onderwerp in {lang_name}>\n"
+            f"BODY: <de mailtekst in {lang_name}, eindig met '{signoff}'>"
         )
         chat = LlmChat(
             api_key=api_key,
@@ -351,15 +488,19 @@ def _parse_ai(resp: str, lead: dict):
 
 # ---------------------------------------------------------------- send
 def _build_email(lead: dict, templates: dict):
+    """templates: dict keyed by (type, language) -> {subject, body}."""
     naam = lead.get("naam") or "daar"
+    lang = lead.get("language", "nl")
     ce = lead.get("custom_email")
+    fallback = templates.get((lead.get("type"), lang)) or templates.get(("influencer", lang)) \
+        or DEFAULT_TEMPLATES.get(lead.get("type"), DEFAULT_TEMPLATES["influencer"]).get(lang) \
+        or DEFAULT_TEMPLATES["influencer"]["nl"]
     if ce and ce.get("body"):
-        subject = ce.get("subject") or templates.get(lead["type"], {}).get("subject", "Droomvriendjes")
+        subject = ce.get("subject") or fallback["subject"]
         body = ce["body"]
     else:
-        tpl = templates.get(lead.get("type")) or DEFAULT_TEMPLATES.get("influencer")
-        subject = tpl["subject"]
-        body = tpl["body"]
+        subject = fallback["subject"]
+        body = fallback["body"]
     for ph in ("{{Naam}}", "{{naam}}", "{{NAAM}}"):
         subject = subject.replace(ph, naam)
         body = body.replace(ph, naam)
@@ -369,6 +510,7 @@ def _build_email(lead: dict, templates: dict):
 class SendRequest(BaseModel):
     ids: Optional[List[str]] = None
     type: Optional[str] = None
+    source: Optional[str] = None
     only_new: bool = True
 
 
@@ -379,14 +521,17 @@ async def send_outreach(payload: SendRequest, _admin=Depends(_require_admin)):
     from services.email_sender import send_email
     from services.email_signature import append_signature
 
-    tpl_docs = await _db.outreach_templates.find({}, {"_id": 0}).to_list(length=20)
-    templates = {t["type"]: t for t in tpl_docs}
+    await _seed_templates()
+    tpl_docs = await _db.outreach_templates.find({}, {"_id": 0}).to_list(length=50)
+    templates = {(t["type"], t.get("language", "nl")): t for t in tpl_docs}
 
     query = {"email_valid": True}
     if payload.ids:
         query["id"] = {"$in": payload.ids}
     if payload.type:
         query["type"] = payload.type
+    if payload.source:
+        query["source"] = payload.source
     if payload.only_new:
         query["status"] = {"$in": ["New", "Bounced"]}
 
