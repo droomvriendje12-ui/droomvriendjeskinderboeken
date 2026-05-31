@@ -33,6 +33,16 @@ const MarketingMailPage = () => {
 
   const notify = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 5000); };
 
+  // Robust response parser: never throws on non-JSON (e.g. proxy/HTML error pages)
+  const safeJson = async (r) => {
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch {
+      const snippet = (text || '').replace(/<[^>]+>/g, ' ').trim().slice(0, 140);
+      return { __nonjson: true, detail: snippet || `Onverwacht antwoord (status ${r.status})` };
+    }
+  };
+
   const fetchTemplates = useCallback(async () => {
     try {
       const r = await fetch(`${API}/api/email-templates`, { headers: authHeaders() });
@@ -85,8 +95,8 @@ const MarketingMailPage = () => {
       const r = await fetch(`${API}/api/email-templates/upload-html`, {
         method: 'POST', headers: { ...authHeaders() }, body: fd,
       });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || 'Upload mislukt');
+      const d = await safeJson(r);
+      if (!r.ok || d.__nonjson) throw new Error(d.detail || 'Upload mislukt');
       notify('success', `Template opgeslagen — ${d.images_hosted} afbeeldingen gehost (${d.original_size_kb}KB → ${d.processed_size_kb}KB).`);
       setUploadName(''); setUploadSubject(''); setUploadFile(null);
       await fetchTemplates();
@@ -106,8 +116,8 @@ const MarketingMailPage = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ template_id: selectedId, to_email: testEmail, naam: 'Sanne' }),
       });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || 'Testmail mislukt');
+      const d = await safeJson(r);
+      if (!r.ok || d.__nonjson) throw new Error(d.detail || 'Testmail mislukt');
       notify('success', `Testmail verstuurd naar ${testEmail}.`);
     } catch (e) {
       notify('error', e.message || 'Testmail mislukt');
@@ -139,8 +149,8 @@ const MarketingMailPage = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(body),
       });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.detail || 'Verzenden mislukt');
+      const d = await safeJson(r);
+      if (!r.ok || d.__nonjson) throw new Error(d.detail || 'Verzenden mislukt');
       if (d.total === 0) { notify('error', 'Geen ontvangers in de wachtrij voor deze doelgroep.'); setSending(false); return; }
       notify('success', `Campagne gestart voor ${d.total} ontvangers.`);
       pollProgress(d.campaign_id);

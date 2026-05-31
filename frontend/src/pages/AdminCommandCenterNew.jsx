@@ -284,6 +284,7 @@ const AdminCommandCenterNew = () => {
     { id: 'campaigns', icon: Rocket, label: 'Campagnes' },
     { id: 'inbox-link', icon: Inbox, label: 'Inbox', link: '/admin/inbox' },
     { id: 'newsletter', icon: Megaphone, label: 'Nieuwsbrief versturen', link: '/admin/nieuwsbrief' },
+    { id: 'contacts', icon: Users, label: 'Contacten', link: '/admin/contacten' },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },

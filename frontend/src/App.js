@@ -72,6 +72,7 @@ import AdminDatabasePage from "./pages/AdminDatabasePage";
 import EmailTemplatesAdmin from "./pages/admin/EmailTemplates";
 import InboxPage from "./pages/admin/InboxPage";
 import MarketingMailPage from "./pages/admin/MarketingMailPage";
+import ContactsPage from "./pages/admin/ContactsPage";
 import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
 import AdminFaqStatsPage from "./pages/admin/AdminFaqStatsPage";
 import AdminDigitalProductsPage from "./pages/admin/AdminDigitalProductsPage";
@@ -185,6 +186,7 @@ function App() {
               <Route path="/admin/email-templates" element={<ProtectedAdminRoute><EmailTemplatesAdmin /></ProtectedAdminRoute>} />
               <Route path="/admin/inbox" element={<ProtectedAdminRoute><InboxPage /></ProtectedAdminRoute>} />
               <Route path="/admin/nieuwsbrief" element={<ProtectedAdminRoute><MarketingMailPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/contacten" element={<ProtectedAdminRoute><ContactsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomersPage /></ProtectedAdminRoute>} />
               <Route path="/admin/faq-stats" element={<ProtectedAdminRoute><AdminFaqStatsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/digital-products" element={<ProtectedAdminRoute><AdminDigitalProductsPage /></ProtectedAdminRoute>} />

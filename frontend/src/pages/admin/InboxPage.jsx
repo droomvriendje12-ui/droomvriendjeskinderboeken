@@ -498,8 +498,11 @@ const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
         body: JSON.stringify({ body_html: body.replace(/\n/g, '<br/>') }),
       });
       if (!r.ok) {
-        const d = await r.json().catch(() => ({}));
-        throw new Error(d.detail || `Status ${r.status}`);
+        const raw = await r.text();
+        let detail = '';
+        try { detail = JSON.parse(raw).detail; } catch { detail = raw.replace(/<[^>]+>/g, ' ').trim().slice(0, 120); }
+        if (r.status === 404 && !detail) detail = 'Endpoint niet gevonden (404). Probeer de pagina te verversen; werk je op productie, deploy dan opnieuw.';
+        throw new Error(detail || `Verzenden mislukt (status ${r.status})`);
       }
       onSent();
     } catch (e) {
@@ -564,8 +567,11 @@ const ComposeModal = ({ templates, onManage, onClose, onSent }) => {
         }),
       });
       if (!r.ok) {
-        const d = await r.json().catch(() => ({}));
-        throw new Error(d.detail || `Status ${r.status}`);
+        const raw = await r.text();
+        let detail = '';
+        try { detail = JSON.parse(raw).detail; } catch { detail = raw.replace(/<[^>]+>/g, ' ').trim().slice(0, 120); }
+        if (r.status === 404 && !detail) detail = 'Endpoint niet gevonden (404). Probeer de pagina te verversen; werk je op productie, deploy dan opnieuw.';
+        throw new Error(detail || `Verzenden mislukt (status ${r.status})`);
       }
       onSent();
     } catch (e) {

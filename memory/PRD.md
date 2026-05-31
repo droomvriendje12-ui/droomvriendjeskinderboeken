@@ -210,6 +210,12 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### Bugmeldingen onderzoek (31 mei 2026) — 3 productie-issues
+- **Issue 1 (template-upload JSON-fout "Unexpected non-whitespace character"):** code werkt correct in preview (UI-upload maakt template aan) én backend-route bestaat in productie. Oorzaak: browser kreeg niet-JSON antwoord (waarschijnlijk verouderde/gecachte productie-frontend of transient proxy bij grote upload). **Fix:** `safeJson()` in `MarketingMailPage.jsx` toont nu de échte foutmelding i.p.v. de cryptische JSON-parse error. → productie opnieuw deployen + hard refresh.
+- **Issue 2 (inbox verzenden "Status 404"):** backend compose+reply werken **200 op productie** (echte mails verzonden vanaf info@droomvriendjes.com via curl). 404 komt dus van een **verouderde productie-frontend**. **Fix:** duidelijkere foutmelding in `InboxPage.jsx` (toont response-tekst + hint om te deployen). → productie opnieuw deployen + hard refresh.
+- **Issue 3 (32.624 contacten niet zichtbaar) — OPGELOST:** contacten stonden correct in `email_queue` met geldige e-mails, maar er was geen admin-UI. **Nieuw:** `pages/admin/ContactsPage.jsx` (`/admin/contacten`, nav-link "Contacten") met zoeken, bron-filter, paginering, per-bron stats. Backend `/api/email/csv/queue` uitgebreid met `skip` + `search`.
+  - ⚠️ **AVG/reputatie-waarschuwing ingebouwd:** 22.874 `zonnepanelen_leads` + 9.701 `Datafanatics_huiseigenaar` zijn **ingekochte/niet-opt-in lijsten** (geen Droomvriendjes-klanten). Pagina markeert deze als "niet opt-in" met verwijderknop. Marketing hiernaartoe sturen = AVG-overtreding + verwoest domeinreputatie.
+
 ## Bekende Issues
 - Supabase URL onstabiel in DNS (frontend valt terug op mockData)
 - Mollie live key werkt alleen in productie, niet in preview

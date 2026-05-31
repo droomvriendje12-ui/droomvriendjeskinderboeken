@@ -308,8 +308,9 @@ async def import_csv(
 
 
 @router.get("/queue")
-async def get_csv_queue(source: Optional[str] = None, status: Optional[str] = None, limit: int = 100):
-    """Get imported contacts from the email queue"""
+async def get_csv_queue(source: Optional[str] = None, status: Optional[str] = None,
+                        search: Optional[str] = None, limit: int = 100, skip: int = 0):
+    """Get imported contacts from the email queue (paginated + searchable)"""
     if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
 
@@ -319,8 +320,13 @@ async def get_csv_queue(source: Optional[str] = None, status: Optional[str] = No
             query["source"] = source
         if status:
             query["status"] = status
+        if search and search.strip():
+            rx = {"$regex": re.escape(search.strip()), "$options": "i"}
+            query["$or"] = [{"email": rx}, {"naam": rx}]
 
-        cursor = db['email_queue'].find(query, {"_id": 0}).sort("created_at", -1).limit(limit)
+        limit = max(1, min(limit, 200))
+        skip = max(0, skip)
+        cursor = db['email_queue'].find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
         items = await cursor.to_list(length=limit)
 
         # Get total count
@@ -338,6 +344,8 @@ async def get_csv_queue(source: Optional[str] = None, status: Optional[str] = No
         return {
             "items": items,
             "total": total,
+            "skip": skip,
+            "limit": limit,
             "sources": [{"source": s["_id"], "count": s["count"]} for s in sources],
         }
     except Exception as e:
