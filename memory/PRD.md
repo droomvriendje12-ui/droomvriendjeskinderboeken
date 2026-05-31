@@ -210,6 +210,13 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### Blogs-pagina afbeeldingen + logo fix (31 mei 2026)
+- [x] **Probleem:** logo (imgur `IESI44c.png`) en blog-afbeeldingen waren kapot op `/blogs`. Oorzaak: imgur blokkeert hotlinking in de browser; Unsplash-afbeelding `photo-1564429097439` gaf **404**.
+- [x] **Echte logo** (beertje-op-maan + "droomvriendjes.nl") geoptimaliseerd (400×400, 115KB) geüpload naar Supabase: `product-images/branding/droomvriendjes-logo.png`. Alle imgur-logo-refs vervangen in `BlogsPage.jsx`, `BlogPostLayout.jsx`, `BlogSlaaptipsPage.jsx`, `BlogStressKnuffelsPage.jsx`.
+- [x] Alle Unsplash-blog-afbeeldingen vervangen door betrouwbare Supabase-knuffels (unicorn/penguin/lion) in `BlogsPage.jsx`, `BlogSlaaptipsPage.jsx`, `data/blogPosts.js`.
+- [x] Getest: e2e screenshot + `naturalWidth>0` op alle 7 afbeeldingen (logo + sheep/bear/panda/unicorn/penguin/lion) → allemaal OK. Lint schoon. **Vereist deploy naar productie.**
+
+
 ### Bulk AI-personalisatie Leads Bestorming + live voortgangsbalk (31 mei 2026)
 - [x] **Knop "AI-personaliseer (N)"** in toolbar van `/admin/leads-bestorming` (fuchsia, tussen Verwijder en Verstuur selectie) → genereert in één klik GPT-5.2 persoonlijke mails voor alle geselecteerde leads, elk in juiste taal (NL/DE/FR o.b.v. TLD).
 - [x] **Live voortgangsmodal**: client-side sequentiële iteratie roept per lead `POST /api/outreach/leads/{id}/ai-draft` aan en toont real-time "X / Y mails geschreven", "Nu bezig: <naam>", een voortgangsbalk + teller gelukt/mislukt. Leads die al een `custom_email` hebben worden overgeslagen. Bevestigingsprompt vooraf + resultaat-toast.

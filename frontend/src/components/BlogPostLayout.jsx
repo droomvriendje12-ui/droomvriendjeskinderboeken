@@ -94,7 +94,7 @@ const BlogPostLayout = ({
       <header className="bg-white border-b border-stone-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
           <Link to="/" className="flex items-center space-x-3" data-testid="blog-logo">
-            <img src="https://i.imgur.com/IESI44c.png" alt="Droomvriendjes" className="h-14 w-auto" />
+            <img src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/branding/droomvriendjes-logo.png" alt="Droomvriendjes" className="h-14 w-auto" />
           </Link>
           <Link to="/blogs">
             <Button variant="outline" className="rounded-full" data-testid="back-to-blogs">

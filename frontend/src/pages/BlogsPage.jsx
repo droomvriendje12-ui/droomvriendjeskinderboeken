@@ -51,7 +51,7 @@ const BlogsPage = () => {
       date: "19 januari 2025",
       readTime: "8 min",
       category: "Mentale rust",
-      image: "https://images.unsplash.com/photo-1564429097439-e09bdbf28f86?w=800"
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/unicorn-main.png"
     },
     {
       id: 1,
@@ -62,7 +62,7 @@ const BlogsPage = () => {
       date: "10 januari 2025",
       readTime: "7 min",
       category: "Slaaptips",
-      image: "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=800"
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/penguin-main.png"
     },
     {
       id: 2,
@@ -73,7 +73,7 @@ const BlogsPage = () => {
       date: "5 januari 2025",
       readTime: "7 min",
       category: "Wetenschap",
-      image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800"
+      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/lion-main.png"
     }
   ];
 
@@ -97,7 +97,7 @@ const BlogsPage = () => {
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="https://i.imgur.com/IESI44c.png" 
+                src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/branding/droomvriendjes-logo.png" 
                 alt="Droomvriendjes.nl" 
                 className="h-14 sm:h-16 w-auto"
               />

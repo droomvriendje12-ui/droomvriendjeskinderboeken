@@ -45,7 +45,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-amber-100 text-amber-900",
     date: "10 januari 2025",
     readMinutes: 7,
-    image: "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=800",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/penguin-main.png",
     tags: ["slaap", "tips", "kinderen", "routine"],
   },
   {
@@ -56,7 +56,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-violet-100 text-violet-800",
     date: "5 januari 2025",
     readMinutes: 7,
-    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/lion-main.png",
     tags: ["knuffel", "stress", "angst", "wetenschap"],
   },
   {
@@ -67,7 +67,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-amber-100 text-amber-900",
     date: "19 januari 2025",
     readMinutes: 8,
-    image: "https://images.unsplash.com/photo-1564429097439-e09bdbf28f86?w=800",
+    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/unicorn-main.png",
     tags: ["rust", "gezin", "mentale gezondheid", "slaap"],
   },
 ];
