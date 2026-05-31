@@ -160,7 +160,7 @@ async def import_csv(
         col_map = {}
         for col in reader.fieldnames:
             lower = col.strip().lower()
-            if lower in ('email', 'e-mail', 'emailadres', 'email_address', 'mail'):
+            if lower in ('email', 'e-mail', 'emailadres', 'e-mailadres', 'mailadres', 'e-mail adres', 'email_address', 'mail'):
                 col_map['email'] = col
             elif lower in ('naam', 'name', 'volledige_naam', 'full_name'):
                 col_map['naam'] = col

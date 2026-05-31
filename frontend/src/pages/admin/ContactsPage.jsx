@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, Users, Search, RefreshCw, Trash2, AlertTriangle,
-  ChevronRight, Loader2, ShieldAlert
+  ChevronRight, Loader2, ShieldAlert, Upload
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -26,8 +26,30 @@ const ContactsPage = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef(null);
 
-  const notify = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 5000); };
+  const notify = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 6000); };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const bron = window.prompt('Bronnaam voor deze import (bijv. "nieuwsbrief_mei"):', file.name.replace(/\.csv$/i, ''));
+    if (bron === null) { if (fileRef.current) fileRef.current.value = ''; return; }
+    setImporting(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      if (bron.trim()) fd.append('source', bron.trim());
+      const r = await fetch(`${API}/api/email/csv/import`, { method: 'POST', headers: authHeaders(), body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Import mislukt');
+      notify('success', `${d.added ?? 0} contacten toegevoegd (bron: ${d.source}). ${d.skipped_existing ?? 0} bestonden al, ${d.invalid ?? 0} ongeldig.`);
+      setPage(0); fetchContacts();
+    } catch (err) { notify('error', err.message || 'Import mislukt'); }
+    setImporting(false);
+    if (fileRef.current) fileRef.current.value = '';
+  };
 
   const fetchContacts = useCallback(async () => {
     setLoading(true);
@@ -74,9 +96,15 @@ const ContactsPage = () => {
           <div className="h-6 w-px bg-white/10" />
           <Users className="w-6 h-6 text-emerald-400" />
           <h1 className="text-xl font-semibold">Contacten ({totalAll.toLocaleString('nl-NL')})</h1>
-          <button onClick={fetchContacts} className="ml-auto p-2 rounded-lg hover:bg-white/10" title="Vernieuwen" data-testid="refresh-btn">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleImport} className="hidden" data-testid="import-file-input" />
+            <button onClick={() => fileRef.current?.click()} disabled={importing} className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-sm inline-flex items-center gap-2 disabled:opacity-50" data-testid="import-csv-btn">
+              {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Importeer CSV
+            </button>
+            <button onClick={fetchContacts} className="p-2 rounded-lg hover:bg-white/10" title="Vernieuwen" data-testid="refresh-btn">
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -210,6 +210,12 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### CSV-import knoppen op Contacten & Leads (31 mei 2026)
+- [x] **Contacten** (`/admin/contacten`): "Importeer CSV"-knop → `/api/email/csv/import` (met bronnaam-prompt). Backend-fix: kolom **"E-mailadres"** (met koppelteken) wordt nu herkend.
+- [x] **Leads Bestorming** (`/admin/leads-bestorming`): "Importeer CSV"-knop → bestaande `/api/outreach/import` (idempotent, dedupe op naam+email).
+- [x] Getest: Contacten-import (2 toegevoegd, opgeruimd), Leads-import idempotent (re-upload → 0 toegevoegd), beide knoppen zichtbaar (screenshot).
+- [!] **Observatie:** 63 outreach-leads kregen status Sent (15 Opened) om 14:19 — verstuurd vanuit PRODUCTIE (gedeelde DB; geen send/track-logs in preview). Bevestigt dat productie nu werkt. Statussen NIET gereset (echte data).
+
 ### Leads Bestorming — B2B outreach CRM (31 mei 2026)
 - [x] **Nieuwe admin-pagina** `/admin/leads-bestorming` (`pages/admin/LeadsBestormingPage.jsx`, nav-link "Leads Bestorming") + backend `routes/outreach.py` (MongoDB `outreach_leads` + `outreach_templates`, admin-auth)
 - [x] CSV-import (`POST /api/outreach/import`): kolommen Naam/Type/E-mailadres/Details → 82 unieke leads (124 rijen, 42 exacte duplicaten gededupliceerd op naam+email; 0 echte leads verloren). Elke lead uniek `id` + `seq` (data-isolatie). 19 zonder geldig e-mail gemarkeerd.

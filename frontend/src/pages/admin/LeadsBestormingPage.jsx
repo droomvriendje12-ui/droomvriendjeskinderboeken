@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft, Users, RefreshCw, Search, Trash2, Sparkles, Send, Loader2,
-  AlertTriangle, FileText, X, Check, MailX
+  AlertTriangle, FileText, X, Check, MailX, Upload
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -40,8 +40,27 @@ const LeadsBestormingPage = () => {
   const [aiDraft, setAiDraft] = useState(null); // {subject, body}
   const [aiLoading, setAiLoading] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef(null);
 
-  const notify = (t, m) => { setToast({ t, m }); setTimeout(() => setToast(null), 5000); };
+  const notify = (t, m) => { setToast({ t, m }); setTimeout(() => setToast(null), 6000); };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch(`${API}/api/outreach/import`, { method: 'POST', headers: authHeaders(), body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Import mislukt');
+      notify('success', `${d.added} nieuwe leads geïmporteerd (totaal ${d.total}).`);
+      refresh();
+    } catch (err) { notify('error', err.message || 'Import mislukt'); }
+    setImporting(false);
+    if (fileRef.current) fileRef.current.value = '';
+  };
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -159,6 +178,10 @@ const LeadsBestormingPage = () => {
           <Users className="w-6 h-6 text-emerald-400" />
           <h1 className="text-xl font-semibold">Leads Bestorming</h1>
           <div className="ml-auto flex items-center gap-2">
+            <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleImport} className="hidden" data-testid="import-file-input" />
+            <button onClick={() => fileRef.current?.click()} disabled={importing} className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-sm inline-flex items-center gap-2 disabled:opacity-50" data-testid="import-csv-btn">
+              {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Importeer CSV
+            </button>
             <button onClick={() => setShowTemplates(true)} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm inline-flex items-center gap-2" data-testid="edit-templates-btn"><FileText className="w-4 h-4" /> Sjablonen</button>
             <button onClick={refresh} className="p-2 rounded-lg hover:bg-white/10" data-testid="refresh-btn"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
           </div>
