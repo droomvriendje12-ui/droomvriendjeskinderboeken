@@ -39,6 +39,7 @@ const LeadsBestormingPage = () => {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState(null); // {count, action}
   const [sending, setSending] = useState(false);
+  const [bulkAi, setBulkAi] = useState(false);
   const [aiLead, setAiLead] = useState(null); // lead being personalized
   const [aiDraft, setAiDraft] = useState(null); // {subject, body}
   const [aiLoading, setAiLoading] = useState(false);
@@ -153,6 +154,28 @@ const LeadsBestormingPage = () => {
     setAiLoading(false);
   };
 
+  const bulkPersonalize = async () => {
+    if (selected.size === 0 || bulkAi) return;
+    if (!window.confirm(`AI-mails genereren voor ${selected.size} geselecteerde leads? Leads met een bestaande AI-mail worden overgeslagen. (max 50 per keer)`)) return;
+    setBulkAi(true);
+    notify('success', `AI schrijft mails voor ${Math.min(selected.size, 50)} leads... dit kan even duren.`);
+    try {
+      const r = await fetch(`${API}/api/outreach/leads/bulk-ai-draft`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ ids: [...selected], skip_existing: true }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Bulk AI mislukt');
+      let msg = `${d.generated} AI-mails gegenereerd`;
+      if (d.skipped) msg += `, ${d.skipped} overgeslagen (bestonden al)`;
+      if (d.failed) msg += `, ${d.failed} mislukt`;
+      if (d.capped) msg += ` — let op: alleen de eerste ${d.max_per_batch} verwerkt.`;
+      notify(d.failed ? 'error' : 'success', msg);
+      refresh();
+    } catch (e) { notify('error', e.message); }
+    setBulkAi(false);
+  };
+
   const doSend = async (body, label) => {
     setSending(true); setConfirm(null);
     try {
@@ -227,6 +250,9 @@ const LeadsBestormingPage = () => {
           </div>
           <div className="flex gap-2">
             <button disabled={selected.size === 0} onClick={bulkDelete} className="px-3 py-2.5 rounded-lg bg-red-500/15 border border-red-400/30 text-red-300 text-sm disabled:opacity-40 inline-flex items-center gap-2" data-testid="bulk-delete-btn"><Trash2 className="w-4 h-4" /> Verwijder ({selected.size})</button>
+            <button disabled={selected.size === 0 || bulkAi} onClick={bulkPersonalize} className="px-3 py-2.5 rounded-lg bg-fuchsia-500/15 border border-fuchsia-400/40 text-fuchsia-200 text-sm disabled:opacity-40 inline-flex items-center gap-2" data-testid="bulk-ai-btn">
+              {bulkAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} AI-personaliseer ({selected.size})
+            </button>
             <button disabled={selected.size === 0} onClick={() => setConfirm({ count: selected.size, body: { ids: [...selected], only_new: false }, label: `${selected.size} geselecteerde` })} className="px-3 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm disabled:opacity-40 inline-flex items-center gap-2" data-testid="send-selected-btn"><Send className="w-4 h-4" /> Verstuur selectie</button>
             <button onClick={() => setConfirm({ count: (source ? (sources.find((s) => s.source === source)?.new || 0) : (stats?.by_status?.New || 0)), body: { only_new: true, ...(type ? { type } : {}), ...(source ? { source } : {}) }, label: source ? `alle nieuwe in "${source}"` : 'alle nieuwe leads' })} disabled={sending} className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm disabled:opacity-50 inline-flex items-center gap-2" data-testid="send-all-new-btn">
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Verstuur alle nieuwe

@@ -419,6 +419,46 @@ async def update_template(type: str, language: str, payload: TemplateUpdate, _ad
 
 
 # ---------------------------------------------------------------- AI draft
+async def _generate_ai_for_lead(lead: dict, api_key: str) -> dict:
+    """Genereer één gepersonaliseerde outreachmail (subject+body) voor een lead via GPT-5.2.
+    Slaat het resultaat op als `custom_email`. Raises bij fout."""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    lang = lead.get("language", "nl")
+    lang_name = {"nl": "het Nederlands", "de": "het Duits (Deutsch)", "fr": "het Frans (Français)"}.get(lang, "het Nederlands")
+    signoff = {"nl": "Hartelijke groet,\\nTeam Droomvriendjes",
+               "de": "Herzliche Grüße,\\nDein Droomvriendjes-Team",
+               "fr": "Bien cordialement,\\nL'équipe Droomvriendjes"}.get(lang, "Hartelijke groet,\\nTeam Droomvriendjes")
+    system_message = (
+        "Je bent een outreach-copywriter voor Droomvriendjes, een webshop in slaapknuffels met zacht "
+        "nachtlampje en white noise voor kinderen. Schrijf warme, professionele, persoonlijke B2B-outreachmails "
+        "die uitnodigen tot samenwerking. Kort, oprecht, geen overdreven verkooppraat, geen valse claims. "
+        "Spreek de persoon aan met de voornaam. Schrijf VOLLEDIG in de gevraagde taal (ook onderwerp)."
+    )
+    prompt = (
+        f"Schrijf een korte, persoonlijke outreachmail VOLLEDIG in {lang_name}.\n"
+        f"Naam ontvanger: {lead.get('naam')}\n"
+        f"Type contact: {lead.get('type')}\n"
+        f"Context/details over deze persoon: {lead.get('details')}\n\n"
+        f"Verwerk de context subtiel zodat het persoonlijk voelt. Doel: kennismaken en samenwerken "
+        f"(slaapcoach=aanbevelen bij klanten + sample/affiliate; influencer=knuffel cadeau voor post; "
+        f"winkel=inkoop/wederverkoop). Gebruik {{{{Naam}}}} NIET — schrijf de echte naam uit.\n"
+        f"Antwoord exact in dit formaat op aparte regels:\n"
+        f"ONDERWERP: <pakkend onderwerp in {lang_name}>\n"
+        f"BODY: <de mailtekst in {lang_name}, eindig met '{signoff}'>"
+    )
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"outreach-{lead['id']}",
+        system_message=system_message,
+    ).with_model("openai", "gpt-5.2")
+    resp = await chat.send_message(UserMessage(text=prompt))
+    subject, body = _parse_ai(resp, lead)
+    await _db.outreach_leads.update_one(
+        {"id": lead["id"]}, {"$set": {"custom_email": {"subject": subject, "body": body}}}
+    )
+    return {"subject": subject, "body": body}
+
+
 @router.post("/leads/{lead_id}/ai-draft")
 async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
     lead = await _db.outreach_leads.find_one({"id": lead_id})
@@ -428,46 +468,56 @@ async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
     if not api_key:
         raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        lang = lead.get("language", "nl")
-        lang_name = {"nl": "het Nederlands", "de": "het Duits (Deutsch)", "fr": "het Frans (Français)"}.get(lang, "het Nederlands")
-        signoff = {"nl": "Hartelijke groet,\\nTeam Droomvriendjes",
-                   "de": "Herzliche Grüße,\\nDein Droomvriendjes-Team",
-                   "fr": "Bien cordialement,\\nL'équipe Droomvriendjes"}.get(lang, "Hartelijke groet,\\nTeam Droomvriendjes")
-        system_message = (
-            "Je bent een outreach-copywriter voor Droomvriendjes, een webshop in slaapknuffels met zacht "
-            "nachtlampje en white noise voor kinderen. Schrijf warme, professionele, persoonlijke B2B-outreachmails "
-            "die uitnodigen tot samenwerking. Kort, oprecht, geen overdreven verkooppraat, geen valse claims. "
-            "Spreek de persoon aan met de voornaam. Schrijf VOLLEDIG in de gevraagde taal (ook onderwerp)."
-        )
-        prompt = (
-            f"Schrijf een korte, persoonlijke outreachmail VOLLEDIG in {lang_name}.\n"
-            f"Naam ontvanger: {lead.get('naam')}\n"
-            f"Type contact: {lead.get('type')}\n"
-            f"Context/details over deze persoon: {lead.get('details')}\n\n"
-            f"Verwerk de context subtiel zodat het persoonlijk voelt. Doel: kennismaken en samenwerken "
-            f"(slaapcoach=aanbevelen bij klanten + sample/affiliate; influencer=knuffel cadeau voor post; "
-            f"winkel=inkoop/wederverkoop). Gebruik {{{{Naam}}}} NIET — schrijf de echte naam uit.\n"
-            f"Antwoord exact in dit formaat op aparte regels:\n"
-            f"ONDERWERP: <pakkend onderwerp in {lang_name}>\n"
-            f"BODY: <de mailtekst in {lang_name}, eindig met '{signoff}'>"
-        )
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"outreach-{lead_id}",
-            system_message=system_message,
-        ).with_model("openai", "gpt-5.2")
-        resp = await chat.send_message(UserMessage(text=prompt))
-        subject, body = _parse_ai(resp, lead)
-        await _db.outreach_leads.update_one(
-            {"id": lead_id}, {"$set": {"custom_email": {"subject": subject, "body": body}}}
-        )
-        return {"subject": subject, "body": body}
-    except HTTPException:
-        raise
+        return await _generate_ai_for_lead(lead, api_key)
     except Exception as exc:
         logger.exception("AI outreach draft faalde")
         raise HTTPException(status_code=502, detail=f"AI-generatie mislukt: {exc}")
+
+
+BULK_AI_MAX = 50
+
+
+class BulkAiRequest(BaseModel):
+    ids: List[str]
+    skip_existing: bool = True  # leads die al een custom_email hebben overslaan
+
+
+@router.post("/leads/bulk-ai-draft")
+async def bulk_ai_draft(payload: BulkAiRequest, _admin=Depends(_require_admin)):
+    """Genereer in één klik gepersonaliseerde AI-mails voor meerdere geselecteerde leads.
+    Itereert sequentieel over de geselecteerde leads (max BULK_AI_MAX per batch)."""
+    if _db is None:
+        raise HTTPException(status_code=500, detail="DB unavailable")
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
+    ids = payload.ids[:BULK_AI_MAX]
+    if not ids:
+        raise HTTPException(status_code=400, detail="Geen leads geselecteerd")
+
+    leads = await _db.outreach_leads.find({"id": {"$in": ids}}).to_list(length=BULK_AI_MAX)
+    generated = skipped = failed = 0
+    errors: List[str] = []
+    for lead in leads:
+        if payload.skip_existing and (lead.get("custom_email") or {}).get("body"):
+            skipped += 1
+            continue
+        try:
+            await _generate_ai_for_lead(lead, api_key)
+            generated += 1
+        except Exception as exc:
+            failed += 1
+            errors.append(f"{lead.get('naam', lead.get('id'))}: {exc}")
+            logger.error(f"Bulk AI-draft faalde voor {lead.get('id')}: {exc}")
+    return {
+        "generated": generated,
+        "skipped": skipped,
+        "failed": failed,
+        "requested": len(ids),
+        "capped": len(payload.ids) > BULK_AI_MAX,
+        "max_per_batch": BULK_AI_MAX,
+        "errors": errors[:5],
+    }
 
 
 def _parse_ai(resp: str, lead: dict):
