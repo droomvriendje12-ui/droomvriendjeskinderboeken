@@ -15,7 +15,7 @@ const BlogWaaromHuiltBabyPage = () => {
     excerpt="Je baby huilt elke nacht en je weet niet meer wat je moet doen? In deze gids leggen we de 10 meest voorkomende oorzaken uit én geven we praktische slaaptips waar je vanavond nog mee kunt beginnen."
     date="18 mei 2026"
     readMinutes={9}
-    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/sheep-main.png"
+    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/waarom-huilt-baby-s-nachts.jpg"
     toc={[
       { id: 'honger', label: 'Honger en dorst' },
       { id: 'luier', label: 'Volle luier of huidirritatie' },

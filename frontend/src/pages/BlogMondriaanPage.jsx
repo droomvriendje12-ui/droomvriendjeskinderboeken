@@ -11,7 +11,7 @@ const BlogMondriaanPage = () => (
     excerpt="In een druk gezinsleven is tot rust komen niet altijd vanzelfsprekend. Praktische rustmomenten en een slaapritueel dat haalbaar blijft maken een groot verschil voor kinderen én ouders."
     date="19 januari 2025"
     readMinutes={8}
-    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
+    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/droomvriendjes-mondriaan-samenwerking.jpg"
     toc={[
       { id: 'slaap-mentaal', label: 'Waarom slaap en mentale rust bij elkaar horen' },
       { id: 'slaapritueel', label: 'Een slaapritueel dat vol te houden is' },

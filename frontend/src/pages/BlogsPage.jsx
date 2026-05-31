@@ -6,6 +6,8 @@ import { Badge } from '../components/ui/badge';
 import { Calendar, User, Clock, Mail, Download, ArrowRight, Printer } from 'lucide-react';
 import Footer from '../components/Footer';
 
+const BIMG = "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/";
+
 const BlogsPage = () => {
   const blogs = [
     {
@@ -17,8 +19,52 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "9 min",
       category: "Babyslaap",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/sheep-main.png",
+      image: BIMG + "waarom-huilt-baby-s-nachts.jpg",
       featured: true
+    },
+    {
+      id: 13,
+      slug: "baby-knuffel-veilig-slapen-leeftijd",
+      title: "Vanaf welke leeftijd mag een baby veilig met een knuffel slapen?",
+      excerpt: "Een knuffel in bed voelt vertrouwd, maar wanneer is het écht veilig? Lees de officiële richtlijnen, de risico's vóór 12 maanden en hoe je het veilig introduceert.",
+      author: "Team Droomvriendjes",
+      date: "28 mei 2026",
+      readTime: "7 min",
+      category: "Veilig slapen",
+      image: BIMG + "baby-knuffel-veilig-slapen-leeftijd.jpg"
+    },
+    {
+      id: 14,
+      slug: "slaapregressie-bij-kinderen",
+      title: "Slaapregressie bij baby's en peuters: herkennen en oplossen",
+      excerpt: "Sliep je kind eindelijk goed en is het ineens weer onrustig? Ontdek de leeftijden waarop slaapregressie toeslaat, waarom het gebeurt en wat écht helpt.",
+      author: "Team Droomvriendjes",
+      date: "27 mei 2026",
+      readTime: "8 min",
+      category: "Babyslaap",
+      image: BIMG + "slaapregressie-bij-kinderen.jpg"
+    },
+    {
+      id: 15,
+      slug: "witte-ruis-white-noise-baby",
+      title: "Witte ruis voor baby's: helpt white noise écht bij slapen?",
+      excerpt: "White noise is overal, maar werkt het ook? We leggen uit wat witte ruis met de babyslaap doet, hoe je het veilig gebruikt en welk volume verantwoord is.",
+      author: "Team Droomvriendjes",
+      date: "26 mei 2026",
+      readTime: "6 min",
+      category: "Wetenschap",
+      image: BIMG + "witte-ruis-white-noise-baby.jpg"
+    },
+    {
+      id: 16,
+      slug: "avondroutine-kind-7-stappen",
+      title: "Een rustgevende avondroutine in 7 stappen (met gratis printbaar schema)",
+      excerpt: "Een vaste avondroutine is de snelste route naar beter slapen. Volg ons stappenplan van 7 stappen en download het gratis printbare slaapschema.",
+      author: "Team Droomvriendjes",
+      date: "25 mei 2026",
+      readTime: "7 min",
+      category: "Slaaptips",
+      image: BIMG + "avondroutine-kind-7-stappen.jpg"
     },
     {
       id: 11,
@@ -29,7 +75,7 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "6 min",
       category: "Productgids",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
+      image: BIMG + "verschil-verzwaringsknuffel-nachtlampje.jpg"
     },
     {
       id: 12,
@@ -40,7 +86,7 @@ const BlogsPage = () => {
       date: "18 mei 2026",
       readTime: "8 min",
       category: "Productgids",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/panda-main.png"
+      image: BIMG + "beste-slaapknuffel-2026.jpg"
     },
     {
       id: 7,
@@ -51,7 +97,7 @@ const BlogsPage = () => {
       date: "19 januari 2025",
       readTime: "8 min",
       category: "Mentale rust",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/unicorn-main.png"
+      image: BIMG + "droomvriendjes-mondriaan-samenwerking.jpg"
     },
     {
       id: 1,
@@ -62,7 +108,7 @@ const BlogsPage = () => {
       date: "10 januari 2025",
       readTime: "7 min",
       category: "Slaaptips",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/penguin-main.png"
+      image: BIMG + "5-tips-betere-nachtrust-kinderen.jpg"
     },
     {
       id: 2,
@@ -73,13 +119,13 @@ const BlogsPage = () => {
       date: "5 januari 2025",
       readTime: "7 min",
       category: "Wetenschap",
-      image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/lion-main.png"
+      image: BIMG + "hoe-helpen-kalmerende-knuffels-bij-stress.jpg"
     }
   ];
 
-  // Separate featured blog
+  // Separate featured blog; show 9 cards total (1 featured + 8 in grid)
   const featuredBlog = blogs.find(b => b.featured);
-  const regularBlogs = blogs.filter(b => !b.featured);
+  const regularBlogs = blogs.filter(b => !b.featured).slice(0, 8);
 
   // Get blog link - use slug if available, otherwise use id
   const getBlogLink = (blog) => {
@@ -97,7 +143,7 @@ const BlogsPage = () => {
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/branding/droomvriendjes-logo.png" 
+                src="/logo.svg" 
                 alt="Droomvriendjes.nl" 
                 className="h-14 sm:h-16 w-auto"
               />

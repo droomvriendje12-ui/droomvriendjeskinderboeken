@@ -210,6 +210,18 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - [x] Getest: backend curl (upload-html, send-test, stats, preview) + e2e screenshots (pagina rendert, live preview, testmail-toast, bevestigingsmodal openen/annuleren). **Bulk-send bewust NIET getriggerd** (32.586 echte contacten)
 - [ ] **Bekende beperking:** bestaande `POST/PUT /api/email-templates` (paste-editor) gebruikt verouderde kolomnamen (`active`/`variables`/`cart_link`) die niet in de Supabase-tabel bestaan → faalt. De nieuwe upload-html gebruikt de juiste kolommen (`is_active`/`category`). Editor-fix is backlog.
 
+### Blog SEO-uitbreiding: officieel logo + lifestyle-foto's + 4 nieuwe blogs (31 mei 2026)
+- [x] **Officieel logo** (`/logo.svg`) overal op de blogs i.p.v. losse imgur/Supabase-PNG (BlogsPage, BlogPostLayout, BlogSlaaptips, BlogStress).
+- [x] **Geen productfoto's meer**: alle 10 blog-afbeeldingen vervangen door vrij te gebruiken Pexels-lifestyle-foto's (slapend kind, knuffel+nachtlampje, avondroutine), geoptimaliseerd (1200px, ~80KB JPEG) en gehost op Supabase `product-images/blog/`. Vervangen in BlogsPage, blogPosts.js én de 6 detailpagina-hero's.
+- [x] **4 nieuwe SEO-blogs** met volledige detailpagina (BlogPostLayout + Article/FAQ/Breadcrumb JSON-LD), route + blogPosts.js-entry + card:
+  - `/blog/baby-knuffel-veilig-slapen-leeftijd` (Veilig slapen)
+  - `/blog/slaapregressie-bij-kinderen` (Babyslaap, met slaaplog-CTA)
+  - `/blog/witte-ruis-white-noise-baby` (Wetenschap)
+  - `/blog/avondroutine-kind-7-stappen` (Slaaptips, met bedtijdschema-CTA → Printables)
+- [x] **/blogs toont 9 blogs** (1 uitgelicht + 8 grid via `.slice(0,8)`); totaal 10 blogs hebben een detailpagina.
+- [x] Getest: e2e screenshots (/blogs: 10 afbeeldingen 0 kapot, 9 cards; nieuwe detailpagina rendert met TOC+FAQ+logo, 0 kapotte beelden). Lint schoon. **Vereist deploy naar productie.**
+
+
 ### Blogs-pagina afbeeldingen + logo fix (31 mei 2026)
 - [x] **Probleem:** logo (imgur `IESI44c.png`) en blog-afbeeldingen waren kapot op `/blogs`. Oorzaak: imgur blokkeert hotlinking in de browser; Unsplash-afbeelding `photo-1564429097439` gaf **404**.
 - [x] **Echte logo** (beertje-op-maan + "droomvriendjes.nl") geoptimaliseerd (400×400, 115KB) geüpload naar Supabase: `product-images/branding/droomvriendjes-logo.png`. Alle imgur-logo-refs vervangen in `BlogsPage.jsx`, `BlogPostLayout.jsx`, `BlogSlaaptipsPage.jsx`, `BlogStressKnuffelsPage.jsx`.

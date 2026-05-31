@@ -15,7 +15,7 @@ const BlogVerschilVerzwaringsknuffelNachtlampjePage = () => {
     excerpt="Beide knuffels helpen bij beter slapen, maar werken totaal anders. In deze gids leggen we het verschil uit en helpen we je kiezen welke past bij de slaapuitdaging van jouw kind."
     date="18 mei 2026"
     readMinutes={6}
-    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png"
+    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/verschil-verzwaringsknuffel-nachtlampje.jpg"
     toc={[
       { id: 'samenvatting', label: 'Snel antwoord' },
       { id: 'verzwaringsknuffel', label: 'Wat is een verzwaringsknuffel?' },

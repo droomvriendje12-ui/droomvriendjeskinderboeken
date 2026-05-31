@@ -19,7 +19,7 @@ const BlogStressKnuffelsPage = () => {
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/branding/droomvriendjes-logo.png" 
+                src="/logo.svg" 
                 alt="Droomvriendjes.nl" 
                 className="h-16 w-auto"
               />

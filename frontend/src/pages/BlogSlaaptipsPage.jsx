@@ -19,7 +19,7 @@ const BlogSlaaptipsPage = () => {
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/branding/droomvriendjes-logo.png" 
+                src="/logo.svg" 
                 alt="Droomvriendjes.nl" 
                 className="h-16 w-auto"
               />
@@ -66,7 +66,7 @@ const BlogSlaaptipsPage = () => {
         {/* Featured Image */}
         <div className="mb-12 rounded-2xl overflow-hidden">
           <img 
-            src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/penguin-main.png" 
+            src="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/5-tips-betere-nachtrust-kinderen.jpg" 
             alt="Kind slaapt rustig"
             className="w-full h-64 md:h-96 object-cover"
           />

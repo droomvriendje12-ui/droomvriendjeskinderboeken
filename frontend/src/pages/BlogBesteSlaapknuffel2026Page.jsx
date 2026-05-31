@@ -15,7 +15,7 @@ const BlogBesteSlaapknuffel2026Page = () => {
     excerpt="Ouders kiezen tussen tientallen slaapknuffels. Maar welke is écht de beste? Wij vergeleken de top-modellen op functies, prijs, veiligheid en kindervriendelijkheid. Hier is onze eerlijke koopgids."
     date="18 mei 2026"
     readMinutes={8}
-    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/panda-main.png"
+    heroImage="https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/beste-slaapknuffel-2026.jpg"
     toc={[
       { id: 'waarop-letten', label: '7 dingen om op te letten' },
       { id: 'top-functies', label: 'Welke functies moet hij hebben?' },

@@ -3,6 +3,8 @@
  * Add new blog entries here so they automatically appear in related sections.
  */
 
+const BIMG = "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/";
+
 export const BLOG_POSTS = [
   {
     slug: "waarom-huilt-baby-s-nachts",
@@ -12,7 +14,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-rose-100 text-rose-800",
     date: "18 mei 2026",
     readMinutes: 9,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/sheep-main.png",
+    image: BIMG + "waarom-huilt-baby-s-nachts.jpg",
     tags: ["slaap", "baby", "huilen", "tips"],
   },
   {
@@ -23,7 +25,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-sky-100 text-sky-800",
     date: "18 mei 2026",
     readMinutes: 6,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/bearbrown-main.png",
+    image: BIMG + "verschil-verzwaringsknuffel-nachtlampje.jpg",
     tags: ["knuffel", "vergelijking", "kopen", "angst"],
   },
   {
@@ -34,7 +36,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-emerald-100 text-emerald-800",
     date: "18 mei 2026",
     readMinutes: 8,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/panda-main.png",
+    image: BIMG + "beste-slaapknuffel-2026.jpg",
     tags: ["knuffel", "kopen", "review", "kraamcadeau"],
   },
   {
@@ -45,7 +47,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-amber-100 text-amber-900",
     date: "10 januari 2025",
     readMinutes: 7,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/penguin-main.png",
+    image: BIMG + "5-tips-betere-nachtrust-kinderen.jpg",
     tags: ["slaap", "tips", "kinderen", "routine"],
   },
   {
@@ -56,7 +58,7 @@ export const BLOG_POSTS = [
     categoryColor: "bg-violet-100 text-violet-800",
     date: "5 januari 2025",
     readMinutes: 7,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/lion-main.png",
+    image: BIMG + "hoe-helpen-kalmerende-knuffels-bij-stress.jpg",
     tags: ["knuffel", "stress", "angst", "wetenschap"],
   },
   {
@@ -67,8 +69,52 @@ export const BLOG_POSTS = [
     categoryColor: "bg-amber-100 text-amber-900",
     date: "19 januari 2025",
     readMinutes: 8,
-    image: "https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/unicorn-main.png",
+    image: BIMG + "droomvriendjes-mondriaan-samenwerking.jpg",
     tags: ["rust", "gezin", "mentale gezondheid", "slaap"],
+  },
+  {
+    slug: "baby-knuffel-veilig-slapen-leeftijd",
+    title: "Vanaf welke leeftijd mag een baby veilig met een knuffel slapen?",
+    excerpt: "De officiële richtlijnen, de risico's vóór 12 maanden en hoe je een knuffel veilig introduceert in bed.",
+    category: "Veilig slapen",
+    categoryColor: "bg-teal-100 text-teal-800",
+    date: "28 mei 2026",
+    readMinutes: 7,
+    image: BIMG + "baby-knuffel-veilig-slapen-leeftijd.jpg",
+    tags: ["baby", "knuffel", "veiligheid", "leeftijd"],
+  },
+  {
+    slug: "slaapregressie-bij-kinderen",
+    title: "Slaapregressie bij baby's en peuters: herkennen en oplossen",
+    excerpt: "De leeftijden waarop slaapregressie toeslaat, waarom het gebeurt en wat écht helpt om er doorheen te komen.",
+    category: "Babyslaap",
+    categoryColor: "bg-rose-100 text-rose-800",
+    date: "27 mei 2026",
+    readMinutes: 8,
+    image: BIMG + "slaapregressie-bij-kinderen.jpg",
+    tags: ["slaap", "baby", "peuter", "regressie", "routine"],
+  },
+  {
+    slug: "witte-ruis-white-noise-baby",
+    title: "Witte ruis voor baby's: helpt white noise écht bij slapen?",
+    excerpt: "Wat witte ruis met de babyslaap doet, hoe je het veilig gebruikt en welk volume verantwoord is.",
+    category: "Wetenschap",
+    categoryColor: "bg-violet-100 text-violet-800",
+    date: "26 mei 2026",
+    readMinutes: 6,
+    image: BIMG + "witte-ruis-white-noise-baby.jpg",
+    tags: ["baby", "slaap", "wetenschap", "white noise"],
+  },
+  {
+    slug: "avondroutine-kind-7-stappen",
+    title: "Een rustgevende avondroutine in 7 stappen (met gratis printbaar schema)",
+    excerpt: "Een vaste avondroutine is de snelste route naar beter slapen. Volg ons stappenplan en download het gratis slaapschema.",
+    category: "Slaaptips",
+    categoryColor: "bg-amber-100 text-amber-900",
+    date: "25 mei 2026",
+    readMinutes: 7,
+    image: BIMG + "avondroutine-kind-7-stappen.jpg",
+    tags: ["slaap", "tips", "routine", "kinderen", "printable"],
   },
 ];
 
