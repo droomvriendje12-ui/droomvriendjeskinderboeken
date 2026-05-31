@@ -7,7 +7,7 @@ import {
   Megaphone, Gift, Star, Layers, LogOut, ChevronRight,
   DollarSign, ShoppingCart, Eye, Mail, TrendingUp, Plus,
   Download, Activity, Package, Settings, Zap, Target, Clock,
-  Bell, Wifi, WifiOff, Inbox, FileText, AlertTriangle, CheckCircle, Rocket, Trash2, Play, Pause
+  Bell, Wifi, WifiOff, Inbox, FileText, AlertTriangle, CheckCircle, Rocket, Trash2, Play, Pause, Sparkles
 } from 'lucide-react';
 import MarketingSalesHub from '../components/admin/MarketingSalesHub';
 import CampaignBuilder from '../components/admin/CampaignBuilder';
@@ -285,6 +285,7 @@ const AdminCommandCenterNew = () => {
     { id: 'inbox-link', icon: Inbox, label: 'Inbox', link: '/admin/inbox' },
     { id: 'newsletter', icon: Megaphone, label: 'Nieuwsbrief versturen', link: '/admin/nieuwsbrief' },
     { id: 'contacts', icon: Users, label: 'Contacten', link: '/admin/contacten' },
+    { id: 'leads-outreach', icon: Sparkles, label: 'Leads Bestorming', link: '/admin/leads-bestorming' },
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },

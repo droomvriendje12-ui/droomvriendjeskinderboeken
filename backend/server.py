@@ -178,6 +178,7 @@ from routes import gift_cards_supabase as gift_cards_supabase_route
 from routes import csv_import as csv_import_route
 from routes import inbox as inbox_route
 from routes import reply_templates as reply_templates_route
+from routes import outreach as outreach_route
 from routes import admin_customers as admin_customers_route
 from routes import faq_tracking as faq_tracking_route
 from routes import blogs as blogs_route
@@ -256,6 +257,11 @@ api_router.include_router(inbox_route.router)
 reply_templates_route.set_database(db)
 reply_templates_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(reply_templates_route.router)
+
+# Leads Bestorming (B2B outreach CRM)
+outreach_route.set_database(db)
+outreach_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(outreach_route.router)
 
 # Admin customers (aggregated from orders)
 admin_customers_route.set_supabase_client(supabase_client)
