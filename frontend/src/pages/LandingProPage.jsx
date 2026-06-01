@@ -314,7 +314,7 @@ const LandingProPage = () => {
                 to={`/product/${p.id}`}
                 className="group bg-white rounded-3xl p-6 border border-amber-100/80 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col"
                 data-testid={`pro-product-${p.id}`}
-                onClick={() => trackSelectPromotion(PRO_PROMO, { id: p.id, name: p.name, price: p.price, item_category: p.category, _index: idx })}
+                onClick={() => trackSelectPromotion({ ...PRO_PROMO, creative_slot: 'pro_product_grid' }, { id: p.id, name: p.name, price: p.price, item_category: p.category, _index: idx })}
               >
                 <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center mb-5 border border-amber-100 group-hover:scale-[1.02] transition-transform">
                   <FileText className="w-14 h-14 text-amber-400" strokeWidth={1.4} />

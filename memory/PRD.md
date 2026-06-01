@@ -11,6 +11,22 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 2 juni 2026: Blog CMS volledig overzicht (Optie 1) + GA4 promotie-events (getest 100%, iter 34)
+**Blog CMS afgerond (Optie 1 — veilig):**
+- Probleem: DB-collectie `cms_blogs` was leeg; alle 10 live blogs waren hardcoded in code. Admin toonde niets.
+- **3 pure-tekst premium-blogs gemigreerd naar de database** (idempotent seed `backend/scripts/seed_premium_blogs.py` + HTML in `backend/scripts/premium_blogs/`): `witte-ruis-white-noise-baby`, `baby-knuffel-veilig-slapen-leeftijd`, `droomvriendjes-mondriaan-samenwerking`. Renderen nu via `CmsBlogPostPage` vanuit DB (auto-TOC uit h2-ids, FAQ, gerelateerde producten, hero) en zijn **volledig bewerkbaar/verwijderbaar**. Hun 3 dedicated routes zijn verwijderd uit `App.js`.
+- **7 blogs met interactieve Printables-upsell** (live prijzen) behouden hun code-layout + dedicated routes (geen omzetrisico); in admin zichtbaar als read-only "Premium"-rij met werkende "Live".
+- **AdminBlogCmsPage herbouwd** als één beheeroverzicht: tabel met Titel/Status/Datum/Auteur/Slug/Bewerken/Verwijderen/Bekijk Live, **zoeken** (titel/slug), **statusfilter** (alle/gepubliceerd/concept/premium), **sorteren op datum** (nieuwste/oudste), en stat-chips met **totaal-teller** (Totaal 10, Gepubliceerd 10, Premium 7). `BlogsPage` ontdubbelt via slug-set zodat gemigreerde blogs niet dubbel verschijnen.
+
+**GA4 ecommerce promotie-events (GTM-N7SVX5T4):**
+- Nieuw in `utils/analytics.js`: `trackViewPromotion` + `trackSelectPromotion` (GA4-compatibel: promotion_id/promotion_name/creative_name/creative_slot + items).
+- **/pro (Printables)**: `view_item_list` ('Droomvriendjes Printables', 8 items) + `view_promotion` (promotion_id `printables_pro`) bij laden; `select_promotion` op hero-CTA (`pro_hero`) en op productkaart-klik (`pro_product_grid`).
+- **/quiz**: `view_promotion` (promotion_id `droomvriendje_quiz`, slot `quiz_intro`) bij intro; `select_promotion` op "Start de test"; `view_item_list` ('Quiz Aanbeveling') bij resultaat.
+- Geverifieerd in `window.dataLayer` + testing agent (iter 34, 100%).
+
+**Tech debt / content:** 3 verweesde page-componenten (BlogMondriaanPage/BlogBabyKnuffelVeiligPage/BlogWitteRuisPage) niet meer geroute (dead code, onschadelijk). Slug `droomvriendjes-mondriaan-samenwerking` bevat content over 'mentale rust' (trouw aan oude live-pagina) — eventueel titel/slug door eigenaar bij te werken via CMS. **Deploy vereist.**
+
+
 ## CHANGELOG — 1 juni 2026 (nacht, vervolg): Bulk feed-optimalisatie + GTM-container
 - **"AI-optimaliseer alle"-knop** in de Shopping Feed Builder (`ShoppingFeedBuilderPage.jsx`): optimaliseert in 1 klik alle producten met Shopping SEO < 85% via client-side sequentiële loop op `POST /api/shopping-feed/optimize`, met **live voortgangsmodal** (done/total, huidig product, voortgangsbalk, gelukt/mislukt) — zelfde patroon als bulk-personalisatie in Leads Bestorming. Knop toont live de teller van te-optimaliseren producten. Daarna auto-refresh van de audit-scores.
 - **Google Tag Manager vervangen**: oude container `GTM-W9PZRP4B` volledig vervangen door **`GTM-N7SVX5T4`** in `public/index.html` (head-script + noscript-fallback). Eén actieve container → geen dubbel afvuren van tags/conversies. Geverifieerd in geserveerde HTML na frontend-restart.
