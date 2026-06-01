@@ -42,6 +42,7 @@ const CheckoutPage = () => {
   useEffect(() => {
     if (cart.length > 0) {
       trackCheckoutStart(getSubtotal());
+      trackBeginCheckout(cart, appliedCoupon?.code); // GA4 funnel: begin_checkout
     }
   }, []);
 
@@ -300,6 +301,9 @@ const CheckoutPage = () => {
       }
 
       const orderData = await orderResponse.json();
+
+      // GA4: payment info added (completes the checkout funnel before redirect to Mollie)
+      trackAddPaymentInfo(cart, formData.paymentMethod, appliedCoupon ? appliedCoupon.code : null);
 
       // Create payment via backend (SECURE - no API key in frontend!)
       const paymentResponse = await fetch(`/api/payments/create`, {

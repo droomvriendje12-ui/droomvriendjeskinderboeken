@@ -11,6 +11,14 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026 (avond): 14-dagen retour + conversie-tracking
+- **Retour gecorrigeerd 30 → 14 dagen** (klant had 14, niet 30): `VrouwenLandingPage.jsx` (trial/geld-terug teksten), `AdminCommandCenter.jsx` (warranty-default → "14 dagen retourrecht"), `routes/inbox.py` AI-kennisbank ("Retourneren binnen 14 dagen"). De checkout had al correct een "14 Dagen Retour"-kaart.
+- **GA4-funnel gecompleteerd**: `CheckoutPage.jsx` vuurt nu `begin_checkout` (bij laden) en `add_payment_info` (vóór Mollie-redirect) — voorheen geïmporteerd maar niet aangeroepen. `purchase` werd al afgevuurd in `PaymentResultPage`. Dit verbetert conversie-tracking in GA4 + Ads-optimalisatie.
+- **Google Ads-conversie env-gestuurd**: kapotte placeholder `AW-XXXXX/XXXXX` vervangen door `REACT_APP_GOOGLE_ADS_PURCHASE_CONVERSION` (vuurt alleen als geconfigureerd).
+- **Dashboard**: admin toont al orders + omzet via `/api/admin/dashboard`.
+- **Analyse**: "0 conversies" in GA4 komt vooral door weinig gekwalificeerd verkeer (grootste deel = eigen dev-verkeer via app.emergent.sh + bot-steden Council Bluffs/Warsaw/Casablanca), niet door kapotte tracking.
+
+
 ## CHANGELOG — 1 juni 2026 (later): Robuuste lead-import + anti-spam guardrail
 **Import "0 toegevoegd" opgelost** (`routes/outreach.py` `/import`):
 - Auto-detectie scheidingsteken (`,` / `;` / tab) → loste NL-bestand met `;` op.

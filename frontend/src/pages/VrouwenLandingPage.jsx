@@ -112,7 +112,7 @@ const VrouwenLandingPage = () => {
     },
     {
       question: "Wat als het niet werkt voor mij?",
-      answer: "U heeft 30 dagen om het uit te proberen. Werkt het niet voor u? Dan krijgt u uw geld volledig terug, zonder vragen. We willen dat u zeker bent van uw keuze."
+      answer: "U heeft 14 dagen om het uit te proberen. Werkt het niet voor u? Dan krijgt u uw geld volledig terug, zonder vragen. We willen dat u zeker bent van uw keuze."
     }
   ];
 
@@ -216,7 +216,7 @@ const VrouwenLandingPage = () => {
                   
                   <div className="flex items-baseline justify-between mb-6">
                     <span className="text-3xl font-bold text-[#2d5a3d]">€59,95</span>
-                    <span className="text-sm text-[#5a8a6a]">incl. btw · 30 dagen proberen</span>
+                    <span className="text-sm text-[#5a8a6a]">incl. btw · 14 dagen proberen</span>
                   </div>
                   
                   <a href="#producten">
@@ -523,7 +523,7 @@ const VrouwenLandingPage = () => {
                   </Button>
                   
                   <p className="text-center text-xs text-[#7a9a7a] mt-3">
-                    30 dagen proberen · Gratis verzending
+                    14 dagen proberen · Gratis verzending
                   </p>
                 </CardContent>
               </Card>
@@ -570,7 +570,7 @@ const VrouwenLandingPage = () => {
                         </Button>
                         
                         <p className="text-center text-xs text-[#7a9a7a] mt-3">
-                          30 dagen proberen · Gratis verzending
+                          14 dagen proberen · Gratis verzending
                         </p>
                       </CardContent>
                     </Card>
@@ -624,7 +624,7 @@ const VrouwenLandingPage = () => {
               </p>
               <p className="flex items-center text-[#4a6a4a]">
                 <span className="text-[#2d5a3d] mr-3">✓</span>
-                30 dagen uitproberen, niet tevreden? Geld terug
+                14 dagen uitproberen, niet tevreden? Geld terug
               </p>
               <p className="flex items-center text-[#4a6a4a]">
                 <span className="text-[#2d5a3d] mr-3">✓</span>

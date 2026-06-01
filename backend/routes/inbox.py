@@ -68,7 +68,7 @@ TECHNISCHE SPECIFICATIES (gelden voor de Droomvriendjes-lijn):
 
 LEVERING & RETOUR:
 - Levertijd Nederland: 3–5 werkdagen; België/Duitsland: 5–7 werkdagen
-- Retourneren binnen 30 dagen na ontvangst (ongebruikt, originele verpakking)
+- Retourneren binnen 14 dagen na ontvangst (ongebruikt, originele verpakking)
 - Bij productiefout: gratis omruil of terugbetaling
 
 ZAKELIJK (B2B): partners kunnen terecht via partners@droomvriendjes.com voor staffelkortingen en samenwerking.

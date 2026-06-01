@@ -337,14 +337,18 @@ export const trackPurchase = (orderData) => {
 
   if (isGtagAvailable()) {
     window.gtag('event', 'purchase', ecommerce);
-    
-    // Also fire Google Ads conversion
-    window.gtag('event', 'conversion', {
-      send_to: 'AW-XXXXX/XXXXX', // Replace with actual conversion ID
-      value: parseFloat(orderData.total_amount),
-      currency: 'EUR',
-      transaction_id: orderData.order_id || orderData._id
-    });
+
+    // Google Ads purchase conversion — only fires when a real conversion label is configured
+    // via REACT_APP_GOOGLE_ADS_PURCHASE_CONVERSION (e.g. "AW-1234567890/AbC-dEfGh").
+    const adsConversion = process.env.REACT_APP_GOOGLE_ADS_PURCHASE_CONVERSION;
+    if (adsConversion) {
+      window.gtag('event', 'conversion', {
+        send_to: adsConversion,
+        value: parseFloat(orderData.total_amount),
+        currency: 'EUR',
+        transaction_id: orderData.order_id || orderData._id
+      });
+    }
   }
   
   console.log('📊 GA4: purchase', orderData.order_id, orderData.total_amount, 'EUR');
