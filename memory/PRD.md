@@ -11,6 +11,19 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026 (later): Robuuste lead-import + anti-spam guardrail
+**Import "0 toegevoegd" opgelost** (`routes/outreach.py` `/import`):
+- Auto-detectie scheidingsteken (`,` / `;` / tab) → loste NL-bestand met `;` op.
+- Meertalige kolomnamen: Naam/Name/Nom, Email/E-mail/E-Mail/Mail, Type/Typ, etc.
+- `details` opgebouwd uit overige kolommen (Plaats/Provincie/Ville/Stadt).
+- Type-mapping via keywords → slaapcoach/influencer/winkel (default winkel).
+- Taal o.b.v. e-mail-TLD (.de/.fr/.nl) met fallback op bestandsnaam (wallonie→fr, germany→de).
+- `insert_many` + dedupe; retourneert `added` + `skipped_duplicates`.
+- Getest: 3 CSV's geparseerd (NL 1250 / BE-Wallonië 1000 fr / DE 1500 de = 3750 leads, alle geldig) + end-to-end endpoint (added/dedup werkt).
+
+**Anti-spam guardrail** (`/send`): per-request limiet **50**, dag-limiet **150** (telt vandaag verzonden), throttle **0,5s** tussen mails. Frontend toont limiet-melding. Beschermt domeinreputatie + blijft onder Resend-limieten.
+
+
 ## CHANGELOG — 1 juni 2026: E-mail UX + AI Smart Assist + B2B-pagina (getest 100%)
 **Fase 1 — E-mail interface (Inbox):**
 - 📎 Drag & drop + bestand-upload bijlagen in Inbox reply + compose (`AttachmentPicker` in InboxPage.jsx). Verzonden via Resend (`attachments` param in `email_sender.py`), metadata opgeslagen ZONDER base64 (privacy/size). Limiet 15 MB front / 25 MB back → 413.

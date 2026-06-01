@@ -59,7 +59,7 @@ const LeadsBestormingPage = () => {
       const r = await fetch(`${API}/api/outreach/import`, { method: 'POST', headers: authHeaders(), body: fd });
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'Import mislukt');
-      notify('success', `${d.added} nieuwe leads geïmporteerd (totaal ${d.total}).`);
+      notify('success', `${d.added} nieuwe leads geïmporteerd${d.skipped_duplicates ? `, ${d.skipped_duplicates} duplicaten overgeslagen` : ''} (totaal ${d.total}).`);
       refresh();
     } catch (err) { notify('error', err.message || 'Import mislukt'); }
     setImporting(false);

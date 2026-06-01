@@ -11,6 +11,7 @@ import os
 import csv
 import io
 import uuid
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -224,48 +225,128 @@ def _lead_out(doc: dict) -> dict:
 
 
 # ---------------------------------------------------------------- import
+_NAME_KEYS = {"naam", "name", "nom", "bedrijf", "bedrijfsnaam", "company", "firma", "organisatie", "praktijk", "naambedrijf"}
+_EMAIL_KEYS = {"emailadres", "email", "mail", "emailaddress", "courriel", "epost"}
+_TYPE_KEYS = {"type", "typ", "categorie", "category", "soort"}
+_DETAILS_KEYS = {"details", "omschrijving", "description", "beschrijving"}
+
+
+def _nk(k: str) -> str:
+    return (k or "").strip().lower().replace("-", "").replace("_", "").replace(" ", "")
+
+
+def _first(norm: dict, keys: set) -> str:
+    for k in keys:
+        if norm.get(k):
+            return norm[k]
+    return ""
+
+
+def _map_lead_type(*candidates: str) -> str:
+    blob = " ".join(c for c in candidates if c).lower()
+    if any(w in blob for w in ("sommeil", "slaap", "sleep", "coach", "conseil", "kinesi",
+                               "lactation", "doula", "verloskund", "kraam", "consultant", "begeleid")):
+        return "slaapcoach"
+    if any(w in blob for w in ("influencer", "blog", "insta", "content", "mama")):
+        return "influencer"
+    if any(w in blob for w in ("winkel", "markt", "shop", "store", "boetiek", "laden", "babyfach",
+                               "babyone", "baby", "speelgoed", "concept", "boutique", "magasin",
+                               "kinderdagverblijf", "dagverblijf", "opvang", "creche", "crèche", "kita")):
+        return "winkel"
+    return ""
+
+
+def _batch_language(filename: str) -> Optional[str]:
+    fn = (filename or "").lower()
+    if any(w in fn for w in ("wallon", "bruxelles", "brussel", "france", "francais", "français", "fr")):
+        if any(w in fn for w in ("wallon", "bruxelles", "brussel", "france", "francais", "français")):
+            return "fr"
+    if any(w in fn for w in ("germany", "deutsch", "german", "duitsland")):
+        return "de"
+    if any(w in fn for w in ("nederland", "netherlands", "vlaander", "flanders")):
+        return "nl"
+    return None
+
+
+def _lang_for(email: str, batch_lang: Optional[str]) -> str:
+    e = (email or "").lower().strip()
+    if e.endswith(".de"):
+        return "de"
+    if e.endswith(".fr"):
+        return "fr"
+    if e.endswith(".nl"):
+        return "nl"
+    return batch_lang or "nl"
+
+
 @router.post("/import")
 async def import_leads(file: UploadFile = File(...), source: Optional[str] = Form(None),
                        _admin=Depends(_require_admin)):
-    """Import the leads CSV (columns: Naam, Type, E-mailadres, Details). Adds new leads only.
-    Each batch is tagged with a `source` (CSV filename) and a `language` per lead (.de/.fr/nl)."""
+    """Import a leads CSV. Robust parser:
+    - auto-detects the delimiter (',' or ';' or tab),
+    - accepts NL/FR/DE column names (Naam/Name/Nom, Email/E-mail/E-Mail, Type/Typ, ...),
+    - builds `details` from any remaining columns (Plaats, Provincie, Ville, Stadt, ...),
+    - derives language from the e-mail TLD with a filename-based fallback (.de/.fr/wallonie).
+    Adds new leads only (dedupe on name+email)."""
     if _db is None:
         raise HTTPException(status_code=500, detail="DB unavailable")
     batch_source = (source or file.filename or "import").strip()
+    batch_lang = _batch_language(batch_source)
     raw = await file.read()
     try:
         text = raw.decode("utf-8-sig")
     except Exception:
         text = raw.decode("latin-1")
-    reader = csv.DictReader(io.StringIO(text))
 
-    existing = await _db.outreach_leads.find({}, {"naam": 1, "email": 1}).to_list(length=10000)
+    first_line = text.split("\n", 1)[0]
+    if first_line.count(";") > first_line.count(","):
+        delim = ";"
+    elif first_line.count("\t") > first_line.count(","):
+        delim = "\t"
+    else:
+        delim = ","
+    reader = csv.DictReader(io.StringIO(text), delimiter=delim)
+
+    existing = await _db.outreach_leads.find({}, {"naam": 1, "email": 1}).to_list(length=100000)
     seen = {(r.get("naam", ""), (r.get("email") or "").lower()) for r in existing}
     last = await _db.outreach_leads.find_one({}, sort=[("seq", -1)])
     seq = (last.get("seq", 0) if last else 0)
 
-    added = 0
     now = datetime.now(timezone.utc).isoformat()
+    docs = []
+    skipped_dupe = 0
     for row in reader:
-        naam = (row.get("Naam") or "").strip()
-        email = (row.get("E-mailadres") or row.get("Email") or "").strip()
-        ltype = (row.get("Type") or "").strip().lower()
-        details = (row.get("Details") or "").strip()
+        norm = {_nk(k): (v or "").strip() for k, v in row.items() if k}
+        naam = _first(norm, _NAME_KEYS)
+        email = _first(norm, _EMAIL_KEYS)
+        raw_type = _first(norm, _TYPE_KEYS)
+        details = _first(norm, _DETAILS_KEYS)
+        if not details:
+            extra = []
+            for k, v in row.items():
+                if not k or v is None or not str(v).strip():
+                    continue
+                nk = _nk(k)
+                if nk in _NAME_KEYS or nk in _EMAIL_KEYS or nk in _DETAILS_KEYS:
+                    continue
+                extra.append(f"{k.strip()}: {str(v).strip()}")
+            details = " | ".join(extra)
         if not naam and not email:
             continue
         key = (naam, email.lower())
         if key in seen:
+            skipped_dupe += 1
             continue
         seen.add(key)
         seq += 1
-        await _db.outreach_leads.insert_one({
+        docs.append({
             "id": str(uuid.uuid4()),
             "seq": seq,
             "naam": naam,
-            "type": ltype if ltype in VALID_TYPES else (ltype or "overig"),
+            "type": _map_lead_type(raw_type, naam) or "winkel",
             "email": email,
             "email_valid": "@" in email,
-            "language": detect_language(email),
+            "language": _lang_for(email, batch_lang),
             "source": batch_source,
             "details": details,
             "status": "New",
@@ -275,8 +356,14 @@ async def import_leads(file: UploadFile = File(...), source: Optional[str] = For
             "custom_email": None,
             "created_at": now,
         })
-        added += 1
-    return {"added": added, "total": await _db.outreach_leads.count_documents({})}
+
+    if docs:
+        await _db.outreach_leads.insert_many(docs)
+    return {
+        "added": len(docs),
+        "skipped_duplicates": skipped_dupe,
+        "total": await _db.outreach_leads.count_documents({}),
+    }
 
 
 # ---------------------------------------------------------------- list / stats
@@ -518,6 +605,20 @@ class SendRequest(BaseModel):
     only_new: bool = True
 
 
+# --- Anti-spam guardrails (protect domain reputation & stay under Resend limits) ---
+SEND_PER_REQUEST_LIMIT = 50   # max e-mails per verzendactie
+SEND_DAILY_LIMIT = 150        # max cold-outreach e-mails per kalenderdag
+SEND_DELAY_SECONDS = 0.5      # throttle tussen mails (~2/sec)
+
+
+async def _sent_today_count() -> int:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return await _db.outreach_leads.count_documents({
+        "date_contacted": {"$regex": f"^{today}"},
+        "status": {"$in": ["Sent", "Opened"]},
+    })
+
+
 @router.post("/send")
 async def send_outreach(payload: SendRequest, _admin=Depends(_require_admin)):
     if _db is None:
@@ -540,11 +641,25 @@ async def send_outreach(payload: SendRequest, _admin=Depends(_require_admin)):
         query["status"] = {"$in": ["New", "Bounced"]}
 
     leads = await _db.outreach_leads.find(query).to_list(length=2000)
+    eligible = len(leads)
     if not leads:
         return {"sent": 0, "failed": 0, "skipped": 0, "message": "Geen verzendbare leads voor deze selectie."}
 
+    # Anti-spam caps: respect the remaining daily budget and the per-request limit.
+    sent_today = await _sent_today_count()
+    remaining_daily = max(0, SEND_DAILY_LIMIT - sent_today)
+    if remaining_daily <= 0:
+        return {
+            "sent": 0, "failed": 0, "skipped": eligible,
+            "daily_limit": SEND_DAILY_LIMIT, "sent_today": sent_today, "remaining_today": 0,
+            "message": f"Dagelijkse veiligheidslimiet van {SEND_DAILY_LIMIT} bereikt. "
+                       "Verstuur de rest morgen om je domeinreputatie te beschermen.",
+        }
+    allowed_now = min(SEND_PER_REQUEST_LIMIT, remaining_daily, eligible)
+    batch = leads[:allowed_now]
+
     sent = failed = 0
-    for lead in leads:
+    for idx, lead in enumerate(batch):
         subject, body_text = _build_email(lead, templates)
         html_body = "<div style=\"font-family:Helvetica,Arial,sans-serif;font-size:15px;color:#3A271C;line-height:1.6;\">" \
             + body_text.replace("\n", "<br/>") + "</div>"
@@ -565,7 +680,23 @@ async def send_outreach(payload: SendRequest, _admin=Depends(_require_admin)):
             )
         else:
             failed += 1
-    return {"sent": sent, "failed": failed, "skipped": 0}
+        if idx < len(batch) - 1:
+            await asyncio.sleep(SEND_DELAY_SECONDS)
+
+    not_sent = eligible - sent
+    remaining_today = max(0, remaining_daily - sent)
+    msg = f"{sent} verzonden."
+    if not_sent > 0:
+        if remaining_today <= 0:
+            msg += f" {not_sent} niet verstuurd — dagelijkse veiligheidslimiet ({SEND_DAILY_LIMIT}) bereikt. Ga morgen verder."
+        else:
+            msg += f" {not_sent} niet verstuurd — max {SEND_PER_REQUEST_LIMIT} per keer. Klik nogmaals om door te gaan (nog {remaining_today} vandaag mogelijk)."
+    return {
+        "sent": sent, "failed": failed, "skipped": not_sent,
+        "eligible": eligible, "batch_limit": SEND_PER_REQUEST_LIMIT,
+        "daily_limit": SEND_DAILY_LIMIT, "remaining_today": remaining_today,
+        "message": msg,
+    }
 
 
 @router.get("/track/open/{lead_id}")
