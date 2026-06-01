@@ -11,6 +11,27 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026 (nacht): SEO/GEO afronding + AI Search Ads + AI Shopping Feed Builder (getest 100%)
+**Fase 1 — SEO/GEO/AI Search productie-klaar:**
+- `ProductPage.jsx`: nieuwe useEffect zet `document.title`, meta-description, **canonical**, **Open Graph** (og:type=product, title, description, url, image, product:price), **Twitter/X** (summary_large_image). JSON-LD bevat al Product + FAQPage + BreadcrumbList + Review.
+- **Dubbele FAQPage opgelost**: `TrendingQuestions.jsx` kreeg prop `emitSchema` (default true). ProductPage, BlogPostLayout én HomePage geven `emitSchema={false}` → exact 1 FAQPage per pagina (Google-conform). Bevestigd via testing agent.
+- `BlogPostLayout.jsx` had al BlogPosting + FAQ + Breadcrumb JSON-LD + OG + Twitter + canonical (CMS-blogs via `CmsBlogPostPage` erven dit).
+- **Sitemap** (`blog-cms/sitemap.xml`) uitgebreid met **alle productpagina's** (Supabase, fysiek + digital, prio 0.9) naast 7 statische pagina's en 10 blogs → 35 URLs. Submit op `{domain}/api/blog-cms/sitemap.xml`.
+
+**Fase 2 — Leads Bestorming trefwoord-outreach + Instagram/TikTok-fix:**
+- Geverifieerd: AI-draft (`/api/outreach/leads/{id}/ai-draft`) wordt gestuurd door **trefwoorden (3-5)** + **campagne/doel** (UI-velden `ai-keywords-input`/`ai-campaign-input`), verplicht verwerkt in de mail; werkt ook in bulk-personalisatie. Spam-guardrails intact (50/req, 150/dag, 0,5s throttle).
+- **Root cause Instagram/TikTok "niet verzonden"**: 19/33 influencers hebben **geen e-mailadres** (alleen contactform-URL zoals `via kimvanoncen.be`) → silently overgeslagen door `email_valid`-filter (geen DM-API). Fix: contact-hint wordt nu een **klikbare "Benader via website ↗"-link** in de tabel + waarschuwing in de verzend-bevestiging dat deze leads handmatig benaderd moeten worden (met AI-personaliseer om de tekst klaar te zetten).
+
+**Fase 3 — AI Search Campagne Builder (`/admin/ads-builder`, `routes/ads_builder.py`):**
+- GPT-5.2 genereert complete Google Search-campagne: zoekwoorden (exact/phrase), 3-4 advertentiegroepen, RSA headlines (≤30t) + descriptions (≤90t, lengte-validatie in UI), sitelinks, callouts, structured snippets, negatieve zoekwoorden. **CSV-export** Google Ads Editor-compatibel (`/api/ads-builder/export-csv`). Route was aanwezig maar niet aangesloten → nu gewired in `server.py`.
+
+**Fase 4 — AI Shopping Feed Builder (`/admin/shopping-feed-builder`, `routes/feed_builder.py`):**
+- **Optimalisatielaag bovenop** bestaande `/api/feed/google-shopping.xml` (blijft ongewijzigd/bron). `GET /audit`: per product **Merchant Center readiness-score** + **Shopping SEO-score**, ontbrekende attributen, **GTIN/EAN-validatie (check-digit)**, categorie- + product_type-suggestie. `POST /optimize`: GPT-5.2 optimaliseert titel + beschrijving + product_type + Google-categorie, opgeslagen als override in MongoDB `feed_overrides`. **CSV + XML export** (`/export.csv`, `/export.xml`) passen overrides toe. Modulair opgezet voor latere Google Merchant API-koppeling.
+- Getest: 18 producten, gem. MC-readiness 100%, gem. Shopping SEO 69% (na 1 optimalisatie 70%), 18× GTIN ontbreekt (eigen merk → identifier_exists=no, geen blocker).
+
+**Testing:** iteration_33 → backend **13/13 pytest (100%)**, frontend **4/4 e2e (100%)**. Geen kritieke issues. Regressie-test: `/app/backend/tests/test_iteration33_seo_ads_feed.py`. **Vereist deploy naar productie.**
+
+
 ## CHANGELOG — 1 juni 2026 (laat): Blog CMS (fase 1 van SEO/GEO-dominantie)
 Volwaardig blog-CMS in het admin-dashboard (`/admin/blog-cms`):
 - **Backend** `routes/blog_cms.py` + MongoDB `cms_blogs`: CRUD, foto-upload → Supabase (`product-images/blog/cms`, PIL-geoptimaliseerd), AI-schrijfknop (GPT-5.2 → SEO/GEO-JSON: title, seo_title, meta, H2-structuur, FAQ's, interne links, related products), publieke endpoints (`/public/posts`, `/public/posts/{slug}`). Draft/published status.
