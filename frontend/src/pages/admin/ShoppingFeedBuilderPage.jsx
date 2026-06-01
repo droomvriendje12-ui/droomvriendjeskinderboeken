@@ -26,6 +26,7 @@ const ShoppingFeedBuilderPage = () => {
   const [loading, setLoading] = useState(false);
   const [optimizing, setOptimizing] = useState(null); // product id
   const [preview, setPreview] = useState(null); // override result
+  const [bulkProgress, setBulkProgress] = useState(null); // {total, done, ok, failed, currentName}
   const [toast, setToast] = useState(null);
 
   const notify = (t, m) => { setToast({ t, m }); setTimeout(() => setToast(null), 6000); };
@@ -60,6 +61,37 @@ const ShoppingFeedBuilderPage = () => {
     setOptimizing(null);
   };
 
+  const SEO_TARGET = 85;
+
+  const bulkOptimizeAll = async () => {
+    const targets = (data?.products || []).filter((p) => p.shopping_seo_score < SEO_TARGET);
+    if (targets.length === 0) {
+      notify('success', `Alle producten scoren al ${SEO_TARGET}%+ Shopping SEO. Niets te optimaliseren.`);
+      return;
+    }
+    if (!window.confirm(`AI optimaliseert ${targets.length} product(en) met een Shopping SEO-score onder ${SEO_TARGET}%. Dit kan even duren — laat dit venster open.`)) return;
+
+    let ok = 0, failed = 0;
+    setBulkProgress({ total: targets.length, done: 0, ok: 0, failed: 0, currentName: targets[0]?.name || '' });
+    for (let i = 0; i < targets.length; i++) {
+      const p = targets[i];
+      setBulkProgress({ total: targets.length, done: i, ok, failed, currentName: p.name });
+      try {
+        const r = await fetch(`${API}/api/shopping-feed/optimize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify({ product_id: p.id, save: true }),
+        });
+        if (!r.ok) throw new Error();
+        ok += 1;
+      } catch { failed += 1; }
+      setBulkProgress({ total: targets.length, done: i + 1, ok, failed, currentName: p.name });
+    }
+    setBulkProgress(null);
+    notify(failed ? 'error' : 'success', `${ok} product(en) geoptimaliseerd${failed ? `, ${failed} mislukt` : ''}. Scores bijgewerkt.`);
+    load();
+  };
+
   const download = async (fmt) => {
     try {
       const r = await fetch(`${API}/api/shopping-feed/export.${fmt}`, { headers: authHeaders() });
@@ -85,6 +117,9 @@ const ShoppingFeedBuilderPage = () => {
           <ShoppingBag className="w-6 h-6 text-emerald-400" />
           <h1 className="text-xl font-semibold">AI Shopping Feed Builder</h1>
           <div className="ml-auto flex items-center gap-2">
+            <button onClick={bulkOptimizeAll} disabled={!!bulkProgress || loading || !data} className="px-3 py-1.5 rounded-lg bg-fuchsia-500/20 border border-fuchsia-400/50 text-fuchsia-200 text-sm inline-flex items-center gap-2 disabled:opacity-50" data-testid="bulk-optimize-btn">
+              {bulkProgress ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} AI-optimaliseer alle{data?.summary ? ` (${(data.products || []).filter((p) => p.shopping_seo_score < 85).length})` : ''}
+            </button>
             <button onClick={() => download('csv')} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm inline-flex items-center gap-2" data-testid="export-csv-btn"><FileSpreadsheet className="w-4 h-4" /> CSV</button>
             <button onClick={() => download('xml')} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm inline-flex items-center gap-2" data-testid="export-xml-btn"><FileCode className="w-4 h-4" /> XML</button>
             <button onClick={load} className="p-2 rounded-lg hover:bg-white/10" data-testid="refresh-btn"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
@@ -186,6 +221,30 @@ const ShoppingFeedBuilderPage = () => {
             <div className="flex justify-end">
               <button onClick={() => setPreview(null)} className="px-4 py-2 rounded-lg bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-semibold text-sm inline-flex items-center gap-2" data-testid="preview-close"><Check className="w-4 h-4" /> Klaar</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk optimize progress */}
+      {bulkProgress && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" data-testid="bulk-optimize-progress">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-fuchsia-300 animate-pulse" />
+              <h3 className="font-semibold text-lg">AI optimaliseert de feed…</h3>
+            </div>
+            <p className="text-sm text-slate-300 mb-1" data-testid="bulk-optimize-count">
+              <span className="font-bold text-fuchsia-300">{bulkProgress.done}</span> / {bulkProgress.total} producten geoptimaliseerd
+            </p>
+            <p className="text-xs text-slate-400 mb-3 truncate">Nu bezig: <span className="text-slate-200">{bulkProgress.currentName || '…'}</span></p>
+            <div className="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-fuchsia-500 to-purple-400 transition-all duration-300" style={{ width: `${bulkProgress.total ? Math.round((bulkProgress.done / bulkProgress.total) * 100) : 0}%` }} data-testid="bulk-optimize-bar" />
+            </div>
+            <div className="flex justify-between mt-3 text-xs text-slate-400">
+              <span className="text-emerald-300">{bulkProgress.ok} gelukt</span>
+              {bulkProgress.failed > 0 && <span className="text-red-300">{bulkProgress.failed} mislukt</span>}
+            </div>
+            <p className="text-[11px] text-slate-500 mt-4">Laat dit venster open tot alle producten klaar zijn.</p>
           </div>
         </div>
       )}
