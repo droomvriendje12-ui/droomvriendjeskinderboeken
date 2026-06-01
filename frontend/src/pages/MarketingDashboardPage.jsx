@@ -76,7 +76,7 @@ const MarketingDashboardPage = () => {
   const campaigns = [
     { 
       id: 1,
-      name: 'Voorjaar Sale 2026', 
+      name: 'Zomer Sale 2026', 
       type: 'Email + Retargeting',
       source: 'Premium Premium',
       sourceColor: '#dbeafe',

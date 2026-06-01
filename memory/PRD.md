@@ -11,6 +11,23 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026: E-mail UX + AI Smart Assist + B2B-pagina (getest 100%)
+**Fase 1 — E-mail interface (Inbox):**
+- 📎 Drag & drop + bestand-upload bijlagen in Inbox reply + compose (`AttachmentPicker` in InboxPage.jsx). Verzonden via Resend (`attachments` param in `email_sender.py`), metadata opgeslagen ZONDER base64 (privacy/size). Limiet 15 MB front / 25 MB back → 413.
+- 🎨📱 WCAG-contrast + mobile-first: nieuwe `services/email_wrapper.py` wrapt elke reply/compose in een licht kaart-template (#FFFFFF, donkere tekst #2A2A2A) met responsive media-query (grotere fonts + full-width knoppen op mobiel). Toegepast in `inbox.py` `_send_smtp`.
+
+**Fase 2 — OpenAI Smart Assist (human-in-the-loop):**
+- 🤖 `POST /api/inbox/{id}/ai-draft` (admin) genereert een concept-antwoord via GPT-5.2 (Emergent LLM Key) op basis van de brochure-kennisbank (`INBOX_AI_KB` in inbox.py: prijzen, 2200 mAh, BT 5.0, 5-120 lux, bio-katoen, CE/EN71/RoHS/REACH, 2u USB-C, 0-6 jr, levertijden, retour). Knop "AI-concept antwoord" (`ai-draft-btn`) vult de reply-editor — wordt NOOIT automatisch verzonden.
+
+**Fase 3 — B2B-pagina `/b2b`:**
+- Professionele landingspagina in warme huisstijl (`B2BPage.jsx`): 10 modellen + prijzen (€49,95–€89,95), technische specs-tabel, partnervoordelen, CTA naar partners@droomvriendjes.com.
+- 🔒 Staffelkortingen-tabel ontgrendeld via partnercode **ZOETESLAPERS** (hoofdletterongevoelig): €34,95 / €28,50 / €24,00 / op aanvraag. Alleen tonen op B2B-pagina (geen checkout-integratie — bewuste keuze).
+- 📋 Onderzoek-aanmeldformulier (`POST /api/b2b/research-signup`, publiek) → slaat op in **Leads Bestorming** (`outreach_leads`, source "B2B Onderzoek"). Vragen over belang licht & geluid voor kinderslaap 0-6 jr.
+
+**Testing:** iteration_32 → backend 8/8 (100%), frontend 100%. Regressie-pytest: `/app/backend/tests/test_iteration32_new_features.py`. Niet-blokkerend/pre-existing: inbox-zoekfilter reduceert rijen pas na submit.
+**Vereist deploy naar productie.**
+
+
 ## Wat is geïmplementeerd
 
 ### Core E-commerce

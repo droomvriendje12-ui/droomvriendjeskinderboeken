@@ -326,7 +326,7 @@ export const shoppingCampaigns = [
       ],
       descriptions: [
         "Slaapknuffels met Nachtlampje & White Noise. Helpt 86% van de Kinderen Beter Slapen.",
-        "Bestel Nu & Morgen in Huis. 10.000+ Tevreden Klanten. Lente Sale: 2e 50% Korting!"
+        "Bestel Nu & Morgen in Huis. 10.000+ Tevreden Klanten. Zomer Sale: 2e 50% Korting!"
       ]
     },
     description: "Bescherm merknaam en vang branded traffic"
@@ -362,7 +362,7 @@ export const shoppingCampaigns = [
       ],
       descriptions: [
         "Slaapknuffels met Sterrenprojector & White Noise. 86% Slaapt Beter. Bestel Nu!",
-        "Gratis Verzending. 14 Dagen Retour. Lente Sale: 2e Knuffel 50% Korting!"
+        "Gratis Verzending. 14 Dagen Retour. Zomer Sale: 2e Knuffel 50% Korting!"
       ]
     },
     description: "Target kopers met hoge koopintentie"

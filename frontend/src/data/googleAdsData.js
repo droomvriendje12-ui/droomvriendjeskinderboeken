@@ -316,7 +316,7 @@ export const keywordLists = {
     keywords: [
       { keyword: "voordeelbundels", bid: 0.75, priority: "MEDIUM" },
       { keyword: "bundel aanbieding", bid: 0.70, priority: "MEDIUM" },
-      { keyword: "lente sale", bid: 0.65, priority: "LOW", season: "lente" },
+      { keyword: "zomer sale", bid: 0.65, priority: "LOW", season: "zomer" },
       { keyword: "2e knuffel 50% korting", bid: 0.80, priority: "HIGH" }
     ]
   },

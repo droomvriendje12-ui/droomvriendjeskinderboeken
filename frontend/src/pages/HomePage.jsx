@@ -101,7 +101,7 @@ const HomePage = () => {
       {/* Promo Banner - Warm Brown */}
       <div className="bg-warm-brown-500 text-white py-3 text-center">
         <p className="text-sm md:text-base font-medium tracking-wide">
-          LENTE SALE: 2E KNUFFEL 50% KORTING 🌸
+          ZOMER SALE: 2E KNUFFEL 50% KORTING ☀️
         </p>
       </div>
 
@@ -918,7 +918,7 @@ const HomePage = () => {
             Klaar Voor Betere Nachten?
           </h2>
           <p className="text-lg md:text-xl text-warm-brown-100 max-w-2xl mx-auto leading-relaxed">
-            Sluit je aan bij 10.000+ tevreden ouders. Profiteer nu van onze lenteactie: 2e knuffel 50% korting!
+            Sluit je aan bij 10.000+ tevreden ouders. Profiteer nu van onze zomeractie: 2e knuffel 50% korting!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
