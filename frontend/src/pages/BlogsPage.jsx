@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -125,7 +125,34 @@ const BlogsPage = () => {
 
   // Separate featured blog; show 9 cards total (1 featured + 8 in grid)
   const featuredBlog = blogs.find(b => b.featured);
-  const regularBlogs = blogs.filter(b => !b.featured).slice(0, 8);
+  const hardcodedRegular = blogs.filter(b => !b.featured).slice(0, 8);
+
+  // Merge in admin-managed CMS posts (published) so they appear automatically
+  const [cmsCards, setCmsCards] = useState([]);
+  useEffect(() => {
+    let active = true;
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/blog-cms/public/posts`)
+      .then(r => r.ok ? r.json() : { posts: [] })
+      .then(d => {
+        if (!active) return;
+        const cards = (d.posts || []).map((p) => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          excerpt: p.excerpt || p.meta_description || '',
+          author: p.author || 'Team Droomvriendjes',
+          date: (() => { try { return new Date(p.created_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; } })(),
+          readTime: `${p.read_minutes || 6} min`,
+          category: p.category,
+          image: p.hero_image || `${process.env.REACT_APP_BACKEND_URL ? '' : ''}https://plxbmkwuacbdzookygtg.supabase.co/storage/v1/object/public/product-images/blog/5-tips-betere-nachtrust-kinderen.jpg`,
+        }));
+        setCmsCards(cards);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const regularBlogs = [...cmsCards, ...hardcodedRegular];
 
   // Get blog link - use slug if available, otherwise use id
   const getBlogLink = (blog) => {

@@ -29,13 +29,29 @@ const BlogPostLayout = ({
 
   useEffect(() => {
     document.title = `${title} | Droomvriendjes Blog`;
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'description';
-      document.head.appendChild(meta);
-    }
-    meta.content = excerpt;
+    const setMeta = (sel, attr, key, value) => {
+      let el = document.head.querySelector(sel);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value || '');
+    };
+    setMeta('meta[name="description"]', 'name', 'description', excerpt);
+    // Open Graph (Facebook / LinkedIn)
+    setMeta('meta[property="og:type"]', 'property', 'og:type', 'article');
+    setMeta('meta[property="og:title"]', 'property', 'og:title', title);
+    setMeta('meta[property="og:description"]', 'property', 'og:description', excerpt);
+    setMeta('meta[property="og:url"]', 'property', 'og:url', url);
+    setMeta('meta[property="og:image"]', 'property', 'og:image', heroImage || 'https://droomvriendjes.com/logo.svg');
+    setMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Droomvriendjes');
+    // Twitter / X
+    setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+    setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
+    setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', excerpt);
+    setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', heroImage || 'https://droomvriendjes.com/logo.svg');
+    // Canonical
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -43,12 +59,12 @@ const BlogPostLayout = ({
       document.head.appendChild(canonical);
     }
     canonical.href = url;
-  }, [title, excerpt, url]);
+  }, [title, excerpt, url, heroImage]);
 
   // Article + FAQ + Breadcrumb schemas
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "headline": title,
     "description": excerpt,
     "image": heroImage || "https://droomvriendjes.com/og-image.jpg",

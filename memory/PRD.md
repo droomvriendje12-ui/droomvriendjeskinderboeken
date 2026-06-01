@@ -11,6 +11,16 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026 (laat): Blog CMS (fase 1 van SEO/GEO-dominantie)
+Volwaardig blog-CMS in het admin-dashboard (`/admin/blog-cms`):
+- **Backend** `routes/blog_cms.py` + MongoDB `cms_blogs`: CRUD, foto-upload → Supabase (`product-images/blog/cms`, PIL-geoptimaliseerd), AI-schrijfknop (GPT-5.2 → SEO/GEO-JSON: title, seo_title, meta, H2-structuur, FAQ's, interne links, related products), publieke endpoints (`/public/posts`, `/public/posts/{slug}`). Draft/published status.
+- **Frontend admin** `AdminBlogCmsPage.jsx`: lijst + editor (titel, slug auto, categorie, tags, SEO-titel, meta, excerpt, HTML-content, FAQ's, foto-upload, AI-modal, Concept/Publiceren/Verwijderen). Nav-tegel toegevoegd in dashboard.
+- **Frontend publiek** `CmsBlogPostPage.jsx` op `/blog/:slug` (hergebruikt BlogPostLayout met Article/FAQ/Breadcrumb JSON-LD). `BlogsPage` merge't gepubliceerde CMS-posts automatisch in de lijst. Bestaande 10 premium-blogs blijven behouden.
+- Getest: CRUD (curl) + AI-generate (7300-tekens SEO-blog met H2/links/FAQ) + e2e (CMS-post rendert op eigen pagina + /blogs; admin-editor toont alle velden).
+
+**Nog te bouwen (SEO/GEO-dominantie, gefaseerd):** product-schema's (Product/FAQ/Breadcrumb/Review + trust/voordelen/use-cases/interne links), AI Search Ads Builder (CSV/Editor-export), AI Shopping Feed Builder (XML/CSV + scores), trefwoord-gestuurde AI-outreach.
+
+
 ## CHANGELOG — 1 juni 2026 (avond): 14-dagen retour + conversie-tracking
 - **Retour gecorrigeerd 30 → 14 dagen** (klant had 14, niet 30): `VrouwenLandingPage.jsx` (trial/geld-terug teksten), `AdminCommandCenter.jsx` (warranty-default → "14 dagen retourrecht"), `routes/inbox.py` AI-kennisbank ("Retourneren binnen 14 dagen"). De checkout had al correct een "14 Dagen Retour"-kaart.
 - **GA4-funnel gecompleteerd**: `CheckoutPage.jsx` vuurt nu `begin_checkout` (bij laden) en `add_payment_info` (vóór Mollie-redirect) — voorheen geïmporteerd maar niet aangeroepen. `purchase` werd al afgevuurd in `PaymentResultPage`. Dit verbetert conversie-tracking in GA4 + Ads-optimalisatie.

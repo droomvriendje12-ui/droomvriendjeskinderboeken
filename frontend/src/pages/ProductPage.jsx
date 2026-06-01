@@ -712,6 +712,44 @@ const ProductPage = () => {
     }
   };
 
+  // FAQ schema (rich results + AI Overviews)
+  const activeFaqs = isDigital ? digitalFaqs : faqs;
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": (activeFaqs || []).slice(0, 10).map(f => ({
+      "@type": "Question",
+      "name": f.question,
+      "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+    }))
+  };
+
+  // Breadcrumb schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://droomvriendjes.com/" },
+      { "@type": "ListItem", "position": 2, "name": isDigital ? "Printables" : "Slaapknuffels", "item": `https://droomvriendjes.com/${isDigital ? 'pro' : 'knuffels'}` },
+      { "@type": "ListItem", "position": 3, "name": product.name, "item": `https://droomvriendjes.com/product/${product.id}` }
+    ]
+  };
+
+  // Individual Review schema (richer than aggregateRating alone)
+  const reviewSchema = (productReviews || [])
+    .filter(r => r && r.text)
+    .slice(0, 5)
+    .map(r => ({
+      "@context": "https://schema.org",
+      "@type": "Review",
+      "itemReviewed": { "@type": "Product", "name": product.name },
+      "author": { "@type": "Person", "name": r.name || "Geverifieerde klant" },
+      "reviewRating": { "@type": "Rating", "ratingValue": r.rating || 5, "bestRating": "5", "worstRating": "1" },
+      "name": r.title || undefined,
+      "reviewBody": r.text,
+      "datePublished": r.date || undefined
+    }));
+
   return (
     <Layout backButtonText="Terug" showPromoBanner={false} bgClassName="bg-gradient-to-b from-[#fdf8f3] to-[#f5efe8]">
       {/* Schema.org Product Data for Google Merchant */}
@@ -719,6 +757,13 @@ const ProductPage = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
+      {faqSchema.mainEntity.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {reviewSchema.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }} />
+      )}
       {/* Product Detail */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -40,6 +40,13 @@ const LeadsBestormingPage = () => {
   const [confirm, setConfirm] = useState(null); // {count, action}
   const [sending, setSending] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(null); // {total, done, generated, failed, currentName}
+  const [aiKeywords, setAiKeywords] = useState('');
+  const [aiCampaign, setAiCampaign] = useState('');
+  const aiOpts = () => ({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ keywords: aiKeywords, campaign: aiCampaign }),
+  });
   const [aiLead, setAiLead] = useState(null); // lead being personalized
   const [aiDraft, setAiDraft] = useState(null); // {subject, body}
   const [aiLoading, setAiLoading] = useState(false);
@@ -129,7 +136,7 @@ const LeadsBestormingPage = () => {
     setAiLead(lead); setAiDraft(lead.custom_email || null); setAiLoading(!lead.custom_email);
     if (!lead.custom_email) {
       try {
-        const r = await fetch(`${API}/api/outreach/leads/${lead.id}/ai-draft`, { method: 'POST', headers: authHeaders() });
+        const r = await fetch(`${API}/api/outreach/leads/${lead.id}/ai-draft`, aiOpts());
         const d = await r.json();
         if (!r.ok) throw new Error(d.detail || 'AI mislukt');
         setAiDraft({ subject: d.subject, body: d.body });
@@ -146,7 +153,7 @@ const LeadsBestormingPage = () => {
     if (!aiLead) return;
     setAiLoading(true);
     try {
-      const r = await fetch(`${API}/api/outreach/leads/${aiLead.id}/ai-draft`, { method: 'POST', headers: authHeaders() });
+      const r = await fetch(`${API}/api/outreach/leads/${aiLead.id}/ai-draft`, aiOpts());
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || 'AI mislukt');
       setAiDraft({ subject: d.subject, body: d.body });
@@ -177,7 +184,7 @@ const LeadsBestormingPage = () => {
       const l = leadMap.get(id);
       setBulkProgress({ total: todo.length, done: i, generated, failed, currentName: l?.naam || '…' });
       try {
-        const r = await fetch(`${API}/api/outreach/leads/${id}/ai-draft`, { method: 'POST', headers: authHeaders() });
+        const r = await fetch(`${API}/api/outreach/leads/${id}/ai-draft`, aiOpts());
         if (!r.ok) throw new Error();
         generated += 1;
       } catch { failed += 1; }
@@ -270,6 +277,13 @@ const LeadsBestormingPage = () => {
               {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Verstuur alle nieuwe
             </button>
           </div>
+        </div>
+
+        {/* AI steering: keywords + campaign/goal (drives the AI-personaliseer button) */}
+        <div className="mb-4 bg-fuchsia-500/5 border border-fuchsia-400/20 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center" data-testid="ai-steer-panel">
+          <div className="flex items-center gap-1.5 text-fuchsia-200 text-xs font-semibold whitespace-nowrap"><Sparkles className="w-4 h-4" /> AI-sturing</div>
+          <input value={aiKeywords} onChange={(e) => setAiKeywords(e.target.value)} placeholder="Trefwoorden (3-5, bijv. 10-Nachten Challenge, TikTok, gratis knuffel)" className="flex-1 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm" data-testid="ai-keywords-input" />
+          <input value={aiCampaign} onChange={(e) => setAiCampaign(e.target.value)} placeholder="Campagne/doel (bijv. uitnodigen voor 10-Nachten Slaap Challenge → deel op TikTok & Instagram)" className="flex-1 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm" data-testid="ai-campaign-input" />
         </div>
 
         {/* Table */}

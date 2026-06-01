@@ -289,6 +289,7 @@ const AdminCommandCenterNew = () => {
     { id: 'email', icon: Send, label: 'E-mail Marketing', link: '/admin/email-marketing' },
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
+    { id: 'blog-cms', icon: FileText, label: 'Blog CMS', link: '/admin/blog-cms' },
     { id: 'divider-system', label: 'Systeem', divider: true },
     { id: 'system-alerts', icon: AlertTriangle, label: 'Systeemmeldingen', badge: alertsUnresolved },
     { id: 'database', icon: Settings, label: 'Database', link: '/admin/database' },

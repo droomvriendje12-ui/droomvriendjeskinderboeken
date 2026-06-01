@@ -25,6 +25,7 @@ import BlogBabyKnuffelVeiligPage from "./pages/BlogBabyKnuffelVeiligPage";
 import BlogSlaapregressiePage from "./pages/BlogSlaapregressiePage";
 import BlogWitteRuisPage from "./pages/BlogWitteRuisPage";
 import BlogAvondroutinePage from "./pages/BlogAvondroutinePage";
+import CmsBlogPostPage from "./pages/CmsBlogPostPage";
 import CadeaubonPage from "./pages/CadeaubonPage";
 import LandingProPage from "./pages/LandingProPage";
 import B2BPage from "./pages/B2BPage";
@@ -82,6 +83,7 @@ import LeadsBestormingPage from "./pages/admin/LeadsBestormingPage";
 import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
 import AdminFaqStatsPage from "./pages/admin/AdminFaqStatsPage";
 import AdminDigitalProductsPage from "./pages/admin/AdminDigitalProductsPage";
+import AdminBlogCmsPage from "./pages/admin/AdminBlogCmsPage";
 import CustomerDownloadPage from "./pages/CustomerDownloadPage";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
 import PresentationPage from "./pages/PresentationPage";
@@ -126,6 +128,7 @@ function App() {
               <Route path="/blog/slaapregressie-bij-kinderen" element={<BlogSlaapregressiePage />} />
               <Route path="/blog/witte-ruis-white-noise-baby" element={<BlogWitteRuisPage />} />
               <Route path="/blog/avondroutine-kind-7-stappen" element={<BlogAvondroutinePage />} />
+              <Route path="/blog/:slug" element={<CmsBlogPostPage />} />
               <Route path="/cadeaubon" element={<CadeaubonPage />} />
               <Route path="/pro" element={<LandingProPage />} />
               <Route path="/b2b" element={<B2BPage />} />
@@ -202,6 +205,7 @@ function App() {
               <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomersPage /></ProtectedAdminRoute>} />
               <Route path="/admin/faq-stats" element={<ProtectedAdminRoute><AdminFaqStatsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/digital-products" element={<ProtectedAdminRoute><AdminDigitalProductsPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/blog-cms" element={<ProtectedAdminRoute><AdminBlogCmsPage /></ProtectedAdminRoute>} />
               <Route path="/mijn-download/:token" element={<CustomerDownloadPage />} />
             </Routes>
             <Toaster />

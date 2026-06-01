@@ -506,8 +506,9 @@ async def update_template(type: str, language: str, payload: TemplateUpdate, _ad
 
 
 # ---------------------------------------------------------------- AI draft
-async def _generate_ai_for_lead(lead: dict, api_key: str) -> dict:
+async def _generate_ai_for_lead(lead: dict, api_key: str, keywords: str = "", campaign: str = "") -> dict:
     """Genereer één gepersonaliseerde outreachmail (subject+body) voor een lead via GPT-5.2.
+    Optioneel gestuurd door `keywords` (3-5 kernwoorden) en een `campaign`/doel.
     Slaat het resultaat op als `custom_email`. Raises bij fout."""
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     lang = lead.get("language", "nl")
@@ -521,14 +522,22 @@ async def _generate_ai_for_lead(lead: dict, api_key: str) -> dict:
         "die uitnodigen tot samenwerking. Kort, oprecht, geen overdreven verkooppraat, geen valse claims. "
         "Spreek de persoon aan met de voornaam. Schrijf VOLLEDIG in de gevraagde taal (ook onderwerp)."
     )
+    steer = ""
+    if campaign:
+        steer += f"\nCAMPAGNE/DOEL (verwerk dit als kern van de mail): {campaign}"
+    if keywords:
+        steer += (f"\nVERPLICHTE TREFWOORDEN (verwerk deze 3-5 kernwoorden natuurlijk en dwingend in de tekst, "
+                  f"geen opsomming): {keywords}")
     prompt = (
         f"Schrijf een korte, persoonlijke outreachmail VOLLEDIG in {lang_name}.\n"
         f"Naam ontvanger: {lead.get('naam')}\n"
         f"Type contact: {lead.get('type')}\n"
-        f"Context/details over deze persoon: {lead.get('details')}\n\n"
+        f"Context/details over deze persoon: {lead.get('details')}"
+        f"{steer}\n\n"
         f"Verwerk de context subtiel zodat het persoonlijk voelt. Doel: kennismaken en samenwerken "
-        f"(slaapcoach=aanbevelen bij klanten + sample/affiliate; influencer=knuffel cadeau voor post; "
-        f"winkel=inkoop/wederverkoop). Gebruik {{{{Naam}}}} NIET — schrijf de echte naam uit.\n"
+        f"(slaapcoach=aanbevelen bij klanten + sample/affiliate; influencer=knuffel cadeau voor post + "
+        f"deelname aan een challenge; winkel=inkoop/wederverkoop). Als er een campagne/doel is opgegeven, "
+        f"maak daar de duidelijke call-to-action van. Gebruik {{{{Naam}}}} NIET — schrijf de echte naam uit.\n"
         f"Antwoord exact in dit formaat op aparte regels:\n"
         f"ONDERWERP: <pakkend onderwerp in {lang_name}>\n"
         f"BODY: <de mailtekst in {lang_name}, eindig met '{signoff}'>"
@@ -546,16 +555,22 @@ async def _generate_ai_for_lead(lead: dict, api_key: str) -> dict:
     return {"subject": subject, "body": body}
 
 
+class AiDraftOptions(BaseModel):
+    keywords: Optional[str] = ""
+    campaign: Optional[str] = ""
+
+
 @router.post("/leads/{lead_id}/ai-draft")
-async def ai_draft(lead_id: str, _admin=Depends(_require_admin)):
+async def ai_draft(lead_id: str, options: Optional[AiDraftOptions] = None, _admin=Depends(_require_admin)):
     lead = await _db.outreach_leads.find_one({"id": lead_id})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead niet gevonden")
     api_key = os.environ.get("EMERGENT_LLM_KEY")
     if not api_key:
         raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
+    opts = options or AiDraftOptions()
     try:
-        return await _generate_ai_for_lead(lead, api_key)
+        return await _generate_ai_for_lead(lead, api_key, keywords=opts.keywords or "", campaign=opts.campaign or "")
     except Exception as exc:
         logger.exception("AI outreach draft faalde")
         raise HTTPException(status_code=502, detail=f"AI-generatie mislukt: {exc}")
