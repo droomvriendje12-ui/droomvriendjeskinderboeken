@@ -11,6 +11,11 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 1 juni 2026 (nacht, vervolg): Bulk feed-optimalisatie + GTM-container
+- **"AI-optimaliseer alle"-knop** in de Shopping Feed Builder (`ShoppingFeedBuilderPage.jsx`): optimaliseert in 1 klik alle producten met Shopping SEO < 85% via client-side sequentiële loop op `POST /api/shopping-feed/optimize`, met **live voortgangsmodal** (done/total, huidig product, voortgangsbalk, gelukt/mislukt) — zelfde patroon als bulk-personalisatie in Leads Bestorming. Knop toont live de teller van te-optimaliseren producten. Daarna auto-refresh van de audit-scores.
+- **Google Tag Manager vervangen**: oude container `GTM-W9PZRP4B` volledig vervangen door **`GTM-N7SVX5T4`** in `public/index.html` (head-script + noscript-fallback). Eén actieve container → geen dubbel afvuren van tags/conversies. Geverifieerd in geserveerde HTML na frontend-restart.
+
+
 ## CHANGELOG — 1 juni 2026 (nacht): SEO/GEO afronding + AI Search Ads + AI Shopping Feed Builder (getest 100%)
 **Fase 1 — SEO/GEO/AI Search productie-klaar:**
 - `ProductPage.jsx`: nieuwe useEffect zet `document.title`, meta-description, **canonical**, **Open Graph** (og:type=product, title, description, url, image, product:price), **Twitter/X** (summary_large_image). JSON-LD bevat al Product + FAQPage + BreadcrumbList + Review.
