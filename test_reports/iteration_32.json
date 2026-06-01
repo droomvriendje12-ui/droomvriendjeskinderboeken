@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 32: volledige end-to-end validatie van 3 nieuwe features. Backend: 8/8 pytest passes (AI-draft non-empty + 404 + auth-required, compose+reply met attachments waarbij base64 NIET wordt gepersisteerd, attachment >25MB -> 413, b2b/research-signup publiek + zichtbaar in /api/outreach/leads + ongeldige email -> 400). Frontend /b2b: 10 productkaarten + specs + staffel + partnercode hoofdletterongevoelig (zoeteslapers ontgrendelt 34,95/28,50/24,00 + Ontgrendeld-badge) + onderzoeksformulier toont research-success na verzending. Admin Inbox: Compose-modal toont attachment-dropzone, Reply-modal toont attachment-dropzone + ai-draft-btn; klik op ai-draft-btn populeert reply-textarea met 1006-char Nederlands concept binnen ~6s (human-in-the-loop, niets verzonden). Alle testdata (inbox messages, sent test, leads) opgeruimd.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Admin Inbox search filtering", "issue": "inbox-search-input lijkt server-side filtering niet (volledig) toe te passen: zoeken op een unieke subject 'TEST_iter32UIv2_770c2406' gaf nog steeds 17 message rows i.p.v. alleen de match. Niet blokkerend voor de geteste AI-draft-flow, maar verdient aandacht (mogelijk debounce/query niet doorgegeven aan /api/inbox?q=).", "affected_selectors": ["[data-testid=inbox-search-input]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration32_new_features.py",
+    "/app/test_reports/pytest/iteration32_results.xml"
+  ],
+  "action_items": [
+    "Optioneel: controleer of InboxSearch daadwerkelijk de q-param doorzet naar /api/inbox?q=... en debouncet; nu lijkt het filter geen effect te hebben op het renderresultaat."
+  ],
+  "critical_code_review_comments": [
+    "Goed: attachments worden zonder base64 content opgeslagen (privacy/size).",
+    "Goed: AI-draft endpoint is admin-protected (401/403 zonder auth) en geeft 404 op onbekende message_id.",
+    "Goed: B2B research-signup is publiek (geen auth) maar landt netjes in outreach_leads met source='B2B Onderzoek' en type='slaapcoach'.",
+    "Goed: 25MB attachment-limiet -> 413 (correcte status code).",
+    "Suggestie: inbox-search UI debounce + duidelijk filter state aan gebruiker tonen (count rows / no results)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration32_new_features.py"],
+  "success_rate": {"backend": "100%", "frontend": "100% voor gevraagde flows; 1 niet-blokkerende observation rond inbox search"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login (response.token).",
+  "seed_data_creation": "Tijdelijk per test: 1 inbox-message via dev/ingest-raw, 1 sent-bericht via compose, 1 sent-bericht via reply, 1 lead via b2b/research-signup. ALLES daarna verwijderd (hard=true voor inbox, DELETE /api/outreach/leads/{id} voor leads). Final sweep bevestigde geen TEST_-residuen.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file /app/backend/tests/test_iteration32_new_features.py is herbruikbaar als regressie (vereist alleen REACT_APP_BACKEND_URL env). Inbox search UI niet diepgaand getest - alleen opgemerkt dat filter geen rij-reductie geeft; de AI-draft-flow zelf werkt prima zonder filter omdat de eerste rij ook gewoon een echte mail was."
+}

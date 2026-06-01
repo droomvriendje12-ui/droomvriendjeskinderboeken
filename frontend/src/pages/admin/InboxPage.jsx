@@ -4,7 +4,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
   Inbox, Send, FileText, Trash2, AlertOctagon, Tag, Search, RefreshCw,
   Star, StarOff, Reply, X, Plus, ArrowLeft, Mail, MailOpen, Loader2, ChevronLeft,
-  Settings, Pencil, Check
+  Settings, Pencil, Check, Paperclip, UploadCloud, Sparkles
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -58,6 +58,97 @@ const QuickTemplates = ({ firstName, templates, onPick, onManage }) => {
           </button>
         ))}
       </div>
+    </div>
+  );
+};
+
+
+const fmtSize = (bytes) => {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
+const MAX_TOTAL_BYTES = 15 * 1024 * 1024; // 15 MB total
+
+// Reads a File to pure base64 (strips the data: prefix)
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const AttachmentPicker = ({ attachments, setAttachments, onError }) => {
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = React.useRef(null);
+
+  const addFiles = useCallback(async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    let total = attachments.reduce((s, a) => s + (a.size || 0), 0);
+    const next = [];
+    for (const f of files) {
+      total += f.size;
+      if (total > MAX_TOTAL_BYTES) {
+        onError?.('Bijlagen samen te groot (max 15 MB).');
+        break;
+      }
+      try {
+        const content = await fileToBase64(f);
+        next.push({ filename: f.name, content, content_type: f.type || 'application/octet-stream', size: f.size });
+      } catch {
+        onError?.(`Kon "${f.name}" niet lezen.`);
+      }
+    }
+    if (next.length) setAttachments((prev) => [...prev, ...next]);
+  }, [attachments, setAttachments, onError]);
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    addFiles(e.dataTransfer.files);
+  };
+
+  return (
+    <div className="mt-3" data-testid="attachment-picker">
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`flex items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-3 text-xs cursor-pointer transition ${
+          dragOver ? 'border-emerald-400 bg-emerald-500/10 text-emerald-200' : 'border-white/15 text-slate-400 hover:border-white/30 hover:text-slate-300'
+        }`}
+        data-testid="attachment-dropzone"
+      >
+        <UploadCloud className="w-4 h-4" />
+        Sleep bestanden hierheen of <span className="text-emerald-300 underline">klik om te uploaden</span>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+        data-testid="attachment-input"
+      />
+      {attachments.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {attachments.map((a, i) => (
+            <span key={i} className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-200" data-testid={`attachment-chip-${i}`}>
+              <Paperclip className="w-3 h-3 text-emerald-300" />
+              <span className="max-w-[160px] truncate">{a.filename}</span>
+              <span className="text-slate-500">{fmtSize(a.size)}</span>
+              <button type="button" onClick={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-300" data-testid={`attachment-remove-${i}`}>
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -485,8 +576,27 @@ const MessageDetail = ({ message, onPatch, onDelete, onReply, folder }) => {
 
 const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
   const [body, setBody] = useState('');
+  const [attachments, setAttachments] = useState([]);
   const [sending, setSending] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [err, setErr] = useState('');
+
+  const aiDraft = async () => {
+    setAiLoading(true);
+    setErr('');
+    try {
+      const r = await fetch(`${API}/api/inbox/${original.id}/ai-draft`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'AI-concept mislukt');
+      setBody(d.draft); // human-in-the-loop: vul de editor, nooit automatisch verzenden
+    } catch (e) {
+      setErr(e.message || 'AI-concept mislukt');
+    }
+    setAiLoading(false);
+  };
 
   const send = async () => {
     setSending(true);
@@ -495,7 +605,7 @@ const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
       const r = await fetch(`${API}/api/inbox/${original.id}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ body_html: body.replace(/\n/g, '<br/>') }),
+        body: JSON.stringify({ body_html: body.replace(/\n/g, '<br/>'), attachments }),
       });
       if (!r.ok) {
         const raw = await r.text();
@@ -516,6 +626,20 @@ const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
       <div className="text-xs text-slate-400 mb-2">
         Onderwerp: <span className="text-slate-200">Re: {original.subject}</span>
       </div>
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-slate-500">Smart Assist</span>
+        <button
+          type="button"
+          onClick={aiDraft}
+          disabled={aiLoading}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fuchsia-500/15 border border-fuchsia-400/40 text-fuchsia-200 text-xs font-medium hover:bg-fuchsia-500/25 disabled:opacity-50 transition-colors"
+          data-testid="ai-draft-btn"
+          title="Laat AI een concept-antwoord schrijven (je controleert het zelf voor verzenden)"
+        >
+          {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          {aiLoading ? 'AI schrijft…' : 'AI-concept antwoord'}
+        </button>
+      </div>
       <QuickTemplates
         firstName={(original.from_name || '').trim().split(' ')[0]}
         templates={templates}
@@ -529,6 +653,7 @@ const ReplyModal = ({ original, templates, onManage, onClose, onSent }) => {
         className="w-full h-64 bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-400 text-white"
         data-testid="reply-textarea"
       />
+      <AttachmentPicker attachments={attachments} setAttachments={setAttachments} onError={setErr} />
       {err && <div className="text-red-400 text-xs mt-2">{err}</div>}
       <div className="flex justify-end gap-2 mt-4">
         <button onClick={onClose} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">Annuleer</button>
@@ -549,6 +674,7 @@ const ComposeModal = ({ templates, onManage, onClose, onSent }) => {
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [attachments, setAttachments] = useState([]);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState('');
 
@@ -564,6 +690,7 @@ const ComposeModal = ({ templates, onManage, onClose, onSent }) => {
           to: recipients,
           subject,
           body_html: body.replace(/\n/g, '<br/>'),
+          attachments,
         }),
       });
       if (!r.ok) {
@@ -609,6 +736,7 @@ const ComposeModal = ({ templates, onManage, onClose, onSent }) => {
         className="w-full h-56 bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-emerald-400 text-white"
         data-testid="compose-body"
       />
+      <AttachmentPicker attachments={attachments} setAttachments={setAttachments} onError={setErr} />
       {err && <div className="text-red-400 text-xs mt-2">{err}</div>}
       <div className="flex justify-end gap-2 mt-4">
         <button onClick={onClose} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">Annuleer</button>

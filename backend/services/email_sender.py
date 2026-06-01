@@ -53,6 +53,7 @@ def send_email(
     message_id: Optional[str] = None,
     cc: Optional[List[str]] = None,
     bcc: Optional[List[str]] = None,
+    attachments: Optional[List[dict]] = None,
 ) -> dict:
     """Synchronous email send via Resend SDK."""
     if not RESEND_API_KEY:
@@ -100,6 +101,9 @@ def send_email(
         params["cc"] = cc
     if bcc:
         params["bcc"] = bcc
+    if attachments:
+        # Resend expects [{"filename": str, "content": <base64 str>}]
+        params["attachments"] = attachments
 
     try:
         result = resend.Emails.send(params)

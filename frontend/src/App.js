@@ -27,6 +27,7 @@ import BlogWitteRuisPage from "./pages/BlogWitteRuisPage";
 import BlogAvondroutinePage from "./pages/BlogAvondroutinePage";
 import CadeaubonPage from "./pages/CadeaubonPage";
 import LandingProPage from "./pages/LandingProPage";
+import B2BPage from "./pages/B2BPage";
 import QuizPage from "./pages/QuizPage";
 import StressPage from "./pages/StressPage";
 import OverprikkelingPage from "./pages/OverprikkelingPage";
@@ -127,6 +128,7 @@ function App() {
               <Route path="/blog/avondroutine-kind-7-stappen" element={<BlogAvondroutinePage />} />
               <Route path="/cadeaubon" element={<CadeaubonPage />} />
               <Route path="/pro" element={<LandingProPage />} />
+              <Route path="/b2b" element={<B2BPage />} />
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/stress" element={<StressPage />} />
               <Route path="/overprikkeling" element={<OverprikkelingPage />} />

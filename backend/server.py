@@ -179,6 +179,7 @@ from routes import csv_import as csv_import_route
 from routes import inbox as inbox_route
 from routes import reply_templates as reply_templates_route
 from routes import outreach as outreach_route
+from routes import b2b as b2b_route
 from routes import admin_customers as admin_customers_route
 from routes import faq_tracking as faq_tracking_route
 from routes import blogs as blogs_route
@@ -262,6 +263,10 @@ api_router.include_router(reply_templates_route.router)
 outreach_route.set_database(db)
 outreach_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(outreach_route.router)
+
+# B2B / partner research signup (public form → Leads Bestorming)
+b2b_route.set_database(db)
+api_router.include_router(b2b_route.router)
 
 # Admin customers (aggregated from orders)
 admin_customers_route.set_supabase_client(supabase_client)

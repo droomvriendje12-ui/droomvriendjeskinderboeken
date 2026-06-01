@@ -35,6 +35,47 @@ SMTP_FROM = os.environ.get("SMTP_FROM", "info@droomvriendjes.com")
 
 FOLDERS = ["inbox", "sent", "drafts", "trash", "spam"]
 
+# Knowledge base fed to the AI when drafting inbox replies (from the B2B brochure).
+# The AI must use ONLY these facts and never invent specifications.
+INBOX_AI_KB = """
+=== KENNISBANK DROOMVRIENDJES (gebruik uitsluitend deze feiten) ===
+Over: Droomvriendjes maakt slimme slaaphulpen (knuffels met nachtlampje, projector en geluid) voor kinderen van 0 tot 6 jaar.
+
+PRODUCTEN & PRIJZEN (consumentenprijs):
+- Slimme Leeuw — € 49,95 (met AI-huilsensor & projector)
+- Slaperig Schaapje — € 54,95 (projector & 60 melodieën)
+- Slaperige Panda — € 54,95 (projector & 60 melodieën)
+- Stoere Dinosaurus — € 54,95 (projector & 60 melodieën)
+- Magische Eenhoorn — € 54,95 (projector & 60 melodieën)
+- Bruine Beertje — € 49,95 (sterrenprojector & slaapgeluiden)
+- Liggend Schaapje — € 49,95 (sterrenprojectie & slaapmelodieën)
+- Pinguïn Droomvriendje — € 49,95 (sterrenprojector & witte ruis)
+- Grijze Teddybeer — € 49,95 (premium nachtlampje met projector & melodieën)
+- Duo Set: Liggend Schaapje & Witte Beer — € 89,95 (met projector)
+
+TECHNISCHE SPECIFICATIES (gelden voor de Droomvriendjes-lijn):
+- Afmetingen: 22 × 18 × 14 cm; gewicht 340 gram
+- Accu: ingebouwde Li-ion 2200 mAh; gebruiksduur 8–12 uur per lading
+- Opladen: ca. 2 uur via USB-C
+- Bluetooth 5.0; app iOS 14+ / Android 10+
+- Licht: LED, 5–120 lux traploos dimbaar, kleurtemperatuur 2700K–6500K instelbaar
+- Geluid: 30–65 dB instelbaar; opties witte ruis, roze ruis, oceaan, hartslag, melodie
+- Timers: 15 min / 30 min / 1 uur / nachtlamp-modus
+- Materiaal hoes: 100% biologisch katoen, uitwasbaar op 30 °C; BPA-vrij
+- Certificeringen: CE, EN 71, RoHS, REACH
+- Garantie: 2 jaar fabrieksgarantie op elektronische componenten
+- Geschikt vanaf de geboorte t/m 6 jaar
+
+LEVERING & RETOUR:
+- Levertijd Nederland: 3–5 werkdagen; België/Duitsland: 5–7 werkdagen
+- Retourneren binnen 30 dagen na ontvangst (ongebruikt, originele verpakking)
+- Bij productiefout: gratis omruil of terugbetaling
+
+ZAKELIJK (B2B): partners kunnen terecht via partners@droomvriendjes.com voor staffelkortingen en samenwerking.
+Klantenservice: info@droomvriendjes.com
+=== EINDE KENNISBANK ===
+"""
+
 _security = HTTPBearer(auto_error=False)
 
 
@@ -184,12 +225,20 @@ class PatchMessage(BaseModel):
     remove_label: Optional[str] = None
 
 
+class Attachment(BaseModel):
+    filename: str
+    content: str            # base64-encoded file content (no data: prefix)
+    content_type: Optional[str] = None
+    size: Optional[int] = None  # raw bytes (optional, for display/limits)
+
+
 class ReplyPayload(BaseModel):
     body_html: str
     body_text: Optional[str] = None
     subject: Optional[str] = None
     to: Optional[List[str]] = None
     cc: Optional[List[str]] = None
+    attachments: Optional[List[Attachment]] = None
 
 
 class ComposePayload(BaseModel):
@@ -199,6 +248,7 @@ class ComposePayload(BaseModel):
     subject: str
     body_html: str
     body_text: Optional[str] = None
+    attachments: Optional[List[Attachment]] = None
 
 
 # =========== Helpers ===========
@@ -216,18 +266,22 @@ def _doc_to_dict(doc) -> dict:
 
 def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: str,
                cc_emails: List[str] = None, bcc_emails: List[str] = None,
-               in_reply_to: str = None, references: str = None) -> dict:
+               in_reply_to: str = None, references: str = None,
+               attachments: List[dict] = None) -> dict:
     """Send via Resend (function name kept for backwards compat).
 
-    A branded Droomvriendjes signature is appended to every inbox reply/compose.
+    A branded Droomvriendjes signature is appended to every inbox reply/compose,
+    then the body is wrapped in a mobile-first, high-contrast e-mail shell.
     Transactional order mails use their own templates and are unaffected.
     """
     from services.email_sender import send_email as resend_send
     from services.email_signature import append_signature
+    from services.email_wrapper import wrap_email
 
     signed_html, signed_text = append_signature(
         body_html, body_text or _strip_html(body_html)
     )
+    signed_html = wrap_email(signed_html)
 
     result = resend_send(
         to_email=to_emails,
@@ -238,10 +292,36 @@ def _send_smtp(to_emails: List[str], subject: str, body_html: str, body_text: st
         bcc=bcc_emails,
         in_reply_to=in_reply_to,
         references=references,
+        attachments=attachments or None,
     )
     if not result["success"]:
         raise HTTPException(status_code=502, detail=f"E-mail verzenden mislukt: {result.get('error', 'onbekende fout')}")
     return {"message_id": result.get("message_id") or result.get("id") or ""}
+
+
+# Max total attachment size (base64-inflated payload stays well under proxy limits)
+MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024  # 15 MB total raw
+
+
+def _prepare_attachments(items: Optional[List["Attachment"]]):
+    """Validate + split into (resend_payload, stored_metadata)."""
+    if not items:
+        return None, []
+    resend_payload = []
+    metadata = []
+    total = 0
+    for a in items:
+        raw_len = a.size or int(len(a.content) * 3 / 4)
+        total += raw_len
+        if total > MAX_ATTACHMENT_BYTES:
+            raise HTTPException(status_code=413, detail="Bijlagen samen te groot (max 15 MB).")
+        resend_payload.append({"filename": a.filename, "content": a.content})
+        metadata.append({
+            "filename": a.filename,
+            "content_type": a.content_type or "application/octet-stream",
+            "size": raw_len,
+        })
+    return resend_payload, metadata
 
 
 # =========== Webhook ===========
@@ -468,6 +548,7 @@ async def reply_message(message_id: str, payload: ReplyPayload, admin=Depends(_r
     references_field = original.get("references") or ""
     refs = (references_field + " " + in_reply_to).strip() if in_reply_to else references_field
 
+    resend_atts, att_meta = _prepare_attachments(payload.attachments)
     sent = _send_smtp(
         to_emails=to_emails,
         subject=subject,
@@ -476,6 +557,7 @@ async def reply_message(message_id: str, payload: ReplyPayload, admin=Depends(_r
         cc_emails=payload.cc,
         in_reply_to=in_reply_to,
         references=refs,
+        attachments=resend_atts,
     )
 
     now = datetime.now(timezone.utc)
@@ -490,7 +572,7 @@ async def reply_message(message_id: str, payload: ReplyPayload, admin=Depends(_r
         "body_html": payload.body_html,
         "body_text": payload.body_text or _strip_html(payload.body_html),
         "snippet": _strip_html(payload.body_html)[:200],
-        "attachments": [],
+        "attachments": att_meta,
         "received_at": now,
         "sent_at": now,
         "folder": "sent",
@@ -513,6 +595,7 @@ async def compose_message(payload: ComposePayload, admin=Depends(_require_admin)
     if not payload.to:
         raise HTTPException(status_code=400, detail="No recipient")
 
+    resend_atts, att_meta = _prepare_attachments(payload.attachments)
     sent = _send_smtp(
         to_emails=payload.to,
         subject=payload.subject,
@@ -520,6 +603,7 @@ async def compose_message(payload: ComposePayload, admin=Depends(_require_admin)
         body_text=payload.body_text or _strip_html(payload.body_html),
         cc_emails=payload.cc,
         bcc_emails=payload.bcc,
+        attachments=resend_atts,
     )
 
     now = datetime.now(timezone.utc)
@@ -534,7 +618,7 @@ async def compose_message(payload: ComposePayload, admin=Depends(_require_admin)
         "body_html": payload.body_html,
         "body_text": payload.body_text or _strip_html(payload.body_html),
         "snippet": _strip_html(payload.body_html)[:200],
-        "attachments": [],
+        "attachments": att_meta,
         "received_at": now,
         "sent_at": now,
         "folder": "sent",
@@ -548,7 +632,64 @@ async def compose_message(payload: ComposePayload, admin=Depends(_require_admin)
     return _doc_to_dict(doc)
 
 
-# =========== Dev helper: ingest raw email (admin only, no token) ===========
+# =========== AI Smart Assist (human-in-the-loop draft) ===========
+
+@router.post("/{message_id}/ai-draft")
+async def ai_draft_reply(message_id: str, admin=Depends(_require_admin)):
+    """Generate a CONCEPT reply using GPT-5.2 + the brochure knowledge base.
+
+    The draft is returned to the editor only — it is NEVER sent automatically.
+    A human reviews, edits and clicks send.
+    """
+    if _db is None:
+        raise HTTPException(status_code=500, detail="DB unavailable")
+    msg = await _db.inbox_messages.find_one({"id": message_id})
+    if not msg:
+        raise HTTPException(status_code=404, detail="Bericht niet gevonden")
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="AI niet geconfigureerd (EMERGENT_LLM_KEY ontbreekt)")
+
+    customer_name = (msg.get("from_name") or "").strip()
+    first_name = customer_name.split(" ")[0] if customer_name else ""
+    subject = msg.get("subject") or ""
+    incoming = (msg.get("body_text") or _strip_html(msg.get("body_html") or ""))[:3500]
+
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        system_message = (
+            "Je bent een warme, behulpzame en professionele klantenservice-medewerker van Droomvriendjes. "
+            "Schrijf een concept-antwoord op de klantmail. Regels: "
+            "(1) Antwoord in de taal van de klant (standaard Nederlands). "
+            "(2) Gebruik UITSLUITEND de feiten uit de kennisbank; verzin nooit prijzen of specificaties. "
+            "Weet je iets niet zeker, beloof dan het uit te zoeken in plaats van te gokken. "
+            "(3) Spreek de klant aan met de voornaam indien bekend. "
+            "(4) Wees concreet, vriendelijk en to-the-point. "
+            "(5) Voeg GEEN handtekening of afsluiting met bedrijfsnaam toe — die wordt automatisch toegevoegd. "
+            "Eindig met een korte, vriendelijke afsluitzin (bijv. 'Hartelijke groet')."
+            + INBOX_AI_KB
+        )
+        prompt = (
+            f"Onderwerp van de klantmail: {subject}\n"
+            f"Naam klant: {customer_name or 'onbekend'} (voornaam: {first_name or '-'})\n\n"
+            f"Bericht van de klant:\n\"\"\"\n{incoming}\n\"\"\"\n\n"
+            "Schrijf nu een passend, behulpzaam concept-antwoord."
+        )
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"inbox-{message_id}",
+            system_message=system_message,
+        ).with_model("openai", "gpt-5.2")
+        resp = await chat.send_message(UserMessage(text=prompt))
+        draft = (resp or "").strip()
+        if not draft:
+            raise HTTPException(status_code=502, detail="AI gaf een leeg antwoord terug")
+        return {"draft": draft}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("AI inbox draft faalde")
+        raise HTTPException(status_code=502, detail=f"AI-concept mislukt: {exc}")
 
 @router.post("/dev/ingest-raw")
 async def dev_ingest_raw(raw: str = Body(..., embed=True), admin=Depends(_require_admin)):
