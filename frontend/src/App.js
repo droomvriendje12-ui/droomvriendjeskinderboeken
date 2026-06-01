@@ -15,15 +15,12 @@ import RetournerenPage from "./pages/RetournerenPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import VoorwaardenPage from "./pages/VoorwaardenPage";
 import BlogsPage from "./pages/BlogsPage";
-import BlogMondriaanPage from "./pages/BlogMondriaanPage";
 import BlogSlaaptipsPage from "./pages/BlogSlaaptipsPage";
 import BlogStressKnuffelsPage from "./pages/BlogStressKnuffelsPage";
 import BlogWaaromHuiltBabyPage from "./pages/BlogWaaromHuiltBabyPage";
 import BlogVerschilVerzwaringsknuffelNachtlampjePage from "./pages/BlogVerschilVerzwaringsknuffelNachtlampjePage";
 import BlogBesteSlaapknuffel2026Page from "./pages/BlogBesteSlaapknuffel2026Page";
-import BlogBabyKnuffelVeiligPage from "./pages/BlogBabyKnuffelVeiligPage";
 import BlogSlaapregressiePage from "./pages/BlogSlaapregressiePage";
-import BlogWitteRuisPage from "./pages/BlogWitteRuisPage";
 import BlogAvondroutinePage from "./pages/BlogAvondroutinePage";
 import CmsBlogPostPage from "./pages/CmsBlogPostPage";
 import CadeaubonPage from "./pages/CadeaubonPage";
@@ -120,15 +117,12 @@ function App() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/voorwaarden" element={<VoorwaardenPage />} />
               <Route path="/blogs" element={<BlogsPage />} />
-              <Route path="/blog/droomvriendjes-mondriaan-samenwerking" element={<BlogMondriaanPage />} />
               <Route path="/blog/5-tips-betere-nachtrust-kinderen" element={<BlogSlaaptipsPage />} />
               <Route path="/blog/hoe-helpen-kalmerende-knuffels-bij-stress" element={<BlogStressKnuffelsPage />} />
               <Route path="/blog/waarom-huilt-baby-s-nachts" element={<BlogWaaromHuiltBabyPage />} />
               <Route path="/blog/verschil-verzwaringsknuffel-nachtlampje" element={<BlogVerschilVerzwaringsknuffelNachtlampjePage />} />
               <Route path="/blog/beste-slaapknuffel-2026" element={<BlogBesteSlaapknuffel2026Page />} />
-              <Route path="/blog/baby-knuffel-veilig-slapen-leeftijd" element={<BlogBabyKnuffelVeiligPage />} />
               <Route path="/blog/slaapregressie-bij-kinderen" element={<BlogSlaapregressiePage />} />
-              <Route path="/blog/witte-ruis-white-noise-baby" element={<BlogWitteRuisPage />} />
               <Route path="/blog/avondroutine-kind-7-stappen" element={<BlogAvondroutinePage />} />
               <Route path="/blog/:slug" element={<CmsBlogPostPage />} />
               <Route path="/cadeaubon" element={<CadeaubonPage />} />

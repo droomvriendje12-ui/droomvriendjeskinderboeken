@@ -1,5 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { trackViewItemList, trackViewPromotion, trackSelectPromotion } from '../utils/analytics';
+
+const PRO_PROMO = { promotion_id: 'printables_pro', promotion_name: 'Droomvriendjes Printables', creative_name: 'pro_landing', creative_slot: 'pro_hero' };
 import { Helmet } from 'react-helmet-async';
 import {
   Download, Printer, Shield, Heart, Sparkles, Moon, Star,
@@ -120,6 +123,7 @@ const SectionLabel = ({ children }) => (
 
 const LandingProPage = () => {
   const [products, setProducts] = useState(PRODUCT_FALLBACK);
+  const promoFired = useRef(false);
 
   useEffect(() => {
     // Fetch live digital products so prijzen up-to-date zijn
@@ -153,6 +157,15 @@ const LandingProPage = () => {
   );
   const bundlePrice = +(totalLoose * 0.5).toFixed(2); // 50% off
   const bundleSave = +(totalLoose - bundlePrice).toFixed(2);
+
+  // GA4: fire view_item_list + view_promotion once when the printables are shown
+  useEffect(() => {
+    if (promoFired.current || !products.length) return;
+    promoFired.current = true;
+    const items = products.map((p, i) => ({ id: p.id, name: p.name, price: p.price, item_category: p.category || 'Printables & Downloads', _index: i }));
+    trackViewItemList(items, 'printables', 'Droomvriendjes Printables');
+    trackViewPromotion(PRO_PROMO, items);
+  }, [products]);
 
   return (
     <>
@@ -199,6 +212,7 @@ const LandingProPage = () => {
               href="#producten"
               className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all hover:translate-y-[-2px]"
               data-testid="pro-cta-products"
+              onClick={() => trackSelectPromotion(PRO_PROMO)}
             >
               Bekijk alle producten <ArrowRight className="w-4 h-4" />
             </a>
@@ -294,12 +308,13 @@ const LandingProPage = () => {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((p) => (
+            {products.map((p, idx) => (
               <Link
                 key={p.id}
                 to={`/product/${p.id}`}
                 className="group bg-white rounded-3xl p-6 border border-amber-100/80 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col"
                 data-testid={`pro-product-${p.id}`}
+                onClick={() => trackSelectPromotion(PRO_PROMO, { id: p.id, name: p.name, price: p.price, item_category: p.category, _index: idx })}
               >
                 <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center mb-5 border border-amber-100 group-hover:scale-[1.02] transition-transform">
                   <FileText className="w-14 h-14 text-amber-400" strokeWidth={1.4} />

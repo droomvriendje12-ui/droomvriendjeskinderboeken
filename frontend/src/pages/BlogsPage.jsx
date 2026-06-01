@@ -123,10 +123,6 @@ const BlogsPage = () => {
     }
   ];
 
-  // Separate featured blog; show 9 cards total (1 featured + 8 in grid)
-  const featuredBlog = blogs.find(b => b.featured);
-  const hardcodedRegular = blogs.filter(b => !b.featured).slice(0, 8);
-
   // Merge in admin-managed CMS posts (published) so they appear automatically
   const [cmsCards, setCmsCards] = useState([]);
   useEffect(() => {
@@ -152,7 +148,11 @@ const BlogsPage = () => {
     return () => { active = false; };
   }, []);
 
-  const regularBlogs = [...cmsCards, ...hardcodedRegular];
+  // Merge CMS posts; dedupe so migrated premium blogs don't appear twice
+  const cmsSlugs = new Set(cmsCards.map((c) => c.slug));
+  const featuredBlog = blogs.find(b => b.featured && !cmsSlugs.has(b.slug)) || blogs.find(b => b.featured);
+  const hardcodedRegular = blogs.filter(b => !b.featured && !cmsSlugs.has(b.slug)).slice(0, 8);
+  const regularBlogs = [...cmsCards.filter((c) => c.slug !== featuredBlog?.slug), ...hardcodedRegular];
 
   // Get blog link - use slug if available, otherwise use id
   const getBlogLink = (blog) => {

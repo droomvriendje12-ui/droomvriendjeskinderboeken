@@ -1,6 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { trackViewPromotion, trackSelectPromotion, trackViewItemList } from '../utils/analytics';
+
+const QUIZ_PROMO = { promotion_id: 'droomvriendje_quiz', promotion_name: 'Droomvriendje Quiz', creative_name: 'quiz_landing', creative_slot: 'quiz_intro' };
 import {
   Sparkles, Moon, Star, Heart, Baby, Shield, Cloud, Zap, Volume2, Sun,
   ArrowRight, ArrowLeft, Check, Copy, Gift, RefreshCw, ShoppingCart, Smile, Cpu,
@@ -135,6 +138,15 @@ const QuizPage = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [fetchedProduct, setFetchedProduct] = useState(null);
+  const quizViewFired = useRef(false);
+  const resultListFired = useRef(false);
+
+  // GA4: view_promotion when the quiz intro is shown
+  useEffect(() => {
+    if (quizViewFired.current) return;
+    quizViewFired.current = true;
+    trackViewPromotion(QUIZ_PROMO);
+  }, []);
 
   // Compute the winning product id from the answers
   const resultId = useMemo(() => {
@@ -164,6 +176,18 @@ const QuizPage = () => {
       fetchProductById(resultId).then((p) => p && setFetchedProduct(p));
     }
   }, [phase, resultId, getProductById, fetchProductById]);
+
+  // GA4: view_item_list with the recommended product when the result is shown
+  useEffect(() => {
+    if (phase === 'result' && product && !resultListFired.current) {
+      resultListFired.current = true;
+      trackViewItemList(
+        [{ id: product.id, name: product.name, price: product.price, item_category: product.category }],
+        'quiz_result',
+        'Quiz Aanbeveling',
+      );
+    }
+  }, [phase, product]);
 
   const shareUrl = useMemo(
     () => (typeof window !== 'undefined' ? `${window.location.origin}/quiz` : 'https://droomvriendjes.com/quiz'),
@@ -296,7 +320,7 @@ const QuizPage = () => {
               </div>
 
               <button
-                onClick={() => setPhase('quiz')}
+                onClick={() => { trackSelectPromotion(QUIZ_PROMO); setPhase('quiz'); }}
                 data-testid="quiz-start-button"
                 className="group inline-flex items-center gap-2.5 bg-warm-brown-500 hover:bg-warm-brown-600 text-white font-bold text-lg px-10 py-4 rounded-full shadow-lg hover:shadow-xl transition-all"
               >

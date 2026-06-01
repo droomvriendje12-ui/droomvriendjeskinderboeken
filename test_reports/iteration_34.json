@@ -1,0 +1,57 @@
+{
+  "summary": "Iteration 34: Full regression of Blog CMS completion + GA4 ecommerce events. Backend 17/17 PASS (public CMS posts, admin posts, sitemap, premium routes, migrated routes). Frontend admin CMS, public /blogs dedupe, /pro and /quiz GA4 dataLayer events all PASS. One content-level oddity flagged (mondriaan slug vs content mismatch).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration34_blog_cms.py",
+    "/app/test_reports/pytest/iteration34_results.xml"
+  ],
+  "verified_features": {
+    "admin_blog_cms": {
+      "stats": "Totaal=10, Gepubliceerd=10, Concept=0, Premium(code)=7 (matches spec)",
+      "table_rows": "10 rows total; 7 after premium chip; 10 after published chip",
+      "search": "Filtering 'witte-ruis' -> 1 row, correct slug present",
+      "status_filter_dropdown": "all/draft works; draft shows empty placeholder",
+      "sort_toggle": "'Datum (nieuwste)' <-> 'Datum (oudste)' confirmed",
+      "premium_rows": "No edit/delete buttons (read-only as designed); Live button works",
+      "db_rows": "Edit/Delete/Live buttons all present; editor opens with prefilled title for witte-ruis"
+    },
+    "public_blogs_page": "10 unique blog links, NO duplicates. All 3 migrated + 7 premium slugs present.",
+    "migrated_blog_render": "/blog/droomvriendjes-mondriaan-samenwerking renders with TOC, FAQ (5 items per API), related products (3 per API), no console/page errors",
+    "premium_route_regression": "All 7 premium routes return HTTP 200 with HTML (verified via pytest with browser UA). 5-tips page renders with Printables/pricing block intact.",
+    "ga4_pro": "view_item_list (item_list_name='Droomvriendjes Printables', 8 items), view_promotion (promotion_id=printables_pro, promotion_name='Droomvriendjes Printables', creative_name=pro_landing, creative_slot=pro_hero) fired on load. CTA click + product card click each pushed select_promotion (2 total).",
+    "ga4_quiz": "view_promotion (promotion_id=droomvriendje_quiz, promotion_name='Droomvriendje Quiz', creative_name=quiz_landing, creative_slot=quiz_intro) fired on intro. quiz-start-button click pushed select_promotion with matching fields.",
+    "backend_api": {
+      "GET /api/blog-cms/public/posts": "200, returns 3 posts incl. all migrated slugs",
+      "GET /api/blog-cms/public/posts/{slug}": "200 for all 3 migrated slugs with content+faqs+related",
+      "GET /api/blog-cms/posts (admin)": "200 with auth, returns exactly 3 DB posts; 401/403 without auth",
+      "GET /api/blog-cms/sitemap.xml": "Valid XML containing all 10 blog slugs + product URLs"
+    }
+  },
+  "action_items": [
+    "Content QA: The DB-migrated slug 'droomvriendjes-mondriaan-samenwerking' has title 'Rust in de avond: hoe slaap bijdraagt aan mentale veerkracht bij kinderen' — slug suggests a Mondriaan collaboration but content is about mental rest. Verify with content owner whether seed content was intended or whether the wrong HTML was loaded into this slug. Renders correctly; not a code bug.",
+    "Minor: select_promotion fired on product card click on /pro reuses the hero creative_slot ('pro_hero'). If individual product cards are meant to push their own creative_slot (e.g. 'pro_product_<id>'), update onClick payload in LandingProPage.jsx. Optional polish, not blocking."
+  ],
+  "critical_code_review_comments": [
+    "AdminBlogCmsPage.jsx is well structured with data-testid coverage on all interactive elements (stat chips, search, status filter, sort, edit/delete/view per row).",
+    "Premium row protection enforced correctly — no edit/delete testids rendered for premium slugs, preventing accidental deletion.",
+    "BlogsPage cmsSlugs Set dedupe approach is clean and verified working (no duplicate hrefs in DOM).",
+    "GA4 events use centralised utils/analytics.js (good), and pushToDataLayer fires reliably even before gtag init."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration34_blog_cms.py"
+  ],
+  "success_rate": {"backend": "100% (17/17)", "frontend": "100% (admin CMS + /blogs + /pro + /quiz + migrated/premium routes)"},
+  "test_credentials": "Admin: username=admin, password=Droomvriendjes2024! (login via UI form on /admin/login; token stored in localStorage as admin_token)",
+  "seed_data_creation": "None. No blogs were deleted; editor was opened but never saved. No real outreach or LLM endpoints triggered.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_iteration34_blog_cms.py and cover admin auth, CMS public/admin endpoints, sitemap, plus SPA route smoke (with browser UA header). All 17 pass. Admin login through API directly may be blocked from sandbox (urllib 403), but UI form login works. Use selector 'input[placeholder*=admin]' + 'input[type=password]' + 'button:has-text(Inloggen)'. For GA4 verification, inspect window.dataLayer entries with their event field."
+}

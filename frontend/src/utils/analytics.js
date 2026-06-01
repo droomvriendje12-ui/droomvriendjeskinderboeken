@@ -124,6 +124,80 @@ export const trackSelectItem = (product, index = 0, listId = 'alle_knuffels', li
 };
 
 /**
+ * Format a product into a GA4 promotion item (digital/printables friendly).
+ */
+const formatPromoItem = (product, index, promo) => ({
+  item_id: product.item_id || String(product.id),
+  item_name: product.name,
+  affiliation: AFFILIATION,
+  index,
+  item_brand: BRAND,
+  item_category: product.item_category || 'Printables & Downloads',
+  price: parseFloat(product.price) || 0,
+  google_business_vertical: GOOGLE_BUSINESS_VERTICAL,
+  location_id: LOCATION_ID,
+  quantity: 1,
+  promotion_id: promo.promotion_id,
+  promotion_name: promo.promotion_name,
+  creative_name: promo.creative_name,
+  creative_slot: promo.creative_slot,
+});
+
+/**
+ * Track: Promotion Viewed (view_promotion) — GA4 ecommerce promotion event.
+ * @param {Object} promo - { promotion_id, promotion_name, creative_name, creative_slot }
+ * @param {Array} products - optional products shown within the promotion
+ */
+export const trackViewPromotion = (promo, products = []) => {
+  if (!promo || !promo.promotion_id) return;
+  const items = (products && products.length)
+    ? products.map((p, i) => formatPromoItem(p, i, promo))
+    : [{
+        promotion_id: promo.promotion_id,
+        promotion_name: promo.promotion_name,
+        creative_name: promo.creative_name,
+        creative_slot: promo.creative_slot,
+      }];
+  const ecommerce = {
+    promotion_id: promo.promotion_id,
+    promotion_name: promo.promotion_name,
+    creative_name: promo.creative_name,
+    creative_slot: promo.creative_slot,
+    items,
+  };
+  pushToDataLayer('view_promotion', ecommerce);
+  if (isGtagAvailable()) window.gtag('event', 'view_promotion', ecommerce);
+  console.log('📊 GA4: view_promotion', promo.promotion_name);
+};
+
+/**
+ * Track: Promotion Selected (select_promotion) — GA4 ecommerce promotion event.
+ * @param {Object} promo - { promotion_id, promotion_name, creative_name, creative_slot }
+ * @param {Object} product - optional product the user selected within the promotion
+ */
+export const trackSelectPromotion = (promo, product = null) => {
+  if (!promo || !promo.promotion_id) return;
+  const items = product
+    ? [formatPromoItem(product, product._index || 0, promo)]
+    : [{
+        promotion_id: promo.promotion_id,
+        promotion_name: promo.promotion_name,
+        creative_name: promo.creative_name,
+        creative_slot: promo.creative_slot,
+      }];
+  const ecommerce = {
+    promotion_id: promo.promotion_id,
+    promotion_name: promo.promotion_name,
+    creative_name: promo.creative_name,
+    creative_slot: promo.creative_slot,
+    items,
+  };
+  pushToDataLayer('select_promotion', ecommerce);
+  if (isGtagAvailable()) window.gtag('event', 'select_promotion', ecommerce);
+  console.log('📊 GA4: select_promotion', promo.promotion_name);
+};
+
+/**
  * Track: Product Viewed (view_item)
  */
 export const trackViewItem = (product) => {
@@ -419,6 +493,8 @@ export const trackCheckoutClicked = (cart, customerEmail) => {
 export default {
   trackViewItemList,
   trackSelectItem,
+  trackViewPromotion,
+  trackSelectPromotion,
   trackViewItem,
   trackAddToCart,
   trackRemoveFromCart,

@@ -43,6 +43,19 @@ const CmsBlogPostPage = () => {
     catch { return ''; }
   };
 
+  // Auto-derive a table of contents from <h2 id="..."> headings in the content
+  const toc = (() => {
+    const html = post.content || '';
+    const re = /<h2[^>]*\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/gi;
+    const items = [];
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const label = m[2].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim();
+      if (label) items.push({ id: m[1], label });
+    }
+    return items;
+  })();
+
   return (
     <BlogPostLayout
       category={post.category}
@@ -53,6 +66,7 @@ const CmsBlogPostPage = () => {
       date={fmtDate(post.created_at)}
       readMinutes={post.read_minutes}
       heroImage={post.hero_image}
+      toc={toc}
       faqs={post.faqs || []}
       relatedProducts={post.related_products || []}
     >

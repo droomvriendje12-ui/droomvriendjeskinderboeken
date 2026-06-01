@@ -1,14 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Pencil, Trash2, Sparkles, UploadCloud, Loader2, X,
-  Eye, FileText, Save, ExternalLink, Wand2,
+  Eye, FileText, Save, ExternalLink, Wand2, Search, ArrowUpDown, Lock,
 } from 'lucide-react';
+import { BLOG_POSTS } from '../../data/blogPosts';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const authHeaders = () => {
   const t = localStorage.getItem('admin_token');
   return t ? { Authorization: `Bearer ${t}` } : {};
+};
+
+const NL_MONTHS = {
+  januari: 0, februari: 1, maart: 2, april: 3, mei: 4, juni: 5,
+  juli: 6, augustus: 7, september: 8, oktober: 9, november: 10, december: 11,
+};
+const parseNlDate = (s) => {
+  if (!s) return 0;
+  const parts = String(s).trim().split(/\s+/);
+  if (parts.length === 3 && NL_MONTHS[parts[1].toLowerCase()] !== undefined) {
+    return new Date(+parts[2], NL_MONTHS[parts[1].toLowerCase()], +parts[0]).getTime();
+  }
+  const t = new Date(s).getTime();
+  return Number.isNaN(t) ? 0 : t;
+};
+const fmtDate = (ts) => {
+  if (!ts) return '—';
+  try { return new Date(ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch { return '—'; }
 };
 
 const EMPTY = {
@@ -31,10 +51,13 @@ const Field = ({ label, hint, children }) => (
 const inputCls = 'w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-fuchsia-400/50';
 
 const AdminBlogCmsPage = () => {
-  const [posts, setPosts] = useState([]);
+  const [dbPosts, setDbPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // post object or null
   const [toast, setToast] = useState(null);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // all | published | draft | premium
+  const [sortDir, setSortDir] = useState('desc'); // desc (newest) | asc
 
   const notify = (t, m) => { setToast({ t, m }); setTimeout(() => setToast(null), 4000); };
 
@@ -43,7 +66,7 @@ const AdminBlogCmsPage = () => {
     try {
       const r = await fetch(`${API}/api/blog-cms/posts`, { headers: authHeaders() });
       const d = await r.json();
-      setPosts(d.posts || []);
+      setDbPosts(d.posts || []);
     } catch { notify('error', 'Laden mislukt'); }
     setLoading(false);
   }, []);
@@ -57,56 +80,148 @@ const AdminBlogCmsPage = () => {
     load();
   };
 
+  // Unified list: DB-managed posts + premium (code-rendered) blogs not yet in the DB
+  const rows = useMemo(() => {
+    const dbSlugs = new Set(dbPosts.map((p) => p.slug));
+    const dbRows = dbPosts.map((p) => ({
+      key: `db-${p.id}`,
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      status: p.status,
+      author: p.author || 'Team Droomvriendjes',
+      category: p.category,
+      dateTs: new Date(p.created_at).getTime() || 0,
+      source: 'db',
+      raw: p,
+    }));
+    const premiumRows = BLOG_POSTS.filter((b) => !dbSlugs.has(b.slug)).map((b) => ({
+      key: `prem-${b.slug}`,
+      id: b.slug,
+      slug: b.slug,
+      title: b.title,
+      status: 'published',
+      author: 'Team Droomvriendjes',
+      category: b.category,
+      dateTs: parseNlDate(b.date),
+      source: 'premium',
+    }));
+    return [...dbRows, ...premiumRows];
+  }, [dbPosts]);
+
+  const filtered = useMemo(() => {
+    let list = rows;
+    const q = query.trim().toLowerCase();
+    if (q) list = list.filter((r) => r.title.toLowerCase().includes(q) || r.slug.toLowerCase().includes(q));
+    if (statusFilter === 'premium') list = list.filter((r) => r.source === 'premium');
+    else if (statusFilter !== 'all') list = list.filter((r) => r.status === statusFilter);
+    return [...list].sort((a, b) => (sortDir === 'desc' ? b.dateTs - a.dateTs : a.dateTs - b.dateTs));
+  }, [rows, query, statusFilter, sortDir]);
+
+  const counts = useMemo(() => ({
+    total: rows.length,
+    published: rows.filter((r) => r.status === 'published').length,
+    draft: rows.filter((r) => r.status === 'draft').length,
+    premium: rows.filter((r) => r.source === 'premium').length,
+  }), [rows]);
+
   if (editing !== null) {
     return <BlogEditor initial={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} notify={notify} toast={toast} />;
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
             <Link to="/admin" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm mb-2"><ArrowLeft className="w-4 h-4" /> Dashboard</Link>
             <h1 className="text-3xl font-bold flex items-center gap-2"><FileText className="w-7 h-7 text-fuchsia-400" /> Blog CMS</h1>
-            <p className="text-slate-400 text-sm mt-1">Beheer je blogartikelen — toevoegen, bewerken, verwijderen. Gepubliceerde blogs verschijnen automatisch op /blogs.</p>
+            <p className="text-slate-400 text-sm mt-1">Beheer alle blogs vanuit één overzicht. Gepubliceerde blogs verschijnen automatisch op /blogs.</p>
           </div>
           <button onClick={() => setEditing(EMPTY)} className="inline-flex items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-semibold px-5 py-2.5 rounded-lg transition" data-testid="new-blog-btn">
             <Plus className="w-5 h-5" /> Nieuwe blog
           </button>
         </div>
 
-        {loading ? (
-          <div className="text-slate-400 flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Laden...</div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-20 text-slate-500" data-testid="cms-empty">
-            <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            Nog geen blogs. Klik op "Nieuwe blog" om te beginnen.
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" data-testid="cms-stats">
+          <StatChip label="Totaal blogs" value={counts.total} active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} testid="stat-total" />
+          <StatChip label="Gepubliceerd" value={counts.published} active={statusFilter === 'published'} onClick={() => setStatusFilter('published')} testid="stat-published" />
+          <StatChip label="Concept" value={counts.draft} active={statusFilter === 'draft'} onClick={() => setStatusFilter('draft')} testid="stat-draft" />
+          <StatChip label="Premium (code)" value={counts.premium} active={statusFilter === 'premium'} onClick={() => setStatusFilter('premium')} testid="stat-premium" />
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Zoek op titel of slug…" className={`${inputCls} pl-9`} data-testid="cms-search" />
           </div>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`${inputCls} w-auto`} data-testid="cms-status-filter">
+            <option value="all">Alle statussen</option>
+            <option value="published">Gepubliceerd</option>
+            <option value="draft">Concept</option>
+            <option value="premium">Premium (code)</option>
+          </select>
+          <button onClick={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))} className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-3.5 py-2.5 text-sm" data-testid="cms-sort-date">
+            <ArrowUpDown className="w-4 h-4" /> Datum {sortDir === 'desc' ? '(nieuwste)' : '(oudste)'}
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-slate-400 flex items-center gap-2 py-10"><Loader2 className="w-5 h-5 animate-spin" /> Laden...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="cms-list">
-            {posts.map((p) => (
-              <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden" data-testid={`cms-post-${p.id}`}>
-                <div className="aspect-video bg-slate-800 overflow-hidden">
-                  {p.hero_image
-                    ? <img src={p.hero_image} alt={p.title} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-slate-600"><FileText className="w-8 h-8" /></div>}
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[11px] px-2 py-0.5 rounded-full ${p.status === 'published' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
-                      {p.status === 'published' ? 'Gepubliceerd' : 'Concept'}
-                    </span>
-                    <span className="text-[11px] text-slate-500">{p.category}</span>
-                  </div>
-                  <h3 className="font-semibold leading-snug mb-3 line-clamp-2">{p.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setEditing(p)} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2 text-sm" data-testid={`edit-${p.id}`}><Pencil className="w-4 h-4" /> Bewerken</button>
-                    {p.status === 'published' && <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg" title="Bekijk"><Eye className="w-4 h-4" /></a>}
-                    <button onClick={() => del(p.id)} className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-400/30 text-red-300 rounded-lg" data-testid={`delete-${p.id}`}><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white/5 border border-white/10 rounded-xl overflow-x-auto" data-testid="cms-table-wrap">
+            <table className="w-full text-sm min-w-[860px]" data-testid="cms-table">
+              <thead className="bg-white/5 text-slate-400 text-xs uppercase">
+                <tr>
+                  <th className="text-left px-4 py-3">Titel</th>
+                  <th className="text-left px-4 py-3">Status</th>
+                  <th className="text-left px-4 py-3">Datum</th>
+                  <th className="text-left px-4 py-3">Auteur</th>
+                  <th className="text-left px-4 py-3">Slug</th>
+                  <th className="text-right px-4 py-3">Acties</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r) => (
+                  <tr key={r.key} className="border-t border-white/5 hover:bg-white/5" data-testid={`cms-row-${r.slug}`}>
+                    <td className="px-4 py-3 max-w-[320px]">
+                      <p className="font-medium text-white line-clamp-1" title={r.title}>{r.title}</p>
+                      <span className="text-[11px] text-slate-500">{r.category}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {r.source === 'premium' ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300" title="Speciale code-layout met interactieve elementen"><Lock className="w-3 h-3" /> Premium</span>
+                      ) : (
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full ${r.status === 'published' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                          {r.status === 'published' ? 'Gepubliceerd' : 'Concept'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{fmtDate(r.dateTs)}</td>
+                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{r.author}</td>
+                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">/{r.slug}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {r.source === 'db' ? (
+                          <button onClick={() => setEditing(r.raw)} className="inline-flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-3 py-1.5 text-xs" data-testid={`edit-${r.slug}`}><Pencil className="w-3.5 h-3.5" /> Bewerken</button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-slate-500 border border-white/5 rounded-lg px-3 py-1.5 text-xs cursor-not-allowed" title="Premium-blog met code-layout (interactieve upsell). Niet bewerkbaar via CMS."><Lock className="w-3.5 h-3.5" /> Code</span>
+                        )}
+                        <a href={`/blog/${r.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-3 py-1.5 text-xs" title="Bekijk live" data-testid={`view-${r.slug}`}><Eye className="w-3.5 h-3.5" /> Live</a>
+                        {r.source === 'db' && (
+                          <button onClick={() => del(r.id)} className="inline-flex items-center bg-red-500/10 hover:bg-red-500/20 border border-red-400/30 text-red-300 rounded-lg px-2.5 py-1.5" title="Verwijderen" data-testid={`delete-${r.slug}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={6} className="text-center py-12 text-slate-500" data-testid="cms-empty">Geen blogs gevonden voor deze filter.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -114,6 +229,13 @@ const AdminBlogCmsPage = () => {
     </div>
   );
 };
+
+const StatChip = ({ label, value, active, onClick, testid }) => (
+  <button onClick={onClick} className={`text-left rounded-xl p-3 border transition ${active ? 'bg-fuchsia-500/15 border-fuchsia-400/50' : 'bg-white/5 border-white/10 hover:bg-white/10'}`} data-testid={testid}>
+    <p className="text-xs text-slate-400">{label}</p>
+    <p className="text-2xl font-bold">{value}</p>
+  </button>
+);
 
 const BlogEditor = ({ initial, onClose, onSaved, notify, toast }) => {
   const [f, setF] = useState({ ...EMPTY, ...initial, tags: initial.tags || [] });
