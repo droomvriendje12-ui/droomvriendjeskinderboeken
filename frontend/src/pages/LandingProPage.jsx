@@ -151,14 +151,14 @@ const LandingProPage = () => {
     () => products.reduce((s, p) => s + (p.price || 0), 0),
     [products],
   );
-  const bundlePrice = +(totalLoose * 0.6).toFixed(2); // 40% off
+  const bundlePrice = +(totalLoose * 0.5).toFixed(2); // 50% off
   const bundleSave = +(totalLoose - bundlePrice).toFixed(2);
 
   return (
     <>
       <Helmet>
         <title>Droomvriendjes PRO · Digitale slaaphulp voor het hele gezin</title>
-        <meta name="description" content="5 wetenschappelijk-onderbouwde digitale slaapproducten voor baby's en kinderen: direct downloadbaar, oneindig printbaar, samen voor 40% korting." />
+        <meta name="description" content="5 wetenschappelijk-onderbouwde digitale slaapproducten voor baby's en kinderen: direct downloadbaar, oneindig printbaar, samen voor 50% korting." />
       </Helmet>
 
       {/* HERO */}
@@ -207,7 +207,7 @@ const LandingProPage = () => {
               className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/20 font-semibold px-6 py-3 rounded-xl transition-all"
               data-testid="pro-cta-bundle"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" /> Bundel — 40% korting
+              <Sparkles className="w-4 h-4 text-amber-300" /> Bundel — 50% korting
             </a>
           </div>
           {/* KPI strip */}
@@ -390,7 +390,7 @@ const LandingProPage = () => {
             De voordeelpakketten
           </span>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
-            Alles in één, voor <span className="italic text-amber-300">40% korting</span>.
+            Alles in één, voor <span className="italic text-amber-300">50% korting</span>.
           </h2>
           <p className="text-white/70 mb-10 max-w-2xl mx-auto">
             Alle 8 PDF's samen — van slaapritueel en slaaplog tot affirmatiekaartjes, kleurplaten, het visuele schema, regressie-cards, weekplanner én voorleesboek.
@@ -427,7 +427,7 @@ const LandingProPage = () => {
               <Sparkles className="w-5 h-5" /> Bekijk de PDFs en kies
             </Link>
             <p className="text-xs text-white/40 mt-5">
-              Tip: voeg meerdere PDFs samen toe aan je winkelwagen en de 40%-korting wordt automatisch berekend.
+              Tip: voeg meerdere PDFs samen toe aan je winkelwagen en de 50%-korting wordt automatisch berekend.
             </p>
           </div>
         </div>
