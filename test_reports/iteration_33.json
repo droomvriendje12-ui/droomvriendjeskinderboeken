@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 33: SEO/GEO + AI Search Ads Builder + AI Shopping Feed Builder + outreach AI-draft keyword steering. All 4 phases verified end-to-end. 13/13 backend pytest cases passing. Admin pages render and integrate correctly; product page emits exactly ONE FAQPage JSON-LD; existing /api/feed/google-shopping.xml still intact.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/shopping-feed/optimize", "issue": "LLM output is non-deterministic - re-optimizing product 14 sometimes lowered shopping_seo_score from 90 -> 80. has_override stays true. Acceptable but worth documenting (consider keeping the higher of old vs new score on save)."},
+      {"endpoint": "/api/outreach/send", "issue": "Per-request guardrail is implemented as a SILENT CAP (allowed_now = min(50, remaining_daily, eligible)) instead of a 4xx rejection. Caller cannot tell if their batch was truncated. Constants (50/150) are correct; verified by code inspection. Consider returning 400/207 when payload.ids > 50 so the UI can warn the user."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ProductPage /product/14", "issues": ["2 unrelated background API calls return 422 on first paint (not blocking SEO or rendering, no user impact, but worth tracing - likely an analytics/related-products endpoint with stricter validation)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration33_seo_ads_feed.py",
+    "/app/test_reports/pytest/iteration33_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Make /api/outreach/send return an explicit 400 when payload.ids exceeds SEND_PER_REQUEST_LIMIT instead of silently capping; UI can already show a warning since limit is known.",
+    "(Optional) On /api/shopping-feed/optimize save=true, keep max(existing_score, new_score) so an LLM regression cannot lower a previously-optimized product's score.",
+    "(Optional) Investigate the 2x 422 background calls on /product/14 - not blocking SEO/UX but pollutes console."
+  ],
+  "critical_code_review_comments": [
+    "ProductPage emits exactly 1 FAQPage JSON-LD as required (TrendingQuestions emitSchema=false working).",
+    "Sitemap aggregates 35 URLs including 18 product pages (physical + digital) and 10 blog slugs - correct.",
+    "Ads Builder returns 4 ad groups with keywords (match_type), headlines, descriptions, sitelinks, callouts, negative_keywords - matches spec.",
+    "Shopping Feed audit summary: total_products=18, avg_merchant_readiness=100, avg_shopping_seo=69, gtin_missing=18 - all fields present and accurate.",
+    "Existing /api/feed/google-shopping.xml still returns 200 application/xml unchanged - no regression.",
+    "Outreach AI-draft incorporates provided keywords (e.g. '10-Nachten Challenge', 'TikTok') in subject/body."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration33_seo_ads_feed.py (new)"
+  ],
+  "success_rate": {"backend": "100% (13/13 pytest)", "frontend": "100% (4/4 e2e flows: ProductPage SEO, Leads Bestorming, Ads Builder generate+CSV, Shopping Feed audit+optimize+CSV+XML)"},
+  "test_credentials": "admin / Droomvriendjes2024! via POST /api/admin/login (token must be set in localStorage as admin_token)",
+  "seed_data_creation": "None. Used existing leads and Supabase products. No test data left behind.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file at /app/backend/tests/test_iteration33_seo_ads_feed.py covers sitemap, ads-builder generate+export-csv, shopping-feed audit+optimize+export.csv+export.xml, /api/feed/google-shopping.xml (unchanged), outreach ai-draft keyword steering, and code-level guardrails. Note: each pytest run calls the LLM 1x for ads-generate and 1x for feed-optimize (cost-aware). Use existing seed admin token; product id 14 already has an override. CSV/XML downloads on /admin/shopping-feed-builder use blob URLs (page.expect_download works; expect_response doesn't because the fetch happens before the blob is materialised).",
+  "rca of the issue": "N/A - no critical issues found. Two minor improvements suggested above (outreach silent cap, optimize score regression)."
+}

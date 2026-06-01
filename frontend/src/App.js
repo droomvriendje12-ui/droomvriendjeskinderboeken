@@ -84,6 +84,8 @@ import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
 import AdminFaqStatsPage from "./pages/admin/AdminFaqStatsPage";
 import AdminDigitalProductsPage from "./pages/admin/AdminDigitalProductsPage";
 import AdminBlogCmsPage from "./pages/admin/AdminBlogCmsPage";
+import AdsBuilderPage from "./pages/admin/AdsBuilderPage";
+import ShoppingFeedBuilderPage from "./pages/admin/ShoppingFeedBuilderPage";
 import CustomerDownloadPage from "./pages/CustomerDownloadPage";
 import DroomvriendjesReviewsPage from "./pages/DroomvriendjesReviewsPage";
 import PresentationPage from "./pages/PresentationPage";
@@ -206,6 +208,8 @@ function App() {
               <Route path="/admin/faq-stats" element={<ProtectedAdminRoute><AdminFaqStatsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/digital-products" element={<ProtectedAdminRoute><AdminDigitalProductsPage /></ProtectedAdminRoute>} />
               <Route path="/admin/blog-cms" element={<ProtectedAdminRoute><AdminBlogCmsPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/ads-builder" element={<ProtectedAdminRoute><AdsBuilderPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/shopping-feed-builder" element={<ProtectedAdminRoute><ShoppingFeedBuilderPage /></ProtectedAdminRoute>} />
               <Route path="/mijn-download/:token" element={<CustomerDownloadPage />} />
             </Routes>
             <Toaster />

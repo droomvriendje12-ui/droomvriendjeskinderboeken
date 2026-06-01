@@ -24,6 +24,7 @@ const TrendingQuestions = ({
   subtitle = 'De top 3 vragen die andere ouders deze week aan ons stelden — inclusief het volledige antwoord.',
   eyebrow,
   variant = 'hero',
+  emitSchema = true,
 }) => {
   const defaultEyebrow = window === 'month' ? 'Meest gestelde vragen deze maand' : 'Veelgestelde vragen deze week';
   const eyebrowText = eyebrow || defaultEyebrow;
@@ -85,10 +86,12 @@ const TrendingQuestions = ({
       className={containerClass}
       data-testid={`trending-questions-${variant}`}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      {emitSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
       <div className={isCompact ? '' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'}>
         <div className="flex items-center justify-center gap-2 text-amber-700 text-sm font-medium mb-3">
           <TrendingUp className="w-4 h-4" />

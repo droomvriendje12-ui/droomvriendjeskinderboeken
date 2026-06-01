@@ -346,6 +346,16 @@ async def sitemap():
         add(p, prio="1.0" if p == "" else "0.8")
     for s in _STATIC_BLOG_SLUGS:
         add(f"blog/{s}", prio="0.7")
+    # Product pages (from Supabase) — strengthens product indexing
+    try:
+        sb = _supabase()
+        res = sb.table("products").select("id").execute()
+        for row in (res.data or []):
+            pid = row.get("id")
+            if pid is not None:
+                add(f"product/{pid}", prio="0.9")
+    except Exception:
+        logger.warning("Sitemap: producten konden niet worden opgehaald uit Supabase", exc_info=False)
     if _db is not None:
         posts = await _db.cms_blogs.find(
             {"status": "published"}, {"slug": 1, "updated_at": 1}

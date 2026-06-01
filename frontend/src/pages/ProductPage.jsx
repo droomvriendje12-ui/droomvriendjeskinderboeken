@@ -532,6 +532,49 @@ const ProductPage = () => {
     }
   }, [product]);
 
+  // SEO meta tags: title, description, canonical, Open Graph, Twitter
+  useEffect(() => {
+    if (!product) return;
+    const canonicalUrl = `https://droomvriendjes.com/product/${product.id}`;
+    const metaTitle = `${product.name} | Droomvriendjes`;
+    const metaDesc = (product.shortDescription || product.description || '').toString().slice(0, 160);
+    const metaImage = product.image || 'https://droomvriendjes.com/logo.svg';
+
+    document.title = metaTitle;
+    const setMeta = (sel, attr, key, value) => {
+      let el = document.head.querySelector(sel);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value || '');
+    };
+    setMeta('meta[name="description"]', 'name', 'description', metaDesc);
+    // Open Graph (Facebook / LinkedIn / WhatsApp)
+    setMeta('meta[property="og:type"]', 'property', 'og:type', 'product');
+    setMeta('meta[property="og:title"]', 'property', 'og:title', metaTitle);
+    setMeta('meta[property="og:description"]', 'property', 'og:description', metaDesc);
+    setMeta('meta[property="og:url"]', 'property', 'og:url', canonicalUrl);
+    setMeta('meta[property="og:image"]', 'property', 'og:image', metaImage);
+    setMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Droomvriendjes');
+    setMeta('meta[property="product:price:amount"]', 'property', 'product:price:amount', (product.price || 0).toFixed(2));
+    setMeta('meta[property="product:price:currency"]', 'property', 'product:price:currency', 'EUR');
+    // Twitter / X
+    setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+    setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', metaTitle);
+    setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', metaDesc);
+    setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', metaImage);
+    // Canonical
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+  }, [product]);
+
   // Submit review handler
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -1822,6 +1865,7 @@ const ProductPage = () => {
           window="month"
           limit={3}
           title="Meest gestelde vragen deze maand"
+          emitSchema={false}
         />
       </div>
     </Layout>

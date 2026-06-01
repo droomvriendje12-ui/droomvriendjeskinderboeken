@@ -216,6 +216,7 @@ const BlogPostLayout = ({
           window="month"
           limit={3}
           title="Meest gestelde vragen deze maand"
+          emitSchema={false}
         />
 
         {/* Newsletter / Conversion CTA */}

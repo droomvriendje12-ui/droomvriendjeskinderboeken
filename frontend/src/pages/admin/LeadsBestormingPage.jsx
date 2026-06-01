@@ -56,6 +56,19 @@ const LeadsBestormingPage = () => {
 
   const notify = (t, m) => { setToast({ t, m }); setTimeout(() => setToast(null), 6000); };
 
+  // For no-email leads (often Instagram/TikTok influencers), the "email" field holds a
+  // contact hint like "via kimvanoncen.be" or "via bigcitylife.be/contact". Turn that into
+  // a clickable link so the admin can reach out manually via their site/contact form/DM.
+  const contactLink = (raw) => {
+    if (!raw) return null;
+    const cleaned = String(raw).replace(/^via\s+/i, '').trim();
+    const m = cleaned.match(/((https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}(\/[^\s]*)?)/i);
+    if (!m) return null;
+    let url = m[1];
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    return url;
+  };
+
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -314,7 +327,16 @@ const LeadsBestormingPage = () => {
                   <td className="px-3 py-2.5 font-medium text-white max-w-[160px] truncate" title={l.naam}>{l.naam}</td>
                   <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-200">{TYPE_LABEL[l.type] || l.type}</span></td>
                   <td className="px-3 py-2.5"><span className="px-1.5 py-0.5 rounded text-xs font-semibold bg-white/10 text-slate-200 uppercase" title={LANG_LABEL[l.language] || 'Nederlands'}>{l.language || 'nl'}</span></td>
-                  <td className="px-3 py-2.5">{l.email_valid ? <span className="text-slate-300">{l.email}</span> : <span className="inline-flex items-center gap-1 text-amber-400/80 text-xs"><MailX className="w-3.5 h-3.5" /> geen e-mail</span>}</td>
+                  <td className="px-3 py-2.5">{l.email_valid ? <span className="text-slate-300">{l.email}</span> : (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="inline-flex items-center gap-1 text-amber-400/80 text-xs"><MailX className="w-3.5 h-3.5" /> geen e-mail</span>
+                      {contactLink(l.email) ? (
+                        <a href={contactLink(l.email)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-sky-300 hover:text-sky-200 underline truncate max-w-[150px]" title={l.email} data-testid={`contact-link-${l.id}`}>Benader via website ↗</a>
+                      ) : l.email ? (
+                        <span className="text-[11px] text-slate-500 truncate max-w-[150px]" title={l.email}>{l.email}</span>
+                      ) : null}
+                    </div>
+                  )}</td>
                   <td className="px-3 py-2.5 text-slate-400 max-w-[260px]"><span className="line-clamp-2" title={l.details}>{l.details}</span></td>
                   <td className="px-3 py-2.5">
                     <select value={l.status} onChange={(e) => updateLead(l.id, { status: e.target.value })} className={`text-xs rounded-full px-2 py-1 border-0 ${STATUS_STYLE[l.status] || ''}`} data-testid={`status-${l.id}`}>
@@ -352,6 +374,11 @@ const LeadsBestormingPage = () => {
           <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-amber-400" /></div><h3 className="font-semibold text-lg">Versturen bevestigen</h3></div>
           <p className="text-sm text-slate-300 mb-2">Je staat op het punt outreach-mails te versturen naar <span className="font-bold text-emerald-300">{confirm.label}</span> (alleen leads mét geldig e-mailadres).</p>
           <p className="text-xs text-slate-400 mb-5">Per lead wordt automatisch het juiste sjabloon gekozen op basis van type én taal (.de=Duits, .fr=Frans, anders NL); leads met een AI-mail krijgen hun persoonlijke versie. Reacties komen binnen op info@droomvriendjes.com.</p>
+          {(stats?.no_email || 0) > 0 && (
+            <p className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-400/20 rounded-lg p-2.5 mb-5" data-testid="no-email-note">
+              <MailX className="w-3.5 h-3.5 inline mr-1" /> {stats.no_email} leads (vaak Instagram/TikTok-influencers) hebben geen e-mailadres en worden <b>niet</b> gemaild. Benader hen handmatig via de "Benader via website ↗"-link in de tabel — gebruik AI-personaliseer om de tekst klaar te zetten.
+            </p>
+          )}
           <div className="flex justify-end gap-2">
             <button onClick={() => setConfirm(null)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm" data-testid="confirm-cancel">Annuleer</button>
             <button onClick={() => doSend(confirm.body, confirm.label)} className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-sm inline-flex items-center gap-2" data-testid="confirm-send"><Send className="w-4 h-4" /> Ja, verstuur</button>

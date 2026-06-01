@@ -189,6 +189,8 @@ from routes import marketing_hub as marketing_hub_route
 from routes import system_alerts as system_alerts_route
 from routes import resend_webhook as resend_webhook_route
 from routes import campaigns as campaigns_route
+from routes import ads_builder as ads_builder_route
+from routes import feed_builder as feed_builder_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -310,6 +312,16 @@ api_router.include_router(resend_webhook_route.router)
 campaigns_route.set_database(db)
 campaigns_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(campaigns_route.router)
+
+# AI Search Campaign Builder (GPT-5.2 → Google Ads Search campaigns + CSV export)
+ads_builder_route.set_database(db)
+ads_builder_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(ads_builder_route.router)
+
+# AI Shopping Feed Builder (audit/optimise layer on top of /api/feed/google-shopping.xml)
+feed_builder_route.set_database(db)
+feed_builder_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
+api_router.include_router(feed_builder_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

@@ -940,7 +940,7 @@ const HomePage = () => {
       <TrustSection />
 
       {/* Trending FAQ questions widget */}
-      <TrendingQuestions />
+      <TrendingQuestions emitSchema={false} />
 
       {/* Footer - Warm Brown Theme */}
       <footer className="bg-warm-brown-900 text-warm-brown-100 pt-16 pb-10">

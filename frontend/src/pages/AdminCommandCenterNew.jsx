@@ -290,6 +290,8 @@ const AdminCommandCenterNew = () => {
     { id: 'email-templates', icon: Mail, label: 'Email Templates', link: '/admin/email-templates' },
     { id: 'reviews', icon: Star, label: 'Reviews', link: '/admin/reviews-tool' },
     { id: 'blog-cms', icon: FileText, label: 'Blog CMS', link: '/admin/blog-cms' },
+    { id: 'ads-builder', icon: Target, label: 'AI Search Ads', link: '/admin/ads-builder' },
+    { id: 'shopping-feed-builder', icon: ShoppingCart, label: 'AI Shopping Feed', link: '/admin/shopping-feed-builder' },
     { id: 'divider-system', label: 'Systeem', divider: true },
     { id: 'system-alerts', icon: AlertTriangle, label: 'Systeemmeldingen', badge: alertsUnresolved },
     { id: 'database', icon: Settings, label: 'Database', link: '/admin/database' },
