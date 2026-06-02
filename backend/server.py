@@ -191,6 +191,7 @@ from routes import resend_webhook as resend_webhook_route
 from routes import campaigns as campaigns_route
 from routes import ads_builder as ads_builder_route
 from routes import feed_builder as feed_builder_route
+from routes import story_generator as story_generator_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -322,6 +323,10 @@ api_router.include_router(ads_builder_route.router)
 feed_builder_route.set_database(db)
 feed_builder_route.set_admin_verifier(lambda creds: verify_admin_token(creds))
 api_router.include_router(feed_builder_route.router)
+
+# Gepersonaliseerde AI-bedtijdverhaal-generator (publiek, 2 gratis previews/dag)
+story_generator_route.set_database(db)
+api_router.include_router(story_generator_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

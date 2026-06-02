@@ -5,6 +5,7 @@ import {
   ArrowRight, FileText, CheckCircle2, Plus, Check, ShoppingCart,
 } from 'lucide-react';
 import Footer from '../components/Footer';
+import StoryGenerator from '../components/StoryGenerator';
 import { useCart } from '../context/CartContext';
 import { trackViewItemList, trackViewPromotion, trackSelectPromotion } from '../utils/analytics';
 import { bundlePct, bundleLabel, bundleDiscount } from '../lib/printablesBundle';
@@ -348,6 +349,9 @@ const LandingProPage = () => {
           ))}
         </div>
       </section>
+
+      {/* AI DROOMVERHAAL GENERATOR */}
+      <StoryGenerator />
 
       {/* ABOUT — Why digital */}
       <section className="bg-white py-20" data-testid="pro-about">

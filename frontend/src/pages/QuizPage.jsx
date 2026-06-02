@@ -121,6 +121,26 @@ const QUESTIONS = [
       { label: 'Slimme technologie (sensor)', icon: Cpu, scores: { '14': 3, '9': 2, '4': 1 } },
     ],
   },
+  {
+    id: 'licht',
+    question: 'Hoe valt je kindje het liefst in slaap qua licht?',
+    options: [
+      { label: 'Met een zacht, warm nachtlampje', icon: Moon, scores: { '7': 3, '8': 2, '13': 1 } },
+      { label: 'Met een sterren- of maanprojectie op het plafond', icon: Sparkles, scores: { '5': 3, '4': 2, '7': 1 } },
+      { label: 'In het volledige donker, maar wel veilig', icon: Heart, scores: { '13': 3, '9': 1, '8': 1 } },
+      { label: 'Maakt niet uit, zolang het maar rustig is', icon: Cloud, scores: { '8': 2, '7': 2, '5': 1 } },
+    ],
+  },
+  {
+    id: 'geluid',
+    question: 'Welk geluid helpt je kindje het best in slaap te vallen of rustig wakker te worden?',
+    options: [
+      { label: 'Zachte witte ruis / geruis', icon: Volume2, scores: { '9': 3, '8': 2, '7': 1 } },
+      { label: 'Rustige slaapliedjes & melodieën', icon: Star, scores: { '8': 3, '5': 2, '9': 1 } },
+      { label: 'Natuurgeluiden (regen, zee, hartslag)', icon: Cloud, scores: { '9': 3, '7': 2, '14': 1 } },
+      { label: 'Het liefst helemaal stil', icon: Heart, scores: { '13': 3, '4': 2, '5': 1 } },
+    ],
+  },
 ];
 
 const euro = (n) => (typeof n === 'number' ? `€${n.toFixed(2).replace('.', ',')}` : null);
