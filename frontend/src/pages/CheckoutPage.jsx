@@ -926,7 +926,7 @@ const CheckoutPage = () => {
                   </div>
                   {getDiscount() > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Korting (2e 50%)</span>
+                      <span>Korting</span>
                       <span className="font-semibold">-€{getDiscount().toFixed(2).replace('.', ',')}</span>
                     </div>
                   )}

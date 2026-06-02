@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { trackViewItemList, trackViewPromotion, trackSelectPromotion } from '../utils/analytics';
-
-const PRO_PROMO = { promotion_id: 'printables_pro', promotion_name: 'Droomvriendjes Printables', creative_name: 'pro_landing', creative_slot: 'pro_hero' };
-import { Helmet } from 'react-helmet-async';
 import {
   Download, Printer, Shield, Heart, Sparkles, Moon, Star,
-  ArrowRight, FileText, CheckCircle2,
+  ArrowRight, FileText, CheckCircle2, Plus, Check, ShoppingCart,
 } from 'lucide-react';
 import Footer from '../components/Footer';
+import { useCart } from '../context/CartContext';
+import { trackViewItemList, trackViewPromotion, trackSelectPromotion } from '../utils/analytics';
+import { bundlePct, bundleLabel, bundleDiscount } from '../lib/printablesBundle';
+import { applySeo } from '../lib/seo';
+
+const PRO_PROMO = { promotion_id: 'printables_pro', promotion_name: 'Droomvriendjes Printables', creative_name: 'pro_landing', creative_slot: 'pro_hero' };
 
 /**
  * /pro — Aparte showcase landingspage voor de 5 digitale PDFs + bundel.
@@ -151,12 +153,40 @@ const LandingProPage = () => {
       .catch(() => {});
   }, []);
 
-  const totalLoose = useMemo(
-    () => products.reduce((s, p) => s + (p.price || 0), 0),
-    [products],
-  );
-  const bundlePrice = +(totalLoose * 0.5).toFixed(2); // 50% off
-  const bundleSave = +(totalLoose - bundlePrice).toFixed(2);
+  // ── "Stel je eigen pakket samen"-calculator ───────────────────────────
+  const { addToCart } = useCart();
+  const [selected, setSelected] = useState(() => new Set(PRODUCT_FALLBACK.map((p) => p.id)));
+  const [added, setAdded] = useState(false);
+  // Keep selection valid when live products load
+  useEffect(() => {
+    setSelected((prev) => new Set(products.filter((p) => prev.has(p.id)).map((p) => p.id)));
+  }, [products]);
+
+  const toggle = (id) => { setAdded(false); setSelected((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  }); };
+  const selectAll = () => { setAdded(false); setSelected(new Set(products.map((p) => p.id))); };
+  const clearAll = () => { setAdded(false); setSelected(new Set()); };
+
+  const calc = useMemo(() => {
+    const chosen = products.filter((p) => selected.has(p.id));
+    const subtotal = +chosen.reduce((s, p) => s + (p.price || 0), 0).toFixed(2);
+    const count = chosen.length;
+    const discount = bundleDiscount(subtotal, count);
+    const total = +(subtotal - discount).toFixed(2);
+    return { chosen, subtotal, count, discount, total, pct: bundlePct(count), label: bundleLabel(count) };
+  }, [products, selected]);
+
+  const addBundleToCart = () => {
+    if (calc.count === 0) return;
+    trackSelectPromotion({ ...PRO_PROMO, creative_slot: 'pro_calculator' });
+    calc.chosen.forEach((p) => addToCart({ id: p.id, name: p.name, price: p.price, productType: 'digital', image: p.image }));
+    setAdded(true);
+  };
+
+  const eur = (n) => `€${n.toFixed(2).replace('.', ',')}`;
 
   // GA4: fire view_item_list + view_promotion once when the printables are shown
   useEffect(() => {
@@ -167,13 +197,69 @@ const LandingProPage = () => {
     trackViewPromotion(PRO_PROMO, items);
   }, [products]);
 
+  // SEO/GEO structured data (NL + BE markt)
+  const SITE = 'https://droomvriendjes.com';
+  const PRO_FAQS = [
+    { q: 'Hoe werkt de Printables-bundel?', a: 'Kies in de calculator welke PDF’s je wilt. Hoe meer je toevoegt, hoe hoger je korting — oplopend tot 50% voor het complete pakket. Na betaling download je de bestanden direct.' },
+    { q: 'Kan ik de PDF’s onbeperkt printen?', a: 'Ja. Elke aankoop geeft je onbeperkt printrecht voor persoonlijk gebruik, zodat je het hele gezin kunt voorzien.' },
+    { q: 'Worden de printables in België ook geleverd?', a: 'Ja. Het zijn digitale downloads, dus je ontvangt ze direct — zowel in Nederland als in België, zonder verzendkosten.' },
+    { q: 'In welke taal zijn de printables?', a: 'Alle printables zijn in het Nederlands, geschikt voor de Nederlandse en Belgische markt.' },
+  ];
+  const proJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+        { '@type': 'ListItem', position: 2, name: 'Printables', item: `${SITE}/pro` },
+      ] },
+      { '@type': 'ItemList', name: 'Droomvriendjes Printables', itemListElement: products.map((p, i) => ({
+        '@type': 'ListItem', position: i + 1, item: {
+          '@type': 'Product', name: p.name, category: p.category, url: `${SITE}/product/${p.id}`, brand: { '@type': 'Brand', name: 'Droomvriendjes' },
+          offers: { '@type': 'Offer', price: (p.price || 0).toFixed(2), priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url: `${SITE}/product/${p.id}` },
+        },
+      })) },
+      { '@type': 'FAQPage', mainEntity: PRO_FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+      { '@type': 'HowTo', name: 'Zo stel je je eigen Printables-pakket samen', step: [
+        { '@type': 'HowToStep', position: 1, name: 'Kies je PDF’s', text: 'Selecteer in de calculator welke printables je wilt.' },
+        { '@type': 'HowToStep', position: 2, name: 'Zie je prijs direct', text: 'De bundelkorting wordt automatisch berekend, tot 50% voor het complete pakket.' },
+        { '@type': 'HowToStep', position: 3, name: 'Download & print', text: 'Reken veilig af en download je bestanden direct om onbeperkt te printen.' },
+      ] },
+    ],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [products]);
+
+  useEffect(() => {
+    applySeo({
+      title: 'Droomvriendjes Printables · Digitale slaaphulp (NL & BE)',
+      description: 'Stel je eigen pakket digitale slaaphulp samen: slaapritueel, slaaplog, affirmatiekaartjes en meer. Direct downloaden, onbeperkt printen, tot 50% bundelkorting. Voor Nederland & België.',
+      canonical: `${SITE}/pro`,
+      og: {
+        type: 'website',
+        title: 'Droomvriendjes Printables — stel je eigen slaaphulp-pakket samen',
+        description: 'Kies je PDF’s en zie direct je prijs. Tot 50% bundelkorting. Direct downloaden in NL & België.',
+        url: `${SITE}/pro`,
+        image: `${SITE}/og-printables.jpg`,
+        site_name: 'Droomvriendjes',
+        locale: 'nl_NL',
+        'locale:alternate': 'nl_BE',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Droomvriendjes Printables — slaaphulp om zelf te printen',
+        description: 'Kies je PDF’s, zie direct je prijs, tot 50% bundelkorting.',
+      },
+      alternates: [
+        { hreflang: 'nl-NL', href: `${SITE}/pro` },
+        { hreflang: 'nl-BE', href: `${SITE}/pro` },
+        { hreflang: 'x-default', href: `${SITE}/pro` },
+      ],
+      jsonLd: proJsonLd,
+      jsonLdId: 'pro-jsonld',
+    });
+  }, [proJsonLd]);
+
   return (
     <>
-      <Helmet>
-        <title>Droomvriendjes PRO · Digitale slaaphulp voor het hele gezin</title>
-        <meta name="description" content="5 wetenschappelijk-onderbouwde digitale slaapproducten voor baby's en kinderen: direct downloadbaar, oneindig printbaar, samen voor 50% korting." />
-      </Helmet>
-
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#1a1430] via-[#251a3e] to-[#3a2a4f] text-white" data-testid="pro-hero">
         {/* Decorative stars */}
@@ -204,7 +290,7 @@ const LandingProPage = () => {
             Zoete dromen <span className="italic text-amber-300">beginnen vanavond</span>.
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl leading-relaxed mb-10">
-            Vijf doordachte digitale slaapproducten — direct downloadbaar, oneindig printbaar.
+            Doordachte digitale slaaphulp — direct downloadbaar, oneindig printbaar.
             Geen verzending, geen wachten. Door pedagogen getoetst, door duizenden ouders bewezen.
           </p>
           <div className="flex flex-wrap gap-4 mb-16">
@@ -395,55 +481,123 @@ const LandingProPage = () => {
         </div>
       </section>
 
-      {/* BUNDLE */}
+      {/* BUNDLE CALCULATOR */}
       <section id="bundle" className="bg-gradient-to-br from-[#1a1430] via-[#2a1f44] to-[#3a2a4f] py-24 text-white relative overflow-hidden" data-testid="pro-bundle">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl" />
 
-        <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center">
-          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300 mb-3">
-            De voordeelpakketten
-          </span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
-            Alles in één, voor <span className="italic text-amber-300">50% korting</span>.
-          </h2>
-          <p className="text-white/70 mb-10 max-w-2xl mx-auto">
-            Alle 8 PDF's samen — van slaapritueel en slaaplog tot affirmatiekaartjes, kleurplaten, het visuele schema, regressie-cards, weekplanner én voorleesboek.
-            Eén compleet bedtijd-pakket.
-          </p>
-          <div className="relative bg-white/[0.04] backdrop-blur border border-white/10 rounded-3xl p-8 lg:p-10">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-stone-900 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-              ⭐ Meest gekozen
-            </div>
-            <div className="flex flex-wrap gap-2 justify-center mb-8">
-              {products.map((p) => (
-                <span key={p.id} className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-xs text-white/80">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />
-                  {p.name}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-baseline justify-center gap-3 mb-2">
-              <span className="text-white/40 line-through text-2xl">
-                €{totalLoose.toFixed(2).replace('.', ',')}
-              </span>
-              <span className="text-amber-300 font-bold text-5xl md:text-6xl">
-                €{bundlePrice.toFixed(2).replace('.', ',')}
-              </span>
-            </div>
-            <p className="text-amber-200/80 text-sm mb-8">
-              Je bespaart €{bundleSave.toFixed(2).replace('.', ',')} t.o.v. losse aanschaf
+        <div className="relative max-w-5xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300 mb-3">
+              Stel je eigen pakket samen
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+              Kies je PDF's, <span className="italic text-amber-300">zie direct je prijs</span>.
+            </h2>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              Hoe meer je toevoegt, hoe hoger je bundelkorting — oplopend tot <strong className="text-amber-300">50%</strong> voor het complete pakket.
+              De korting wordt automatisch toegepast in je winkelwagen.
             </p>
-            <Link
-              to="/product/digital-bedtime-chart"
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-4 rounded-xl shadow-xl transition-all hover:translate-y-[-2px]"
-              data-testid="pro-bundle-cta"
-            >
-              <Sparkles className="w-5 h-5" /> Bekijk de PDFs en kies
-            </Link>
-            <p className="text-xs text-white/40 mt-5">
-              Tip: voeg meerdere PDFs samen toe aan je winkelwagen en de 50%-korting wordt automatisch berekend.
-            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
+            {/* Selectable printables */}
+            <div className="grid sm:grid-cols-2 gap-3" data-testid="calc-products">
+              {products.map((p) => {
+                const isOn = selected.has(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggle(p.id)}
+                    aria-pressed={isOn}
+                    data-testid={`calc-item-${p.id}`}
+                    className={`text-left rounded-2xl p-4 border transition-all flex items-start gap-3 ${
+                      isOn
+                        ? 'bg-amber-500/15 border-amber-400/60 shadow-lg shadow-amber-500/5'
+                        : 'bg-white/[0.03] border-white/10 hover:border-white/25'
+                    }`}
+                  >
+                    <span className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${isOn ? 'bg-amber-400 text-stone-900' : 'border border-white/30'}`}>
+                      {isOn && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-sm leading-snug">{p.name}</span>
+                        <span className="text-amber-200 font-bold text-sm whitespace-nowrap">{eur(p.price)}</span>
+                      </span>
+                      <span className="block text-[11px] text-white/50 mt-0.5">{p.category}</span>
+                    </span>
+                  </button>
+                );
+              })}
+              <div className="sm:col-span-2 flex gap-2 text-xs">
+                <button type="button" onClick={selectAll} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors" data-testid="calc-select-all">Alles selecteren</button>
+                <button type="button" onClick={clearAll} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors" data-testid="calc-clear-all">Wis selectie</button>
+              </div>
+            </div>
+
+            {/* Live price summary */}
+            <div className="relative bg-white/[0.05] backdrop-blur border border-white/10 rounded-3xl p-6 lg:sticky lg:top-6" data-testid="calc-summary">
+              <div className="flex items-center justify-between text-sm text-white/70 mb-3">
+                <span>Geselecteerd</span>
+                <span className="font-semibold text-white" data-testid="calc-count">{calc.count} PDF{calc.count === 1 ? '' : "'s"}</span>
+              </div>
+              {/* progress bar to next tier */}
+              <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-1">
+                <div className="h-full bg-gradient-to-r from-amber-400 to-amber-300 transition-all duration-300" style={{ width: `${(calc.pct / 0.5) * 100}%` }} />
+              </div>
+              {calc.label && <p className="text-[11px] text-amber-300 font-semibold mb-3" data-testid="calc-tier">{calc.label}</p>}
+              {!calc.label && calc.count > 0 && <p className="text-[11px] text-white/50 mb-3">Voeg er nog één toe voor 20% bundelkorting</p>}
+
+              <div className="space-y-1.5 text-sm border-t border-white/10 pt-3 mt-3">
+                <div className="flex justify-between text-white/70">
+                  <span>Subtotaal</span>
+                  <span data-testid="calc-subtotal">{eur(calc.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-amber-300">
+                  <span>Bundelkorting{calc.pct > 0 ? ` (${Math.round(calc.pct * 100)}%)` : ''}</span>
+                  <span data-testid="calc-discount">−{eur(calc.discount)}</span>
+                </div>
+              </div>
+              <div className="flex items-baseline justify-between border-t border-white/10 pt-3 mt-3 mb-5">
+                <span className="text-white/70 text-sm">Totaal</span>
+                <span className="text-amber-300 font-bold text-4xl" data-testid="calc-total">{eur(calc.total)}</span>
+              </div>
+
+              {added ? (
+                <div data-testid="calc-added">
+                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-semibold mb-3">
+                    <Check className="w-5 h-5" strokeWidth={3} /> Toegevoegd aan winkelwagen
+                  </div>
+                  <Link
+                    to="/checkout"
+                    data-testid="calc-checkout"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-6 py-4 rounded-xl shadow-xl transition-all hover:translate-y-[-2px]"
+                  >
+                    Afrekenen — {eur(calc.total)} <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <button type="button" onClick={() => setAdded(false)} className="w-full text-center text-white/50 hover:text-white/80 text-xs mt-3 transition-colors" data-testid="calc-continue">
+                    Verder samenstellen
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={addBundleToCart}
+                  disabled={calc.count === 0}
+                  data-testid="calc-add-to-cart"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-stone-900 font-bold px-6 py-4 rounded-xl shadow-xl transition-all hover:translate-y-[-2px]"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  {calc.count === 0 ? 'Kies eerst een PDF' : `Voeg ${calc.count} PDF${calc.count === 1 ? '' : "'s"} toe`}
+                </button>
+              )}
+              {!added && calc.discount > 0 && (
+                <p className="text-center text-amber-200/80 text-xs mt-3" data-testid="calc-save">Je bespaart {eur(calc.discount)} 🎉</p>
+              )}
+              <p className="text-center text-[11px] text-white/40 mt-3">Direct downloaden · onbeperkt printen · NL &amp; België</p>
+            </div>
           </div>
         </div>
       </section>

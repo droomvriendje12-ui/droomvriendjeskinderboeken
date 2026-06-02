@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { trackViewPromotion, trackSelectPromotion, trackViewItemList } from '../utils/analytics';
+import { applySeo } from '../lib/seo';
 
 const QUIZ_PROMO = { promotion_id: 'droomvriendje_quiz', promotion_name: 'Droomvriendje Quiz', creative_name: 'quiz_landing', creative_slot: 'quiz_intro' };
 import {
@@ -265,15 +265,58 @@ const QuizPage = () => {
 
   const progress = phase === 'quiz' ? ((qIndex + 1) / (QUESTIONS.length + 1)) * 100 : phase === 'email' ? 90 : 0;
 
+  // SEO/GEO structured data (NL + BE markt)
+  const SITE = 'https://droomvriendjes.com';
+  const QUIZ_FAQS = [
+    { q: 'Hoe werkt de Droomvriendje-quiz?', a: 'Beantwoord een paar korte vragen over je kindje. Op basis daarvan bevelen we de best passende slaapknuffel met nachtlampje aan — en je ontvangt 10% korting.' },
+    { q: 'Is de quiz gratis?', a: 'Ja, de quiz is volledig gratis en duurt minder dan een minuut.' },
+    { q: 'Voor welke leeftijd zijn de knuffels?', a: 'Onze slaapknuffels zijn geschikt voor baby’s en kinderen van 0 tot 6 jaar.' },
+    { q: 'Leveren jullie ook in België?', a: 'Ja, we leveren gratis in zowel Nederland als België.' },
+  ];
+  const quizJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+        { '@type': 'ListItem', position: 2, name: 'Knuffel-quiz', item: `${SITE}/quiz` },
+      ] },
+      { '@type': 'FAQPage', mainEntity: QUIZ_FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+    ],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), []);
+
+  useEffect(() => {
+    applySeo({
+      title: 'Droomvriendje Quiz | Ontdek welke slaapknuffel bij jouw kindje past',
+      description: 'Doe de gratis Droomvriendje-quiz: een paar vragen en je ontdekt welke slaapknuffel met nachtlampje het beste bij jouw kindje past. Inclusief 10% korting. Voor Nederland & België.',
+      canonical: `${SITE}/quiz`,
+      og: {
+        type: 'website',
+        title: 'Ontdek jouw Droomvriendje-type 🧸',
+        description: 'Welke slaapknuffel past bij jouw kindje? Doe de gratis test en ontvang 10% korting!',
+        url: `${SITE}/quiz`,
+        image: `${SITE}/og-quiz.jpg`,
+        site_name: 'Droomvriendjes',
+        locale: 'nl_NL',
+        'locale:alternate': 'nl_BE',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Ontdek jouw Droomvriendje-type',
+        description: 'Doe de gratis knuffel-quiz en krijg 10% korting.',
+      },
+      alternates: [
+        { hreflang: 'nl-NL', href: `${SITE}/quiz` },
+        { hreflang: 'nl-BE', href: `${SITE}/quiz` },
+        { hreflang: 'x-default', href: `${SITE}/quiz` },
+      ],
+      jsonLd: quizJsonLd,
+      jsonLdId: 'quiz-jsonld',
+    });
+  }, [quizJsonLd]);
+
   return (
     <div className="min-h-screen bg-cream flex flex-col">
-      <Helmet>
-        <title>Droomvriendje Quiz | Ontdek welke slaapknuffel bij jouw kindje past</title>
-        <meta name="description" content="Doe de gratis Droomvriendje-quiz: 4 vragen en je ontdekt welke slaapknuffel met nachtlampje het beste bij jouw kindje past. Inclusief 10% korting." />
-        <meta property="og:title" content="Ontdek jouw Droomvriendje-type 🧸" />
-        <meta property="og:description" content="Welke slaapknuffel past bij jouw kindje? Doe de gratis test en ontvang 10% korting!" />
-      </Helmet>
-
       <Header />
       <CartSidebar />
 
@@ -310,7 +353,7 @@ const QuizPage = () => {
                 Ontdek jouw <span className="text-warm-brown-500 italic">Droomvriendje</span>-type
               </h1>
               <p className="text-base sm:text-lg text-stone-600 max-w-xl mx-auto mb-8">
-                Beantwoord 4 korte vragen en wij vertellen je precies welke slaapknuffel het beste past bij jouw kindje. Inclusief <span className="font-semibold text-warm-brown-700">10% korting</span> als verrassing.
+                Beantwoord {QUESTIONS.length} korte vragen en wij vertellen je precies welke slaapknuffel het beste past bij jouw kindje. Inclusief <span className="font-semibold text-warm-brown-700">10% korting</span> als verrassing.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-10 text-sm text-stone-500">
@@ -345,7 +388,7 @@ const QuizPage = () => {
                       key={i}
                       onClick={() => handleSelect(i)}
                       data-testid={`quiz-option-${qIndex}-${i}`}
-                      className={`w-full flex items-center gap-4 text-left p-4 sm:p-5 rounded-2xl border-2 transition-all group ${
+                      className={`w-full flex items-center gap-4 text-left p-4 sm:p-5 rounded-2xl border-2 transition-all duration-200 group hover:scale-[1.01] active:scale-[0.99] ${
                         selected
                           ? 'border-warm-brown-500 bg-warm-brown-50 shadow-md'
                           : 'border-stone-200 bg-white hover:border-warm-brown-300 hover:shadow-sm'

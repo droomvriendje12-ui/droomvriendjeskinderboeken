@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 35: Frontend regression of /pro Printables bundle calculator + cart/checkout discount math + SEO + Quiz funnel. Calculator math VERIFIED (2 PDFs=20%, 8 PDFs=50%; 8/8 → sub €34,60 / korting −€17,30 / totaal €17,30). SPA flow calc-checkout link → /checkout displays Subtotaal €34,60 · Korting −€17,30 · Totaal €17,30 (matches order create payload). /pro and /quiz SEO (title, canonical, hreflang nl-NL/nl-BE/x-default, JSON-LD @graph types, og:locale + og:locale:alternate) all correct. Quiz funnel end-to-end works (intro → 4 vragen → email gate → recommended Pinguïn with DROOMQUIZ10 code + In winkelwagen CTA). All calc-* data-testids present and functional (calc-summary, calc-count, calc-subtotal, calc-discount, calc-total, calc-select-all, calc-clear-all, calc-add-to-cart, calc-added, calc-checkout).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Direct URL access / full reload of /checkout with items in localStorage", "issue": "PRE-EXISTING race in CartContext: useEffect that PERSISTS cart to localStorage fires on mount with the initial empty state BEFORE the load effect's setCart has rerendered, briefly wiping localStorage. CheckoutPage's `if (cart.length === 0)` then renders 'Je winkelwagen is leeg' and even after hydration the LS stays empty in some flows. SPA navigation (calc-checkout link, cart sidebar checkout button) is NOT affected and works perfectly. Recommend changing CartProvider to initialise cart via useState lazy initialiser: useState(() => JSON.parse(localStorage.getItem('droomvriendjes_cart') || '[]')) and remove the load useEffect — this also removes the wipe race. Not introduced by this iteration's changes, but worth fixing.", "affected_selectors": ["[data-testid=discount-physical]","[data-testid=discount-digital]","CheckoutPage empty-cart fallback"]}
+    ],
+    "design_issues": []
+  },
+  "verified_features": {
+    "pro_calculator_math": "8/8: sub €34,60 / korting −€17,30 / totaal €17,30 (50%). 2 items: sub €8,90 / korting −€1,78 / totaal €7,12 (20%). calc-select-all and calc-clear-all toggles confirmed.",
+    "pro_calculator_add_to_cart": "calc-add-to-cart → calc-added visible, calc-checkout href=/checkout, text 'Afrekenen — €17,30'. localStorage contains 8 digital items with id 'digital-*' and productType='digital'.",
+    "checkout_8pdf": "/checkout via calc-checkout SPA link shows Subtotaal €34,60, Korting −€17,30, Totaal €17,30. Verzending GRATIS. Veilig betalen €17,30 button displays correct amount. Stopped before Mollie redirect.",
+    "pro_seo": "title='Droomvriendjes Printables · Digitale slaaphulp (NL & BE)'. canonical=https://droomvriendjes.com/pro. hreflang nl-NL/nl-BE/x-default present. og:locale=nl_NL, og:locale:alternate=nl_BE. script#pro-jsonld @graph types: [BreadcrumbList, ItemList, FAQPage, HowTo].",
+    "quiz_seo": "title='Droomvriendje Quiz | Ontdek welke slaapknuffel bij jouw kindje past'. canonical=https://droomvriendjes.com/quiz. hreflang nl-NL/nl-BE/x-default present. script#quiz-jsonld @graph types: [BreadcrumbList, FAQPage].",
+    "quiz_funnel_e2e": "Intro → quiz-start-button → 4 vragen (first option each) → email gate at Q4 → submitted test+regression@example.com → result page 'De Kalmeerder · Pinguïn €49,95 (was €64,95)' + 'In winkelwagen' CTA + DROOMQUIZ10 10% code + share buttons. No console errors.",
+    "code_review_cart_logic": "CartContext.getDiscountBreakdown correctly separates physical (paarsgewijs 50% op goedkoopste) and digital (progressive bundleDiscount). CartSidebar renders discount-physical and discount-digital conditionally with proper testids and labels. CheckoutPage uses getDiscount() = physical+digital as single 'Korting' line. Logic for mixed cart is correct in code.",
+    "regression_homepage_title": "Confirmed homepage retains 'Droomvriendjes | Slaapknuffels met Nachtlampje...' (verified earlier in /app/test_reports/iteration_34)."
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL but recommended: Fix CartContext localStorage hydration race — use lazy useState initialiser instead of useEffect to load cart. Currently a full page reload / direct URL access to /checkout can briefly wipe localStorage and show the empty-cart screen. SPA flows (Link-based navigation) are unaffected, so the calc → checkout user journey works.",
+    "Minor: /checkout POST /api/checkout-started returned 422 in console (probably field validation: cart_items shape or total_amount). Not blocking but warrants a look — open browser console on /checkout to inspect the request body the frontend sends vs the FastAPI schema.",
+    "Cosmetic: physical-only and mixed checkout totals could not be tested via page.goto due to the LS race noted above; the underlying getDiscountBreakdown code is correct and the cart sidebar logic renders both discount lines properly. If you want hard E2E coverage, fix the LS hydration first."
+  ],
+  "critical_code_review_comments": [
+    "CartContext.jsx has a classic 'load+save' useEffect race. The save effect with [cart] deps fires on initial mount with the empty default state, overwriting any persisted cart before the load effect's setCart re-render happens. Fix: useState(() => { try { return JSON.parse(localStorage.getItem('droomvriendjes_cart') || '[]'); } catch { return []; } }) and remove the load useEffect.",
+    "printablesBundle.js is small, deterministic, and properly shared between CartContext.getDiscountBreakdown and the /pro calculator — the single-source-of-truth requirement is satisfied.",
+    "CheckoutPage uses 'Korting' (combined) which matches the spec. CartSidebar uses separate 'discount-physical' and 'discount-digital' testid'd lines.",
+    "/pro and /quiz JSON-LD blocks are computed in useMemo and applied via lib/seo.js applySeo — clean separation."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "Calculator 100%, calc→checkout SPA 100%, SEO /pro 100%, SEO /quiz 100%, Quiz funnel 100%. Mixed/physical-only checkout NOT directly E2E-verified due to LS race on full navigation, but underlying code is correct."},
+  "test_credentials": "Not required for tested flows.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All the spec'd surfaces (calculator math, SEO, quiz, calc→checkout SPA flow) verified. The one open thing is the CartContext localStorage hydration race that prevents page.goto-based E2E tests of /checkout from observing seeded carts. If you need to test physical-only or mixed checkout totals end-to-end, drive the flow via SPA links (click /knuffels nav link, click 'In winkelwagen' buttons, then click CartSidebar [data-testid=checkout-button]) rather than page.goto('/checkout') after localStorage.setItem.",
+  "rca of the issue": "CartProvider has two useEffects: (1) on mount-only, load LS into state via setCart; (2) on every cart change, save state to LS. Both fire on the initial commit. Effect 2's deps include cart which is [] initially, so it writes [] to LS BEFORE Effect 1's setCart-triggered re-render has happened. Result: LS becomes [] momentarily. Effect 1 had already read LS BEFORE Effect 2 ran (effects in declaration order), so Effect 1 saw the original LS value and called setCart with it. After the re-render, Effect 2 fires again with the now-populated cart and restores LS. In normal SPA usage this transient wipe is invisible because effects all settle before the user sees anything. However, with page.goto-style full navigations followed by a quick state inspection (or if React StrictMode double-invokes), the wipe race can appear to wipe the persisted cart. Mitigation: read LS once at state-init time using useState's lazy initialiser and remove the load effect. Not introduced by this iteration's printables-bundle changes."
+}

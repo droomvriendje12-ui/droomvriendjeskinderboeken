@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { trackAddToCart, trackRemoveFromCart, trackViewCart } from '../utils/analytics';
+import { isDigitalItem, bundleDiscount } from '../lib/printablesBundle';
 
 const CartContext = createContext();
 
@@ -104,33 +105,35 @@ export const CartProvider = ({ children }) => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
-  // Bereken korting: 2e knuffel 50% korting
-  // Geldt UITSLUITEND voor fysieke knuffels — digitale PDFs doen niet mee aan
-  // de "buy 2 get 50% off"-promo (label = "2e knuffel ...").
-  const getDiscount = () => {
-    const isDigital = (item) =>
-      item.productType === 'digital' ||
-      (typeof item.id === 'string' && item.id.startsWith('digital-'));
+  // Bereken korting:
+  //  - Fysieke knuffels: 2e knuffel 50% korting ("buy 2 get 50% off").
+  //  - Digitale PDF's: progressieve "Printables bundel"-korting (oplopend tot 50%
+  //    voor het complete pakket). Zie lib/printablesBundle.js — calculator én
+  //    winkelwagen gebruiken exact dezelfde logica.
+  const getDiscountBreakdown = () => {
+    const isDigital = (item) => isDigitalItem(item);
 
-    let allItems = [];
+    // Fysieke knuffels: paarsgewijs 50% op de goedkoopste van elk paar
+    let physArr = [];
     cart.forEach(item => {
       if (isDigital(item)) return;
-      for (let i = 0; i < item.quantity; i++) {
-        allItems.push(item.price);
-      }
+      for (let i = 0; i < item.quantity; i++) physArr.push(item.price);
     });
-    
-    // Sorteer van hoog naar laag (duurste eerst)
-    allItems.sort((a, b) => b - a);
-    
-    // Voor elk paar: volle prijs voor de eerste, 50% korting op de tweede
-    let discount = 0;
-    for (let i = 1; i < allItems.length; i += 2) {
-      discount += allItems[i] * 0.5;
-    }
-    
-    return discount;
+    physArr.sort((a, b) => b - a);
+    let physical = 0;
+    for (let i = 1; i < physArr.length; i += 2) physical += physArr[i] * 0.5;
+
+    // Digitale printables: progressieve bundelkorting
+    const digitalItems = cart.filter(isDigital);
+    const digitalCount = digitalItems.reduce((s, it) => s + it.quantity, 0);
+    const digitalSubtotal = digitalItems.reduce((s, it) => s + it.price * it.quantity, 0);
+    const digital = bundleDiscount(digitalSubtotal, digitalCount);
+
+    const round = (n) => Math.round(n * 100) / 100;
+    return { physical: round(physical), digital: round(digital), total: round(physical + digital) };
   };
+
+  const getDiscount = () => getDiscountBreakdown().total;
 
   // Totaal na korting
   const getTotal = () => {
@@ -150,6 +153,7 @@ export const CartProvider = ({ children }) => {
       clearCart,
       getSubtotal,
       getDiscount,
+      getDiscountBreakdown,
       getTotal,
       getItemCount,
       isCartOpen,

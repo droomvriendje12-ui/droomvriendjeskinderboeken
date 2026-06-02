@@ -10,7 +10,7 @@ import { products } from '../mockData';
 
 const CartSidebar = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, getSubtotal, getDiscount, getTotal, getItemCount, isCartOpen, setIsCartOpen, appliedCoupon, setAppliedCoupon, addToCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, getSubtotal, getDiscount, getDiscountBreakdown, getTotal, getItemCount, isCartOpen, setIsCartOpen, appliedCoupon, setAppliedCoupon, addToCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const crossSellRef = useRef(null);
   const [addedProducts, setAddedProducts] = useState({});
@@ -273,14 +273,23 @@ const CartSidebar = () => {
                 <span>€{getSubtotal().toFixed(2).replace('.', ',')}</span>
               </div>
               
-              {/* 2e knuffel korting */}
-              {getDiscount() > 0 && (
-                <div className="flex justify-between text-green-600 text-sm">
+              {/* Kortingen — fysiek (2e knuffel) en/of digitale printables-bundel */}
+              {getDiscountBreakdown().physical > 0 && (
+                <div className="flex justify-between text-green-600 text-sm" data-testid="discount-physical">
                   <span className="flex items-center gap-2">
                     <Tag className="w-4 h-4" />
                     2e knuffel 50% korting:
                   </span>
-                  <span>-€{getDiscount().toFixed(2).replace('.', ',')}</span>
+                  <span>-€{getDiscountBreakdown().physical.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              {getDiscountBreakdown().digital > 0 && (
+                <div className="flex justify-between text-green-600 text-sm" data-testid="discount-digital">
+                  <span className="flex items-center gap-2">
+                    <Tag className="w-4 h-4" />
+                    Printables bundelkorting:
+                  </span>
+                  <span>-€{getDiscountBreakdown().digital.toFixed(2).replace('.', ',')}</span>
                 </div>
               )}
               

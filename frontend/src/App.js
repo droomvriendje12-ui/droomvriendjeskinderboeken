@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "./context/CartContext";
@@ -90,11 +90,6 @@ import { Toaster } from "./components/ui/toaster";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
-  // Force correct page title
-  useEffect(() => {
-    document.title = "Droomvriendjes | Slaapknuffels met Nachtlampje & Rustgevende Geluiden";
-  }, []);
-
   return (
     <HelmetProvider>
     <div className="App">
