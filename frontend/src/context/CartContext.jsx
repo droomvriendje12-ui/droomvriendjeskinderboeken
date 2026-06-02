@@ -13,23 +13,19 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  // Lazy init from localStorage so a full page reload / direct /checkout URL
+  // never briefly wipes the cart (voorkomt de oude load+save useEffect-race).
+  const [cart, setCart] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('droomvriendjes_cart') || '[]'); }
+    catch { return []; }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('droomvriendjes_cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-    
-    // Load saved coupon
-    const savedCoupon = localStorage.getItem('droomvriendjes_coupon');
-    if (savedCoupon) {
-      setAppliedCoupon(JSON.parse(savedCoupon));
-    }
-  }, []);
+  const [appliedCoupon, setAppliedCoupon] = useState(() => {
+    try {
+      const saved = localStorage.getItem('droomvriendjes_coupon');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
 
   // Save cart to localStorage when it changes
   useEffect(() => {

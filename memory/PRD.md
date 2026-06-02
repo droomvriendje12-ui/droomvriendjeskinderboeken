@@ -11,6 +11,16 @@ Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffe
 - **Email:** Resend
 - **Adres lookup:** PDOK (NL), Be-API (BE)
 
+## CHANGELOG — 2 juni 2026 (avond): Printables Bundle Calculator + Quiz/SEO (NL & BE) — getest 100% (iter 35)
+**1. Bundle Calculator op /pro (twinheart-stijl):** interactieve "Stel je eigen Printables-pakket samen" — selecteer PDF's, zie direct subtotaal/korting/totaal, voortgangsbalk naar volgende tier, succesbevestiging + "Afrekenen"-knop (`calc-*` testids). `LandingProPage.jsx`.
+**2. Echte digitale bundelkorting (fix van een loze belofte):** de /pro-pagina beloofde 50% bundelkorting maar de winkelwagen paste die NIET toe op digitale PDF's. Nu echt geïmplementeerd via gedeelde `lib/printablesBundle.js` (tiers: 2=20%, 4=30%, 6=40%, 8=50%) in `CartContext.getDiscountBreakdown()` (splitst fysiek vs. digitaal) → consistent in calculator + winkelwagen + checkout + Mollie-bedrag. `CartSidebar` toont gescheiden regels `discount-physical` / `discount-digital`. Geverifieerd end-to-end (8 PDF's → €17,30; gemengde mand → fysiek €24,98 + digitaal €1,98).
+**3. Quiz-funnel (earlyacademy-stijl):** al sterke funnel; tactielere optiekaarten (hover-scale) + dynamisch vraag-aantal. Sterke knuffel-aanbeveling + "In winkelwagen" + 10% code blijven.
+**4. SEO/GEO voor NL + BE markt:** `lib/seo.js` (`applySeo` schrijft direct naar `<head>` — react-helmet-async werkte niet betrouwbaar in deze codebase). /pro: title, canonical, OG (nl_NL + nl_BE alternate), Twitter, hreflang nl-NL/nl-BE/x-default, JSON-LD (BreadcrumbList, ItemList, FAQPage, HowTo). /quiz: idem + (BreadcrumbList, FAQPage). 
+**5. GA4 promotie-events** (uit eerdere iteratie) blijven werken op /pro + /quiz.
+**6. Pre-existing bug gefixt:** `CartContext` localStorage-hydratie-race (load+save useEffect) → bij volledige page-reload/directe /checkout-URL liep de winkelwagen kortstondig leeg. Opgelost met lazy `useState`-initializers. Conversie-kritisch.
+**Architectuurkeuze (door gebruiker):** GEEN site-brede meertalige verbouwing/URL-herstructurering — alleen Nederlandstalige content geoptimaliseerd voor NL + BE (hreflang nl-NL/nl-BE naar dezelfde pagina's). Doel gebruiker: knuffelverkoop (50-100 bestellingen). **Deploy vereist.**
+
+
 ## CHANGELOG — 2 juni 2026: Blog CMS volledig overzicht (Optie 1) + GA4 promotie-events (getest 100%, iter 34)
 **Blog CMS afgerond (Optie 1 — veilig):**
 - Probleem: DB-collectie `cms_blogs` was leeg; alle 10 live blogs waren hardcoded in code. Admin toonde niets.
