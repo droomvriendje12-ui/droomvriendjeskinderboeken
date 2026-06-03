@@ -1,5 +1,21 @@
 # Droomvriendjes - Product Requirements Document
 
+## CHANGELOG — 3 juni 2026: FASE 1 — Mollie/PayPal express checkout data-reparatie (P0) — getest (iter 37)
+**Probleem:** Bij express checkout (`/api/express-checkout` in `orders_supabase.py`) werd de order bewust met placeholder-data aangemaakt (`express@pending.nl`, lege naam/adres) omdat naam/adres/e-mail ná betaling van Mollie (PayPal) terug moeten komen. De Mollie-webhook las die teruggekomen `payment.details` (consumerName, consumerAccount, shippingAddress) **nooit uit** → orders bleven leeg → fysieke verzending onmogelijk. `shipping_country` (NL/BE) werd niet gevuld.
+
+**Fix (alles in `backend/routes/orders_supabase.py`):**
+1. **Webhook-verrijking (kern):** `mollie_webhook` roept nu `_enrich_order_from_mollie()` aan zodra status `paid` is — leest `payment.details` (PayPal: `consumerName`, `consumerAccount`=e-mail, `shippingAddress.{streetAndNumber,postalCode,city,country}`) en vult de order. **Idempotent**: overschrijft alleen placeholder/lege velden, raakt echte form-checkout-data niet aan. Gebeurt vóór de bevestigingsmail (anders ging die naar `express@pending.nl`). Vult `shipping_country` voor NL + BE.
+2. **Vangnet in `GET /orders/{id}`:** als een order nog placeholder-data + een `mollie_payment_id` heeft, wordt de Mollie-betaling opnieuw opgehaald en verrijkt — werkt ook als de webhook door timing/netwerk is gemist en toont direct het juiste adres op de bedankpagina.
+3. **Uitgebreide logging:** volledige `details_keys` + (gemaskeerde) geëxtraheerde velden gelogd in webhook/order_fetch/admin_resync. Betaalde **fysieke** express-order zonder adres → rode **systeemmelding** in het dashboard.
+4. **Admin herstel-/debug-tool:** `POST /api/admin/orders/{id}/resync-mollie` → her-fetcht Mollie en verrijkt. UI: knop **"Sync Mollie"** + amber badge **"Adres ontbreekt"** in `AdminOrdersPage.jsx`. Repareert bestaande `express@pending.nl`-orders ná deploy.
+5. **Google Pay/creditcard-knop (gebruikerskeuze b):** creditcard/Google Pay levert via Mollie GEEN verzendadres → `CheckoutPage.jsx` **vereist nu een volledig adres** vóór de Google Pay-betaling (validatie + scroll-to-form + NL-melding). PayPal blijft echte express (adres komt van Mollie terug). Refactor: gedeelde `submitOrder(method)`.
+
+**Testen:** `backend/tests/test_iteration37_mollie_express.py` → **11/11 unit tests** (PayPal NL+BE extractie, creditcard zonder adres, idempotente verrijking, placeholder-detectie). Curl E2E in preview: express-checkout + get_order-vangnet + resync (status=open→still_missing, 404). Frontend smoke: Google Pay vereist adres. **Echte paid-PayPal webhook werkt alleen op productie (live key) → DEPLOY VEREIST.** Na deploy: bestaande lege orders repareren via "Sync Mollie".
+
+---
+
+# Droomvriendjes - Product Requirements Document (vervolg)
+
 ## Originele Probleemstelling
 Nederlandse e-commerce website (droomvriendjes.com) voor innovatieve slaapknuffels voor kinderen. Full-stack platform met React frontend, FastAPI backend, Supabase (primary DB) en MongoDB (analytics).
 

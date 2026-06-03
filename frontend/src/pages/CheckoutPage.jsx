@@ -231,13 +231,33 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.email || !formData.firstName || !formData.lastName || 
+
+    if (!formData.email || !formData.firstName || !formData.lastName ||
         !formData.address || !formData.zipCode || !formData.city) {
       setError('Vul alle verplichte velden in');
       return;
     }
 
+    await submitOrder(formData.paymentMethod);
+  };
+
+  // Google Pay / creditcard "express" — vereist een volledig adres vóór betaling,
+  // omdat creditcard/Google Pay (via Mollie) GEEN verzendadres teruggeeft. Zo
+  // blijven fysieke bestellingen altijd verzendbaar (in tegenstelling tot PayPal,
+  // waar het adres ná betaling van Mollie terugkomt).
+  const handleGooglePay = async () => {
+    if (!formData.email || !formData.firstName || !formData.lastName ||
+        !formData.address || !formData.zipCode || !formData.city) {
+      setError('Vul eerst je gegevens en verzendadres in om met Google Pay te betalen.');
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    await submitOrder('creditcard');
+  };
+
+  // Maakt de order aan met de volledige adresgegevens uit het formulier en start
+  // de Mollie-betaling met de gekozen methode.
+  const submitOrder = async (method) => {
     if (cart.length === 0) {
       setError('Je winkelwagen is leeg');
       return;
@@ -303,7 +323,7 @@ const CheckoutPage = () => {
       const orderData = await orderResponse.json();
 
       // GA4: payment info added (completes the checkout funnel before redirect to Mollie)
-      trackAddPaymentInfo(cart, formData.paymentMethod, appliedCoupon ? appliedCoupon.code : null);
+      trackAddPaymentInfo(cart, method, appliedCoupon ? appliedCoupon.code : null);
 
       // Create payment via backend (SECURE - no API key in frontend!)
       const paymentResponse = await fetch(`/api/payments/create`, {
@@ -311,7 +331,7 @@ const CheckoutPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           order_id: orderData.order_id,
-          payment_method: formData.paymentMethod
+          payment_method: method
         })
       });
 
@@ -439,11 +459,11 @@ const CheckoutPage = () => {
               <div className="bg-white rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6" data-testid="express-checkout">
                 <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Snel Betalen</h2>
                 <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
-                  {/* Google Pay */}
+                  {/* Google Pay (creditcard) — vereist een ingevuld adres */}
                   <button
                     type="button"
                     disabled={isLoading}
-                    onClick={() => handleExpressCheckout('creditcard')}
+                    onClick={handleGooglePay}
                     className="flex-1 max-w-[280px] flex items-center justify-center gap-2 py-3.5 px-5 bg-white border-2 border-slate-200 text-slate-800 rounded-xl font-semibold hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[48px] disabled:opacity-50"
                     data-testid="express-googlepay"
                   >

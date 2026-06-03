@@ -136,6 +136,35 @@ const AdminOrdersPage = () => {
     setTimeout(() => setMessage(null), 4000);
   };
 
+  // FASE 1: order mist verzendgegevens (express/PayPal die nog niet verrijkt is)
+  const needsAddress = (order) =>
+    order.customer_email === 'express@pending.nl' ||
+    order.customer_name === 'Express Checkout' ||
+    !order.shipping_address;
+
+  const [resyncingId, setResyncingId] = useState(null);
+  const handleResyncMollie = async (orderId) => {
+    setResyncingId(orderId);
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}/resync-mollie`, { method: 'POST' });
+      const data = await response.json();
+      if (response.ok && data.ok) {
+        if (data.still_missing) {
+          setMessage({ type: 'error', text: `Mollie gaf nog geen adres terug (status: ${data.mollie_status || '?'}, methode: ${data.mollie_method || '?'}). Probeer later opnieuw of benader de klant.` });
+        } else {
+          setMessage({ type: 'success', text: `Bestelling gesynchroniseerd: ${data.order?.customer_name || ''} — ${data.order?.shipping_address || ''}` });
+          fetchOrders();
+        }
+      } else {
+        setMessage({ type: 'error', text: data.detail || 'Synchroniseren met Mollie mislukt' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Fout bij verbinden met server' });
+    }
+    setResyncingId(null);
+    setTimeout(() => setMessage(null), 5000);
+  };
+
   const totalPages = Math.ceil(totalOrders / LIMIT);
   const allCount = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
@@ -266,6 +295,11 @@ const AdminOrdersPage = () => {
                           <td className="p-3">
                             <div className="font-medium text-sm text-gray-900">{order.customer_name || '-'}</div>
                             <div className="text-xs text-gray-500">{order.customer_email}</div>
+                            {needsAddress(order) && (
+                              <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200" data-testid={`missing-address-badge-${order.order_id}`}>
+                                <MapPin className="w-3 h-3" /> Adres ontbreekt
+                              </span>
+                            )}
                           </td>
                           <td className="p-3">
                             <span className="font-semibold text-sm">&euro;{order.total_amount?.toFixed(2)}</span>
@@ -302,6 +336,19 @@ const AdminOrdersPage = () => {
                           </td>
                           <td className="p-3 text-right">
                             <div className="flex items-center gap-1.5 justify-end">
+                              {needsAddress(order) && order.status !== 'pending' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={resyncingId === order.order_id}
+                                  onClick={() => handleResyncMollie(order.order_id)}
+                                  className="h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                                  data-testid={`resync-mollie-btn-${order.order_id}`}
+                                >
+                                  <RefreshCw className={`w-3.5 h-3.5 mr-1 ${resyncingId === order.order_id ? 'animate-spin' : ''}`} />
+                                  Sync Mollie
+                                </Button>
+                              )}
                               {order.status === 'paid' && !order.tracking_code && (
                                 <Button
                                   size="sm"
