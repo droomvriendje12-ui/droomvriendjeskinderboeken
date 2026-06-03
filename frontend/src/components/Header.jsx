@@ -15,7 +15,8 @@ const Header = () => {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/knuffels", label: "Knuffels" },
-    { href: "/pro", label: "Printables", badge: "Nieuw" },
+    { href: "/kinderboek", label: "Maak een boek", badge: "Nieuw" },
+    { href: "/pro", label: "Printables" },
     { href: "/quiz", label: "Quiz" },
     { href: "/cadeaubon", label: "Cadeaubonnen" },
     { href: "/over-ons", label: "Over Droomvriendjes" },

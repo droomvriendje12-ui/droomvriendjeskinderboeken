@@ -192,6 +192,7 @@ from routes import campaigns as campaigns_route
 from routes import ads_builder as ads_builder_route
 from routes import feed_builder as feed_builder_route
 from routes import story_generator as story_generator_route
+from routes import kids_book as kids_book_route
 
 # Configure routes based on database choice
 if USE_SUPABASE and supabase_client:
@@ -327,6 +328,11 @@ api_router.include_router(feed_builder_route.router)
 # Gepersonaliseerde AI-bedtijdverhaal-generator (publiek, 2 gratis previews/dag)
 story_generator_route.set_database(db)
 api_router.include_router(story_generator_route.router)
+
+# FASE 2 — Gepersonaliseerde kinderboeken-module (preview + Mollie + PDF + Mijn Boek)
+kids_book_route.set_database(db)
+kids_book_route.set_supabase_client(supabase_client)
+api_router.include_router(kids_book_route.router)
 
 # Include marketing router (already has /api prefix in route)
 app.include_router(marketing_route.router)

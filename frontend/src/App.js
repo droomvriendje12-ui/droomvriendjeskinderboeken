@@ -27,6 +27,8 @@ import CadeaubonPage from "./pages/CadeaubonPage";
 import LandingProPage from "./pages/LandingProPage";
 import B2BPage from "./pages/B2BPage";
 import QuizPage from "./pages/QuizPage";
+import KidsBookPage from "./pages/KidsBookPage";
+import MijnBoekPage from "./pages/MijnBoekPage";
 import StressPage from "./pages/StressPage";
 import OverprikkelingPage from "./pages/OverprikkelingPage";
 import AngstPage from "./pages/AngstPage";
@@ -102,6 +104,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/knuffels" element={<KnuffelsPage />} />
+              <Route path="/kinderboek" element={<KidsBookPage />} />
+              <Route path="/mijn-boek/:bookId" element={<MijnBoekPage />} />
               <Route path="/product/:id" element={<ProductPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/betaling-resultaat/:orderId" element={<PaymentResultPage />} />

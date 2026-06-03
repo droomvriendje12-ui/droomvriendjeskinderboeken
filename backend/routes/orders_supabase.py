@@ -872,6 +872,13 @@ async def mollie_webhook(request: Request):
                         )
                     _send_order_confirmation(order, items)
                     _send_order_notification(order, items, 'payment_success')
+                    # FASE 2: start generatie van een gepersonaliseerd kinderboek
+                    # zodra de bijbehorende betaling binnen is (productie-pad).
+                    try:
+                        from routes.kids_book import maybe_start_book_generation
+                        await maybe_start_book_generation(order_id)
+                    except Exception as kb_err:
+                        logger.warning(f"Kon kinderboek-generatie niet starten: {kb_err}")
                     # Digital products: maak entitlements + stuur download mail
                     try:
                         from routes.digital_products import create_entitlements_for_order
