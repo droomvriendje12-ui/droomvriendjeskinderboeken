@@ -1,7 +1,10 @@
-# Emergent.sh files (security cleanup)
+# SECURITY: Remove all Emergent.sh tracking
 .emergent/
+.emergent/**
 emergent.yml
 *.emergent
+emergent.sh
+.emergent-*
 
 # Node modules
 node_modules/
